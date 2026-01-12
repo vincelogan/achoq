@@ -4,6 +4,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --animate-marquee: marquee 25s linear infinite;
+  --keyframes-marquee: {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  };
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -43,39 +48,58 @@
 }
 
 :root {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-600);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --radius: 0.65rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.235 0.015 65);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.235 0.015 65);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.235 0.015 65);
-  --secondary: oklch(0.98 0.001 286.375);
-  --secondary-foreground: oklch(0.4 0.015 65);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.141 0.005 285.823);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.623 0.214 259.815);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.235 0.015 65);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.623 0.214 259.815);
+  /* Neo-Brutalism Palette */
+  --color-electric-blue: #0055FF;
+  --color-acid-green: #CCFF00;
+  --color-hot-pink: #FF00CC;
+  --color-jet-black: #000000;
+  --color-ice-white: #F5F5F5;
+  --color-pure-white: #FFFFFF;
+
+  --primary: var(--color-electric-blue);
+  --primary-foreground: var(--color-pure-white);
+  --sidebar-primary: var(--color-electric-blue);
+  --sidebar-primary-foreground: var(--color-pure-white);
+  
+  --chart-1: var(--color-electric-blue);
+  --chart-2: var(--color-acid-green);
+  --chart-3: var(--color-hot-pink);
+  --chart-4: var(--color-jet-black);
+  --chart-5: #333333;
+
+  --radius: 0px; /* Sharp edges for brutalism */
+  
+  --background: var(--color-ice-white);
+  --foreground: var(--color-jet-black);
+  
+  --card: var(--color-pure-white);
+  --card-foreground: var(--color-jet-black);
+  
+  --popover: var(--color-pure-white);
+  --popover-foreground: var(--color-jet-black);
+  
+  --secondary: var(--color-acid-green);
+  --secondary-foreground: var(--color-jet-black);
+  
+  --muted: #E5E5E5;
+  --muted-foreground: #666666;
+  
+  --accent: var(--color-hot-pink);
+  --accent-foreground: var(--color-pure-white);
+  
+  --destructive: #FF0000;
+  --destructive-foreground: var(--color-pure-white);
+  
+  --border: var(--color-jet-black);
+  --input: var(--color-pure-white);
+  --ring: var(--color-electric-blue);
+  
+  --sidebar: var(--color-pure-white);
+  --sidebar-foreground: var(--color-jet-black);
+  --sidebar-accent: var(--color-acid-green);
+  --sidebar-accent-foreground: var(--color-jet-black);
+  --sidebar-border: var(--color-jet-black);
+  --sidebar-ring: var(--color-electric-blue);
 }
 
 .dark {
@@ -118,7 +142,25 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-mono;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-sans font-bold uppercase tracking-tight;
+  }
+  .neo-shadow {
+    box-shadow: 4px 4px 0px 0px #000000;
+  }
+  .neo-shadow-hover:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px #000000;
+    transition: all 0.1s ease-in-out;
+  }
+  .neo-shadow-active:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px #000000;
+  }
+  .neo-border {
+    border: 2px solid #000000;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
