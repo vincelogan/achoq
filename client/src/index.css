@@ -48,58 +48,53 @@
 }
 
 :root {
-  /* Neo-Brutalism Palette */
-  --color-electric-blue: #0055FF;
-  --color-acid-green: #CCFF00;
-  --color-hot-pink: #FF00CC;
-  --color-jet-black: #000000;
-  --color-ice-white: #F5F5F5;
-  --color-pure-white: #FFFFFF;
+  /* ACHOQ Identity Palette */
+  --color-achoq-red: #D60000;
+  --color-achoq-blue: #0047FF;
+  --color-achoq-black: #111111;
+  --color-achoq-white: #FFFFFF;
+  --color-achoq-gray: #F5F5F5;
 
-  --primary: var(--color-electric-blue);
-  --primary-foreground: var(--color-pure-white);
-  --sidebar-primary: var(--color-electric-blue);
-  --sidebar-primary-foreground: var(--color-pure-white);
+  --primary: var(--color-achoq-blue);
+  --primary-foreground: var(--color-achoq-white);
   
-  --chart-1: var(--color-electric-blue);
-  --chart-2: var(--color-acid-green);
-  --chart-3: var(--color-hot-pink);
-  --chart-4: var(--color-jet-black);
-  --chart-5: #333333;
-
-  --radius: 0px; /* Sharp edges for brutalism */
+  --destructive: var(--color-achoq-red);
+  --destructive-foreground: var(--color-achoq-white);
   
-  --background: var(--color-ice-white);
-  --foreground: var(--color-jet-black);
+  --chart-1: var(--color-achoq-blue);
+  --chart-2: var(--color-achoq-red);
+  --chart-3: var(--color-achoq-black);
   
-  --card: var(--color-pure-white);
-  --card-foreground: var(--color-jet-black);
+  --radius: 0.5rem; /* Modern, clean radius */
   
-  --popover: var(--color-pure-white);
-  --popover-foreground: var(--color-jet-black);
+  --background: var(--color-achoq-white);
+  --foreground: var(--color-achoq-black);
   
-  --secondary: var(--color-acid-green);
-  --secondary-foreground: var(--color-jet-black);
+  --card: var(--color-achoq-white);
+  --card-foreground: var(--color-achoq-black);
   
-  --muted: #E5E5E5;
+  --popover: var(--color-achoq-white);
+  --popover-foreground: var(--color-achoq-black);
+  
+  --secondary: var(--color-achoq-gray);
+  --secondary-foreground: var(--color-achoq-black);
+  
+  --muted: var(--color-achoq-gray);
   --muted-foreground: #666666;
   
-  --accent: var(--color-hot-pink);
-  --accent-foreground: var(--color-pure-white);
+  --accent: var(--color-achoq-gray);
+  --accent-foreground: var(--color-achoq-black);
   
-  --destructive: #FF0000;
-  --destructive-foreground: var(--color-pure-white);
+  --border: #E5E5E5;
+  --input: #E5E5E5;
+  --ring: var(--color-achoq-blue);
   
-  --border: var(--color-jet-black);
-  --input: var(--color-pure-white);
-  --ring: var(--color-electric-blue);
-  
-  --sidebar: var(--color-pure-white);
-  --sidebar-foreground: var(--color-jet-black);
-  --sidebar-accent: var(--color-acid-green);
-  --sidebar-accent-foreground: var(--color-jet-black);
-  --sidebar-border: var(--color-jet-black);
-  --sidebar-ring: var(--color-electric-blue);
+  --sidebar: var(--color-achoq-white);
+  --sidebar-foreground: var(--color-achoq-black);
+  --sidebar-accent: var(--color-achoq-gray);
+  --sidebar-accent-foreground: var(--color-achoq-black);
+  --sidebar-border: #E5E5E5;
+  --sidebar-ring: var(--color-achoq-blue);
 }
 
 .dark {
@@ -147,20 +142,17 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-sans font-bold uppercase tracking-tight;
   }
-  .neo-shadow {
-    box-shadow: 4px 4px 0px 0px #000000;
+  .achoq-shadow {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   }
-  .neo-shadow-hover:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0px 0px #000000;
-    transition: all 0.1s ease-in-out;
+  .achoq-card {
+    @apply border border-gray-200 rounded-lg bg-white shadow-sm;
   }
-  .neo-shadow-active:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px 0px #000000;
+  .achoq-btn-red {
+    @apply bg-[#D60000] text-white hover:bg-[#B00000] transition-colors font-bold uppercase tracking-wide;
   }
-  .neo-border {
-    border: 2px solid #000000;
+  .achoq-btn-blue {
+    @apply bg-[#0047FF] text-white hover:bg-[#0033CC] transition-colors font-bold uppercase tracking-wide;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),

@@ -1,74 +1,117 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Share2, TrendingUp } from "lucide-react";
 
 export default function Hero() {
+  const [hasVoted, setHasVoted] = useState(false);
+  const [vote, setVote] = useState<"left" | "right" | null>(null);
+  
+  // Mock data for initial state
+  const [stats, setStats] = useState({
+    left: 54,
+    right: 46,
+    total: 128392
+  });
+
+  const handleVote = (side: "left" | "right") => {
+    setVote(side);
+    setHasVoted(true);
+    // In a real app, this would send data to backend
+  };
+
+  const shareText = `O ACHOQ mostra ${stats.left}% de expectativa para ESQUERDA em 2026. E você, o que acha?`;
+  const shareUrl = "https://achoq.com.br"; // Placeholder
+
   return (
-    <section className="relative w-full border-b-2 border-black overflow-hidden bg-white">
-      <div className="absolute inset-0 z-0 opacity-10">
-        <img 
-          src="/images/hero-bg.jpg" 
-          alt="Background" 
-          className="w-full h-full object-cover"
-        />
-      </div>
-      
-      <div className="container relative z-10 py-20 md:py-32 flex flex-col items-center text-center">
-        <div className="inline-flex items-center gap-2 border-2 border-black bg-secondary px-4 py-1 mb-8 neo-shadow rotate-[-2deg]">
-          <span className="font-mono text-sm font-bold uppercase">Eleições 2026: Mercado Aberto</span>
-        </div>
-        
-        <h1 className="max-w-4xl text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter uppercase leading-[0.9] mb-6">
-          Onde o Brasil <br/>
-          <span className="text-primary bg-black/5 px-2">Aposta no Futuro</span>
-        </h1>
-        
-        <p className="max-w-2xl text-lg md:text-xl font-mono text-muted-foreground mb-10 bg-white/80 p-2 border border-black/10 backdrop-blur-sm">
-          Transforme sua intuição em ativos. Acompanhe as probabilidades reais das eleições de 2026 baseadas no mercado, não apenas em pesquisas.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
-          <Button size="lg" className="h-14 px-8 text-lg font-mono font-bold border-2 border-black rounded-none bg-primary text-white hover:bg-primary/90 neo-shadow hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_#000] transition-all">
-            Ver Mercados Ativos
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-          <Button size="lg" variant="outline" className="h-14 px-8 text-lg font-mono font-bold border-2 border-black rounded-none bg-white hover:bg-accent hover:text-white neo-shadow hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_#000] transition-all">
-            Entrar na Lista de Espera
-          </Button>
-        </div>
-      </div>
-      
-      {/* Ticker Tape */}
-      <div className="w-full bg-black text-white py-3 border-y-2 border-black overflow-hidden whitespace-nowrap">
-        <div className="animate-marquee inline-block">
-          <span className="mx-4 font-mono font-bold text-lg">LULA 45%</span>
-          <span className="mx-4 font-mono font-bold text-lg text-acid-green">▲ 2.1%</span>
-          <span className="mx-8 text-gray-500">|</span>
-          <span className="mx-4 font-mono font-bold text-lg">TARCÍSIO 32%</span>
-          <span className="mx-4 font-mono font-bold text-lg text-hot-pink">▼ 0.5%</span>
-          <span className="mx-8 text-gray-500">|</span>
-          <span className="mx-4 font-mono font-bold text-lg">CAIADO 8%</span>
-          <span className="mx-4 font-mono font-bold text-lg text-acid-green">▲ 0.2%</span>
-          <span className="mx-8 text-gray-500">|</span>
-          <span className="mx-4 font-mono font-bold text-lg">ZEMA 5%</span>
-          <span className="mx-4 font-mono font-bold text-lg text-gray-400">- 0.0%</span>
-          <span className="mx-8 text-gray-500">|</span>
-          <span className="mx-4 font-mono font-bold text-lg">OUTROS 10%</span>
-          <span className="mx-4 font-mono font-bold text-lg text-hot-pink">▼ 1.8%</span>
-          <span className="mx-8 text-gray-500">|</span>
-           <span className="mx-4 font-mono font-bold text-lg">LULA 45%</span>
-          <span className="mx-4 font-mono font-bold text-lg text-acid-green">▲ 2.1%</span>
-          <span className="mx-8 text-gray-500">|</span>
-          <span className="mx-4 font-mono font-bold text-lg">TARCÍSIO 32%</span>
-          <span className="mx-4 font-mono font-bold text-lg text-hot-pink">▼ 0.5%</span>
-          <span className="mx-8 text-gray-500">|</span>
-          <span className="mx-4 font-mono font-bold text-lg">CAIADO 8%</span>
-          <span className="mx-4 font-mono font-bold text-lg text-acid-green">▲ 0.2%</span>
-          <span className="mx-8 text-gray-500">|</span>
-          <span className="mx-4 font-mono font-bold text-lg">ZEMA 5%</span>
-          <span className="mx-4 font-mono font-bold text-lg text-gray-400">- 0.0%</span>
-          <span className="mx-8 text-gray-500">|</span>
-          <span className="mx-4 font-mono font-bold text-lg">OUTROS 10%</span>
-          <span className="mx-4 font-mono font-bold text-lg text-hot-pink">▼ 1.8%</span>
+    <section className="relative w-full py-12 md:py-24 lg:py-32 bg-white overflow-hidden">
+      <div className="container px-4 md:px-6">
+        <div className="flex flex-col items-center space-y-8 text-center">
+          
+          <div className="space-y-4 max-w-3xl">
+            <h1 className="text-4xl font-black tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl text-black uppercase leading-[0.9]">
+              O Brasil acha que <br className="hidden sm:inline" />
+              <span className="text-gray-400">quem vence 2026?</span>
+            </h1>
+            <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl font-medium">
+              Veja a expectativa coletiva em tempo real.
+            </p>
+          </div>
+
+          <div className="w-full max-w-4xl mt-8">
+            <AnimatePresence mode="wait">
+              {!hasVoted ? (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 w-full"
+                >
+                  <button 
+                    onClick={() => handleVote("left")}
+                    className="group relative h-32 md:h-48 w-full bg-[#D60000] hover:bg-[#B00000] transition-all duration-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 flex flex-col items-center justify-center overflow-hidden"
+                  >
+                    <span className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter z-10">Esquerda</span>
+                    <span className="text-white/80 text-sm md:text-base font-medium mt-2 z-10">(Campo Progressista)</span>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                  </button>
+
+                  <button 
+                    onClick={() => handleVote("right")}
+                    className="group relative h-32 md:h-48 w-full bg-[#0047FF] hover:bg-[#0033CC] transition-all duration-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 flex flex-col items-center justify-center overflow-hidden"
+                  >
+                    <span className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter z-10">Direita</span>
+                    <span className="text-white/80 text-sm md:text-base font-medium mt-2 z-10">(Campo Conservador)</span>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="w-full bg-white border border-gray-200 rounded-2xl shadow-xl p-6 md:p-12"
+                >
+                  <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
+                    <div className="text-center md:text-left w-full">
+                      <div className="text-[#D60000] text-6xl md:text-8xl font-black tracking-tighter leading-none">{stats.left}%</div>
+                      <div className="text-gray-500 font-bold uppercase tracking-wide mt-2">Esquerda</div>
+                    </div>
+                    
+                    <div className="h-px w-full md:w-px md:h-32 bg-gray-200" />
+                    
+                    <div className="text-center md:text-right w-full">
+                      <div className="text-[#0047FF] text-6xl md:text-8xl font-black tracking-tighter leading-none">{stats.right}%</div>
+                      <div className="text-gray-500 font-bold uppercase tracking-wide mt-2">Direita</div>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="w-full h-4 bg-gray-100 rounded-full overflow-hidden mb-8 flex">
+                    <div className="h-full bg-[#D60000]" style={{ width: `${stats.left}%` }} />
+                    <div className="h-full bg-[#0047FF]" style={{ width: `${stats.right}%` }} />
+                  </div>
+
+                  <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex items-center gap-2 text-sm text-gray-500 font-mono">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                      Atualizado em tempo real • {stats.total.toLocaleString()} participações
+                    </div>
+
+                    <div className="flex gap-3 w-full md:w-auto">
+                      <Button 
+                        className="flex-1 md:flex-none bg-black text-white hover:bg-gray-800 font-bold rounded-lg h-12 px-6"
+                        onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${shareUrl}`, '_blank')}
+                      >
+                        <Share2 className="mr-2 h-4 w-4" />
+                        Compartilhar Resultado
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
         </div>
       </div>
     </section>
