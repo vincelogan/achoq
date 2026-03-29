@@ -66,26 +66,26 @@ export default function Hero() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <button 
                       onClick={() => handleVote("left")}
-                      className="group relative w-full bg-white border border-gray-200 hover:border-[#D60000] transition-all duration-200 rounded-lg p-4 flex justify-between items-center hover:shadow-sm"
+                      className="group relative w-full bg-white border border-gray-200 hover:border-[#B91C1C] transition-all duration-200 rounded-lg p-4 flex justify-between items-center hover:shadow-sm"
                     >
                       <div className="flex flex-col items-start">
-                        <span className="text-lg font-bold text-gray-900 group-hover:text-[#D60000] transition-colors">Esquerda</span>
+                        <span className="text-lg font-bold text-gray-900 group-hover:text-[#B91C1C] transition-colors">Esquerda</span>
                         <span className="text-xs text-gray-500">Campo Progressista</span>
                       </div>
-                      <div className="bg-gray-50 group-hover:bg-[#D60000]/10 text-gray-900 group-hover:text-[#D60000] px-4 py-2 rounded-md font-mono font-bold text-lg transition-colors">
+                      <div className="bg-gray-50 group-hover:bg-[#B91C1C]/10 text-gray-900 group-hover:text-[#B91C1C] px-4 py-2 rounded-md font-mono font-bold text-lg transition-colors">
                         {stats.left}%
                       </div>
                     </button>
 
                     <button 
                       onClick={() => handleVote("right")}
-                      className="group relative w-full bg-white border border-gray-200 hover:border-[#0047FF] transition-all duration-200 rounded-lg p-4 flex justify-between items-center hover:shadow-sm"
+                      className="group relative w-full bg-white border border-gray-200 hover:border-[#002B5C] transition-all duration-200 rounded-lg p-4 flex justify-between items-center hover:shadow-sm"
                     >
                       <div className="flex flex-col items-start">
-                        <span className="text-lg font-bold text-gray-900 group-hover:text-[#0047FF] transition-colors">Direita</span>
+                        <span className="text-lg font-bold text-gray-900 group-hover:text-[#002B5C] transition-colors">Direita</span>
                         <span className="text-xs text-gray-500">Campo Conservador</span>
                       </div>
-                      <div className="bg-gray-50 group-hover:bg-[#0047FF]/10 text-gray-900 group-hover:text-[#0047FF] px-4 py-2 rounded-md font-mono font-bold text-lg transition-colors">
+                      <div className="bg-gray-50 group-hover:bg-[#002B5C]/10 text-gray-900 group-hover:text-[#002B5C] px-4 py-2 rounded-md font-mono font-bold text-lg transition-colors">
                         {stats.right}%
                       </div>
                     </button>
@@ -99,7 +99,7 @@ export default function Hero() {
                 >
                   <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-100">
                     <span className="text-sm text-gray-600">Sua previsão:</span>
-                    <span className={`font-bold uppercase text-sm px-3 py-1 rounded-md ${vote === 'left' ? 'bg-[#D60000]/10 text-[#D60000]' : 'bg-[#0047FF]/10 text-[#0047FF]'}`}>
+                    <span className={`font-bold uppercase text-sm px-3 py-1 rounded-md ${vote === 'left' ? 'bg-[#B91C1C]/10 text-[#B91C1C]' : 'bg-[#002B5C]/10 text-[#002B5C]'}`}>
                       {vote === 'left' ? 'Esquerda' : 'Direita'}
                     </span>
                   </div>
@@ -107,18 +107,18 @@ export default function Hero() {
                   <div className="space-y-6">
                     <div className="flex justify-between items-end">
                       <div className="space-y-1">
-                        <div className="text-3xl font-bold text-[#D60000]">{stats.left}%</div>
+                        <div className="text-3xl font-bold text-[#B91C1C]">{stats.left}%</div>
                         <div className="text-sm font-medium text-gray-500 uppercase">Esquerda</div>
                       </div>
                       <div className="space-y-1 text-right">
-                        <div className="text-3xl font-bold text-[#0047FF]">{stats.right}%</div>
+                        <div className="text-3xl font-bold text-[#002B5C]">{stats.right}%</div>
                         <div className="text-sm font-medium text-gray-500 uppercase">Direita</div>
                       </div>
                     </div>
 
                     <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden flex">
-                      <div className="h-full bg-[#D60000] transition-all duration-1000" style={{ width: `${stats.left}%` }} />
-                      <div className="h-full bg-[#0047FF] transition-all duration-1000" style={{ width: `${stats.right}%` }} />
+                      <div className="h-full bg-[#B91C1C] transition-all duration-1000" style={{ width: `${stats.left}%` }} />
+                      <div className="h-full bg-[#002B5C] transition-all duration-1000" style={{ width: `${stats.right}%` }} />
                     </div>
                   </div>
 
