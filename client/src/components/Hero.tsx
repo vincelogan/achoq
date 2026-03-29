@@ -30,8 +30,8 @@ export default function Hero() {
           
           <div className="space-y-4 max-w-3xl">
             <h1 className="text-4xl font-black tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl text-black uppercase leading-[0.9]">
-              O Brasil acha que <br className="hidden sm:inline" />
-              <span className="text-gray-400">quem vence 2026?</span>
+              Quem você acha que <br className="hidden sm:inline" />
+              <span className="text-gray-400">vence 2026?</span>
             </h1>
             <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl font-medium">
               Veja a expectativa coletiva em tempo real.
@@ -71,6 +71,13 @@ export default function Hero() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="w-full bg-white border border-gray-200 rounded-2xl shadow-xl p-6 md:p-12"
                 >
+                  {vote && (
+                    <div className="mb-8 text-center">
+                      <span className="inline-block bg-gray-100 text-gray-800 px-4 py-2 rounded-full font-bold uppercase tracking-wide text-sm">
+                        Acho que: <span className={vote === 'left' ? 'text-[#D60000]' : 'text-[#0047FF]'}>{vote === 'left' ? 'Esquerda' : 'Direita'}</span>
+                      </span>
+                    </div>
+                  )}
                   <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
                     <div className="text-center md:text-left w-full">
                       <div className="text-[#D60000] text-6xl md:text-8xl font-black tracking-tighter leading-none">{stats.left}%</div>
