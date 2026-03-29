@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import OtherMarkets from "@/components/OtherMarkets";
 import TrendChart from "@/components/TrendChart";
 import Demographics from "@/components/Demographics";
 import HowItWorks from "@/components/HowItWorks";
@@ -13,6 +14,7 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <Hero />
+        <OtherMarkets />
         <TrendChart />
         <HowItWorks />
         <Demographics />
