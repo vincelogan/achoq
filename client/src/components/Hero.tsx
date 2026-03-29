@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Share2, TrendingUp } from "lucide-react";
+import { Share2, TrendingUp, Info } from "lucide-react";
 
 export default function Hero() {
   const [hasVoted, setHasVoted] = useState(false);
@@ -24,102 +24,120 @@ export default function Hero() {
   const shareUrl = "https://achoq.com.br"; // Placeholder
 
   return (
-    <section className="relative w-full py-12 md:py-24 lg:py-32 bg-white overflow-hidden">
-      <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center space-y-8 text-center">
-          
-          <div className="space-y-4 max-w-3xl">
-            <h1 className="text-4xl font-black tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl text-black uppercase leading-[0.9]">
-              Quem você acha que <br className="hidden sm:inline" />
-              <span className="text-gray-400">vence 2026?</span>
-            </h1>
-            <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl font-medium">
-              Veja a expectativa coletiva em tempo real.
-            </p>
+    <section className="relative w-full py-8 md:py-16 bg-gray-50/50">
+      <div className="container px-4 md:px-6 max-w-4xl mx-auto">
+        
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-2">
+            Quem você acha que vence 2026?
+          </h1>
+          <p className="text-gray-500 text-sm md:text-base flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Mercado de Opinião • {stats.total.toLocaleString()} participações
+          </p>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="p-4 md:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Mercado Ativo</span>
+            </div>
+            <div className="text-xs text-gray-500 flex items-center gap-1 cursor-pointer hover:text-gray-800 transition-colors">
+              <Info className="w-4 h-4" />
+              Regras
+            </div>
           </div>
 
-          <div className="w-full max-w-4xl mt-8">
+          <div className="p-6 md:p-8">
             <AnimatePresence mode="wait">
               {!hasVoted ? (
                 <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 w-full"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-6"
                 >
-                  <button 
-                    onClick={() => handleVote("left")}
-                    className="group relative h-32 md:h-48 w-full bg-[#D60000] hover:bg-[#B00000] transition-all duration-300 rounded-3xl shadow-[0_8px_30px_rgb(214,0,0,0.3)] hover:shadow-[0_12px_40px_rgb(214,0,0,0.4)] hover:-translate-y-1 flex flex-col items-center justify-center overflow-hidden"
-                  >
-                    <span className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter z-10">Esquerda</span>
-                    <span className="text-white/90 text-sm md:text-base font-medium mt-2 z-10">Campo Progressista</span>
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                  </button>
+                  <div className="flex justify-between text-sm text-gray-500 mb-2 px-1">
+                    <span>Escolha sua previsão</span>
+                    <span>Probabilidade atual</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button 
+                      onClick={() => handleVote("left")}
+                      className="group relative w-full bg-white border border-gray-200 hover:border-[#D60000] transition-all duration-200 rounded-lg p-4 flex justify-between items-center hover:shadow-sm"
+                    >
+                      <div className="flex flex-col items-start">
+                        <span className="text-lg font-bold text-gray-900 group-hover:text-[#D60000] transition-colors">Esquerda</span>
+                        <span className="text-xs text-gray-500">Campo Progressista</span>
+                      </div>
+                      <div className="bg-gray-50 group-hover:bg-[#D60000]/10 text-gray-900 group-hover:text-[#D60000] px-4 py-2 rounded-md font-mono font-bold text-lg transition-colors">
+                        {stats.left}%
+                      </div>
+                    </button>
 
-                  <button 
-                    onClick={() => handleVote("right")}
-                    className="group relative h-32 md:h-48 w-full bg-[#0047FF] hover:bg-[#0033CC] transition-all duration-300 rounded-3xl shadow-[0_8px_30px_rgb(0,71,255,0.3)] hover:shadow-[0_12px_40px_rgb(0,71,255,0.4)] hover:-translate-y-1 flex flex-col items-center justify-center overflow-hidden"
-                  >
-                    <span className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter z-10">Direita</span>
-                    <span className="text-white/90 text-sm md:text-base font-medium mt-2 z-10">Campo Conservador</span>
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                  </button>
+                    <button 
+                      onClick={() => handleVote("right")}
+                      className="group relative w-full bg-white border border-gray-200 hover:border-[#0047FF] transition-all duration-200 rounded-lg p-4 flex justify-between items-center hover:shadow-sm"
+                    >
+                      <div className="flex flex-col items-start">
+                        <span className="text-lg font-bold text-gray-900 group-hover:text-[#0047FF] transition-colors">Direita</span>
+                        <span className="text-xs text-gray-500">Campo Conservador</span>
+                      </div>
+                      <div className="bg-gray-50 group-hover:bg-[#0047FF]/10 text-gray-900 group-hover:text-[#0047FF] px-4 py-2 rounded-md font-mono font-bold text-lg transition-colors">
+                        {stats.right}%
+                      </div>
+                    </button>
+                  </div>
                 </motion.div>
               ) : (
                 <motion.div 
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="w-full bg-white border border-gray-100 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] p-6 md:p-12"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-8"
                 >
-                  {vote && (
-                    <div className="mb-8 text-center">
-                      <span className="inline-block bg-gray-100 text-gray-800 px-4 py-2 rounded-full font-bold uppercase tracking-wide text-sm">
-                        Acho que: <span className={vote === 'left' ? 'text-[#D60000]' : 'text-[#0047FF]'}>{vote === 'left' ? 'Esquerda' : 'Direita'}</span>
-                      </span>
+                  <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-100">
+                    <span className="text-sm text-gray-600">Sua previsão:</span>
+                    <span className={`font-bold uppercase text-sm px-3 py-1 rounded-md ${vote === 'left' ? 'bg-[#D60000]/10 text-[#D60000]' : 'bg-[#0047FF]/10 text-[#0047FF]'}`}>
+                      {vote === 'left' ? 'Esquerda' : 'Direita'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-end">
+                      <div className="space-y-1">
+                        <div className="text-3xl font-bold text-[#D60000]">{stats.left}%</div>
+                        <div className="text-sm font-medium text-gray-500 uppercase">Esquerda</div>
+                      </div>
+                      <div className="space-y-1 text-right">
+                        <div className="text-3xl font-bold text-[#0047FF]">{stats.right}%</div>
+                        <div className="text-sm font-medium text-gray-500 uppercase">Direita</div>
+                      </div>
                     </div>
-                  )}
-                  <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
-                    <div className="text-center md:text-left w-full">
-                      <div className="text-[#D60000] text-6xl md:text-8xl font-black tracking-tighter leading-none">{stats.left}%</div>
-                      <div className="text-gray-500 font-bold uppercase tracking-wide mt-2">Esquerda</div>
-                    </div>
-                    
-                    <div className="h-px w-full md:w-px md:h-32 bg-gray-200" />
-                    
-                    <div className="text-center md:text-right w-full">
-                      <div className="text-[#0047FF] text-6xl md:text-8xl font-black tracking-tighter leading-none">{stats.right}%</div>
-                      <div className="text-gray-500 font-bold uppercase tracking-wide mt-2">Direita</div>
+
+                    <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden flex">
+                      <div className="h-full bg-[#D60000] transition-all duration-1000" style={{ width: `${stats.left}%` }} />
+                      <div className="h-full bg-[#0047FF] transition-all duration-1000" style={{ width: `${stats.right}%` }} />
                     </div>
                   </div>
 
-                  {/* Progress Bar */}
-                  <div className="w-full h-4 bg-gray-100 rounded-full overflow-hidden mb-8 flex">
-                    <div className="h-full bg-[#D60000]" style={{ width: `${stats.left}%` }} />
-                    <div className="h-full bg-[#0047FF]" style={{ width: `${stats.right}%` }} />
-                  </div>
-
-                  <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 font-mono">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                      Atualizado em tempo real • {stats.total.toLocaleString()} participações
-                    </div>
-
-                    <div className="flex gap-3 w-full md:w-auto">
-                      <Button 
-                        className="flex-1 md:flex-none bg-black text-white hover:bg-gray-800 font-bold rounded-lg h-12 px-6"
-                        onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${shareUrl}`, '_blank')}
-                      >
-                        <Share2 className="mr-2 h-4 w-4" />
-                        Compartilhar Resultado
-                      </Button>
-                    </div>
+                  <div className="pt-6 border-t border-gray-100 flex justify-end">
+                    <Button 
+                      variant="outline"
+                      className="border-gray-200 text-gray-700 hover:bg-gray-50"
+                      onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${shareUrl}`, '_blank')}
+                    >
+                      <Share2 className="mr-2 h-4 w-4" />
+                      Compartilhar
+                    </Button>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
-
         </div>
+
       </div>
     </section>
   );

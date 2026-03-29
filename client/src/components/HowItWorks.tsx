@@ -26,22 +26,22 @@ export default function HowItWorks() {
     <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-50 border-y border-gray-200">
       <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">
             Como funciona
           </h2>
-          <p className="max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+          <p className="max-w-[600px] text-gray-500 text-sm md:text-base">
             Simples, transparente e direto. Sem intermediários.
           </p>
         </div>
 
         <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto">
           {steps.map((step, index) => (
-            <div key={index} className="flex flex-col items-center text-center space-y-4 p-6 bg-white rounded-xl shadow-sm border border-gray-100">
-              <div className={`p-4 rounded-full bg-gray-50 ${step.color}`}>
-                <step.icon className="h-10 w-10" />
+            <div key={index} className="flex flex-col items-center text-center space-y-4 p-6 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+              <div className={`p-3 rounded-lg bg-gray-50 border border-gray-100 ${step.color}`}>
+                <step.icon className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold">{step.title}</h3>
-              <p className="text-gray-500">{step.description}</p>
+              <h3 className="text-lg font-semibold text-gray-900">{step.title}</h3>
+              <p className="text-sm text-gray-500">{step.description}</p>
             </div>
           ))}
         </div>

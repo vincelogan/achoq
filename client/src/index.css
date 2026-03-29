@@ -65,7 +65,7 @@
   --chart-2: var(--color-achoq-red);
   --chart-3: var(--color-achoq-black);
   
-  --radius: 1rem; /* Modern, rounded radius */
+  --radius: 0.75rem; /* Kalshi-style radius */
   
   --background: var(--color-achoq-white);
   --foreground: var(--color-achoq-black);
@@ -140,19 +140,19 @@
     @apply bg-background text-foreground font-mono;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-sans font-bold uppercase tracking-tight;
+    @apply font-sans font-semibold tracking-tight text-gray-900;
   }
   .achoq-shadow {
-    box-shadow: 0 10px 40px -10px rgb(0 0 0 / 0.08), 0 4px 12px -4px rgb(0 0 0 / 0.04);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
   }
   .achoq-card {
-    @apply border border-gray-100 rounded-2xl bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)];
+    @apply border border-gray-200 rounded-xl bg-white shadow-sm transition-all duration-200 hover:shadow-md;
   }
   .achoq-btn-red {
-    @apply bg-[#D60000] text-white hover:bg-[#B00000] transition-colors font-bold uppercase tracking-wide;
+    @apply bg-[#D60000] text-white hover:bg-[#B00000] transition-colors font-semibold;
   }
   .achoq-btn-blue {
-    @apply bg-[#0047FF] text-white hover:bg-[#0033CC] transition-colors font-bold uppercase tracking-wide;
+    @apply bg-[#0047FF] text-white hover:bg-[#0033CC] transition-colors font-semibold;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
