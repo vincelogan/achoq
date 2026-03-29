@@ -7,11 +7,9 @@ export default function Footer() {
       <div className="container px-4 md:px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="col-span-1 md:col-span-2">
-            <Link href="/">
-              <a className="flex flex-col leading-none mb-4">
-                <span className="font-sans text-2xl font-black tracking-tighter uppercase text-black">ACHOQ</span>
-                <span className="font-mono text-[10px] text-gray-500 tracking-wide uppercase">powered by Nexar</span>
-              </a>
+            <Link href="/" className="flex flex-col leading-none mb-4">
+              <span className="font-sans text-2xl font-black tracking-tighter uppercase text-black">ACHOQ</span>
+              <span className="font-mono text-[10px] text-gray-500 tracking-wide uppercase">powered by Nexar</span>
             </Link>
             <p className="text-sm text-gray-500 max-w-xs">
               Primeira plataforma de opinião coletiva do Brasil.
@@ -21,17 +19,17 @@ export default function Footer() {
           <div>
             <h4 className="font-bold uppercase text-sm mb-4">Plataforma</h4>
             <ul className="space-y-2 text-sm text-gray-500">
-              <li><Link href="/how-it-works"><a className="hover:text-black transition-colors">Como funciona</a></Link></li>
-              <li><Link href="/ranking"><a className="hover:text-black transition-colors">Ranking</a></Link></li>
-              <li><Link href="/methodology"><a className="hover:text-black transition-colors">Metodologia</a></Link></li>
+              <li><Link href="/how-it-works" className="hover:text-black transition-colors">Como funciona</Link></li>
+              <li><Link href="/ranking" className="hover:text-black transition-colors">Ranking</Link></li>
+              <li><Link href="/methodology" className="hover:text-black transition-colors">Metodologia</Link></li>
             </ul>
           </div>
           
           <div>
             <h4 className="font-bold uppercase text-sm mb-4">Legal</h4>
             <ul className="space-y-2 text-sm text-gray-500">
-              <li><Link href="/terms"><a className="hover:text-black transition-colors">Termos de Uso</a></Link></li>
-              <li><Link href="/privacy"><a className="hover:text-black transition-colors">Privacidade</a></Link></li>
+              <li><Link href="/terms" className="hover:text-black transition-colors">Termos de Uso</Link></li>
+              <li><Link href="/privacy" className="hover:text-black transition-colors">Privacidade</Link></li>
             </ul>
           </div>
         </div>
