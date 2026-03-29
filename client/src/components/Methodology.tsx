@@ -9,7 +9,7 @@ export default function Methodology() {
             Metodologia
           </h2>
           <p className="max-w-[800px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-            O ACHOQ é uma plataforma digital de participação aberta. Os percentuais representam a distribuição das escolhas realizadas pelos participantes.
+            O AchoQ é uma plataforma digital de participação aberta. Os percentuais representam a distribuição das escolhas realizadas pelos participantes.
           </p>
         </div>
 

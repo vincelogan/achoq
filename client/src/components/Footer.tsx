@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="col-span-1 md:col-span-2">
             <Link href="/" className="flex flex-col leading-none mb-4">
-              <span className="font-sans text-2xl font-black tracking-tighter uppercase text-black">ACHOQ</span>
+              <span className="font-sans text-2xl font-black tracking-tighter text-black">AchoQ</span>
               <span className="font-mono text-[10px] text-gray-500 tracking-wide uppercase">powered by Nexar</span>
             </Link>
             <p className="text-sm text-gray-500 max-w-xs">

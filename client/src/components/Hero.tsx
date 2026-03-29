@@ -20,7 +20,7 @@ export default function Hero() {
     // In a real app, this would send data to backend
   };
 
-  const shareText = `O ACHOQ mostra ${stats.left}% de expectativa para ESQUERDA em 2026. E você, o que acha?`;
+  const shareText = `O AchoQ mostra ${stats.left}% de expectativa para ESQUERDA em 2026. E você, o que acha?`;
   const shareUrl = "https://achoq.com.br"; // Placeholder
 
   return (

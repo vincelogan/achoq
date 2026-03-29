@@ -72,18 +72,18 @@ export default function OtherMarkets() {
                       >
                         <button 
                           onClick={() => handleVote(market.id, "yes")}
-                          className="group relative w-full bg-white border border-gray-200 hover:border-green-500 transition-all duration-200 rounded-lg p-3 flex flex-col items-center hover:shadow-sm"
+                          className="group relative w-full bg-white border border-gray-200 hover:border-[#0047FF] transition-all duration-200 rounded-lg p-3 flex flex-col items-center hover:shadow-sm"
                         >
-                          <span className="text-sm font-bold text-gray-900 group-hover:text-green-600 transition-colors mb-1">Acho que sim</span>
-                          <span className="text-lg font-mono font-bold text-gray-500 group-hover:text-green-600">{market.stats.yes}%</span>
+                          <span className="text-sm font-bold text-gray-900 group-hover:text-[#0047FF] transition-colors mb-1">Acho que sim</span>
+                          <span className="text-lg font-mono font-bold text-gray-500 group-hover:text-[#0047FF]">{market.stats.yes}%</span>
                         </button>
 
                         <button 
                           onClick={() => handleVote(market.id, "no")}
-                          className="group relative w-full bg-white border border-gray-200 hover:border-red-500 transition-all duration-200 rounded-lg p-3 flex flex-col items-center hover:shadow-sm"
+                          className="group relative w-full bg-white border border-gray-200 hover:border-[#D60000] transition-all duration-200 rounded-lg p-3 flex flex-col items-center hover:shadow-sm"
                         >
-                          <span className="text-sm font-bold text-gray-900 group-hover:text-red-600 transition-colors mb-1">Acho que não</span>
-                          <span className="text-lg font-mono font-bold text-gray-500 group-hover:text-red-600">{market.stats.no}%</span>
+                          <span className="text-sm font-bold text-gray-900 group-hover:text-[#D60000] transition-colors mb-1">Acho que não</span>
+                          <span className="text-lg font-mono font-bold text-gray-500 group-hover:text-[#D60000]">{market.stats.no}%</span>
                         </button>
                       </motion.div>
                     ) : (
@@ -95,7 +95,7 @@ export default function OtherMarkets() {
                       >
                         <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md border border-gray-100">
                           <span className="text-xs text-gray-500">Sua previsão:</span>
-                          <span className={`font-bold uppercase text-xs px-2 py-1 rounded ${vote === 'yes' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          <span className={`font-bold uppercase text-xs px-2 py-1 rounded ${vote === 'yes' ? 'bg-[#0047FF]/10 text-[#0047FF]' : 'bg-[#D60000]/10 text-[#D60000]'}`}>
                             Acho que {vote === 'yes' ? 'sim' : 'não'}
                           </span>
                         </div>
@@ -103,18 +103,18 @@ export default function OtherMarkets() {
                         <div className="space-y-3">
                           <div className="flex justify-between items-end">
                             <div className="space-y-1">
-                              <div className="text-xl font-bold text-green-600">{market.stats.yes}%</div>
+                              <div className="text-xl font-bold text-[#0047FF]">{market.stats.yes}%</div>
                               <div className="text-xs font-medium text-gray-500 uppercase">Sim</div>
                             </div>
                             <div className="space-y-1 text-right">
-                              <div className="text-xl font-bold text-red-600">{market.stats.no}%</div>
+                              <div className="text-xl font-bold text-[#D60000]">{market.stats.no}%</div>
                               <div className="text-xs font-medium text-gray-500 uppercase">Não</div>
                             </div>
                           </div>
 
                           <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden flex">
-                            <div className="h-full bg-green-500 transition-all duration-1000" style={{ width: `${market.stats.yes}%` }} />
-                            <div className="h-full bg-red-500 transition-all duration-1000" style={{ width: `${market.stats.no}%` }} />
+                            <div className="h-full bg-[#0047FF] transition-all duration-1000" style={{ width: `${market.stats.yes}%` }} />
+                            <div className="h-full bg-[#D60000] transition-all duration-1000" style={{ width: `${market.stats.no}%` }} />
                           </div>
                         </div>
                       </motion.div>
