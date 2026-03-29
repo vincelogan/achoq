@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import TrendChart from "@/components/TrendChart";
-import Ranking from "@/components/Ranking";
+import Demographics from "@/components/Demographics";
 import HowItWorks from "@/components/HowItWorks";
 import Methodology from "@/components/Methodology";
 import Disclaimer from "@/components/Disclaimer";
@@ -15,7 +15,7 @@ export default function Home() {
         <Hero />
         <TrendChart />
         <HowItWorks />
-        <Ranking />
+        <Demographics />
         <Methodology />
         <Disclaimer />
       </main>

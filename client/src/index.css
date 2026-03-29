@@ -65,7 +65,7 @@
   --chart-2: var(--color-achoq-red);
   --chart-3: var(--color-achoq-black);
   
-  --radius: 0.5rem; /* Modern, clean radius */
+  --radius: 1rem; /* Modern, rounded radius */
   
   --background: var(--color-achoq-white);
   --foreground: var(--color-achoq-black);
@@ -143,10 +143,10 @@
     @apply font-sans font-bold uppercase tracking-tight;
   }
   .achoq-shadow {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    box-shadow: 0 10px 40px -10px rgb(0 0 0 / 0.08), 0 4px 12px -4px rgb(0 0 0 / 0.04);
   }
   .achoq-card {
-    @apply border border-gray-200 rounded-lg bg-white shadow-sm;
+    @apply border border-gray-100 rounded-2xl bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)];
   }
   .achoq-btn-red {
     @apply bg-[#D60000] text-white hover:bg-[#B00000] transition-colors font-bold uppercase tracking-wide;

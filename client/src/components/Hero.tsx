@@ -49,19 +49,19 @@ export default function Hero() {
                 >
                   <button 
                     onClick={() => handleVote("left")}
-                    className="group relative h-32 md:h-48 w-full bg-[#D60000] hover:bg-[#B00000] transition-all duration-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 flex flex-col items-center justify-center overflow-hidden"
+                    className="group relative h-32 md:h-48 w-full bg-[#D60000] hover:bg-[#B00000] transition-all duration-300 rounded-3xl shadow-[0_8px_30px_rgb(214,0,0,0.3)] hover:shadow-[0_12px_40px_rgb(214,0,0,0.4)] hover:-translate-y-1 flex flex-col items-center justify-center overflow-hidden"
                   >
                     <span className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter z-10">Esquerda</span>
-                    <span className="text-white/80 text-sm md:text-base font-medium mt-2 z-10">(Campo Progressista)</span>
+                    <span className="text-white/90 text-sm md:text-base font-medium mt-2 z-10">Campo Progressista</span>
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                   </button>
 
                   <button 
                     onClick={() => handleVote("right")}
-                    className="group relative h-32 md:h-48 w-full bg-[#0047FF] hover:bg-[#0033CC] transition-all duration-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 flex flex-col items-center justify-center overflow-hidden"
+                    className="group relative h-32 md:h-48 w-full bg-[#0047FF] hover:bg-[#0033CC] transition-all duration-300 rounded-3xl shadow-[0_8px_30px_rgb(0,71,255,0.3)] hover:shadow-[0_12px_40px_rgb(0,71,255,0.4)] hover:-translate-y-1 flex flex-col items-center justify-center overflow-hidden"
                   >
                     <span className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter z-10">Direita</span>
-                    <span className="text-white/80 text-sm md:text-base font-medium mt-2 z-10">(Campo Conservador)</span>
+                    <span className="text-white/90 text-sm md:text-base font-medium mt-2 z-10">Campo Conservador</span>
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                   </button>
                 </motion.div>
@@ -69,7 +69,7 @@ export default function Hero() {
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="w-full bg-white border border-gray-200 rounded-2xl shadow-xl p-6 md:p-12"
+                  className="w-full bg-white border border-gray-100 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] p-6 md:p-12"
                 >
                   {vote && (
                     <div className="mb-8 text-center">
