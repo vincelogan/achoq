@@ -119,32 +119,32 @@ export default function MarketCard({
               exit={{ opacity: 0 }}
               className="mt-auto space-y-3"
             >
-              {/* Botão Opção A */}
+              {/* Botão Opção A — vermelho sempre visível */}
               <button
                 onClick={() => handleVote("A")}
                 disabled={voteMutation.isPending || !fingerprint}
-                className="group w-full bg-white border border-gray-200 hover:border-[#B91C1C] hover:bg-[#B91C1C]/5 transition-all duration-200 rounded-lg p-4 flex justify-between items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group w-full border-2 border-[#B91C1C] bg-[#B91C1C]/5 hover:bg-[#B91C1C]/10 transition-all duration-200 rounded-lg p-4 flex justify-between items-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex flex-col items-start">
-                  <span className="font-bold text-gray-900 group-hover:text-[#B91C1C] transition-colors">{optionA}</span>
-                  <span className="text-xs text-gray-500">{labelA}</span>
+                  <span className="font-bold text-[#B91C1C]">{optionA}</span>
+                  <span className="text-xs text-[#B91C1C]/70">{labelA}</span>
                 </div>
-                <div className="bg-gray-50 group-hover:bg-[#B91C1C]/10 text-gray-700 group-hover:text-[#B91C1C] px-4 py-2 rounded-md font-mono font-bold transition-colors">
+                <div className="bg-[#B91C1C]/10 text-[#B91C1C] px-4 py-2 rounded-md font-mono font-bold">
                   {localStats.pctA}%
                 </div>
               </button>
 
-              {/* Botão Opção B */}
+              {/* Botão Opção B — azul BTG sempre visível */}
               <button
                 onClick={() => handleVote("B")}
                 disabled={voteMutation.isPending || !fingerprint}
-                className="group w-full bg-white border border-gray-200 hover:border-[#002B5C] hover:bg-[#002B5C]/5 transition-all duration-200 rounded-lg p-4 flex justify-between items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group w-full border-2 border-[#002B5C] bg-[#002B5C]/5 hover:bg-[#002B5C]/10 transition-all duration-200 rounded-lg p-4 flex justify-between items-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex flex-col items-start">
-                  <span className="font-bold text-gray-900 group-hover:text-[#002B5C] transition-colors">{optionB}</span>
-                  <span className="text-xs text-gray-500">{labelB}</span>
+                  <span className="font-bold text-[#002B5C]">{optionB}</span>
+                  <span className="text-xs text-[#002B5C]/70">{labelB}</span>
                 </div>
-                <div className="bg-gray-50 group-hover:bg-[#002B5C]/10 text-gray-700 group-hover:text-[#002B5C] px-4 py-2 rounded-md font-mono font-bold transition-colors">
+                <div className="bg-[#002B5C]/10 text-[#002B5C] px-4 py-2 rounded-md font-mono font-bold">
                   {localStats.pctB}%
                 </div>
               </button>
