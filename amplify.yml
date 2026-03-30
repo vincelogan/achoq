@@ -9,13 +9,9 @@ frontend:
       commands:
         - pnpm run build
   artifacts:
-    # O Amplify SSR (Node.js) espera os artefatos neste formato
-    baseDirectory: /
+    baseDirectory: dist
     files:
-      - "dist/**/*"
-      - "node_modules/**/*"
-      - "package.json"
-      - "pnpm-lock.yaml"
+      - "**/*"
   cache:
     paths:
       - node_modules/**/*
