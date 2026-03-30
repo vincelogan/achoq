@@ -35,3 +35,15 @@
 - [ ] Login com OAuth para rastreamento por usuário
 - [ ] Notificações de novos mercados
 - [ ] Painel admin para criar novos mercados
+
+## Páginas Institucionais
+
+- [x] Página "Como Funciona" (/como-funciona)
+- [x] Página "Ranking" (/ranking)
+- [x] Página "Metodologia" (/metodologia)
+- [x] Página "Legal" (/legal)
+- [x] Página "Termos de Uso" (/termos)
+- [x] Página "Política de Privacidade" (/privacidade)
+- [x] Atualizar Header com links funcionais
+- [x] Atualizar Footer com links funcionais
+- [x] Registrar todas as rotas em App.tsx
