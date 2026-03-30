@@ -105,3 +105,9 @@ temp/
 *.db
 *.sqlite
 *.sqlite3
+
+# Manus internal files
+.manus-logs/
+.webdev/
+page_texts/
+screenshots/
