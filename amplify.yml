@@ -7,9 +7,10 @@ frontend:
         - pnpm install --frozen-lockfile
     build:
       commands:
-        - pnpm run build
+        - node scripts/build-amplify.mjs
+        - cd .amplify-hosting/compute/default && pnpm install --prod --no-frozen-lockfile
   artifacts:
-    baseDirectory: dist
+    baseDirectory: .amplify-hosting
     files:
       - "**/*"
   cache:

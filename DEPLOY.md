@@ -1,48 +1,46 @@
 # Deploy no AWS Amplify — AchoQ
 
-Guia rápido para colocar o AchoQ no ar usando **AWS Amplify** com deploy automático pelo GitHub.
+Guia para deploy do AchoQ no **AWS Amplify Hosting** com suporte a SSR Node.js (Express).
 
 ---
 
-## Estrutura do Repositório
+## Como funciona
 
-Todo o projeto está na **raiz do branch `main`** — sem subpastas de projeto:
+O projeto usa o **Amplify Hosting Deployment Specification** — o padrão oficial da AWS para apps SSR customizados (sem Next.js ou Nuxt.js). O script `scripts/build-amplify.mjs` gera automaticamente a estrutura que o Amplify espera:
 
 ```
-/ (raiz do repositório = raiz do projeto)
-├── amplify.yml        ← lido automaticamente pelo Amplify
-├── package.json
-├── pnpm-lock.yaml
-├── client/            ← frontend React (Vite)
-├── server/            ← backend Express + tRPC
-├── drizzle/           ← schema e migrations do banco
-└── dist/              ← gerado pelo build (não versionado)
+.amplify-hosting/           ← gerado pelo build, não versionado
+├── deploy-manifest.json    ← roteamento: API → Compute, assets → Static
+├── compute/
+│   └── default/
+│       ├── index.js        ← servidor Express bundlado
+│       └── package.json    ← deps de runtime
+└── static/
+    ├── index.html
+    └── assets/             ← JS/CSS do Vite
 ```
 
 ---
 
 ## Passo a Passo
 
-### 1. Criar o app no Amplify
+### 1. Criar o app no Amplify Console
 
 1. Acesse [console.aws.amazon.com/amplify](https://console.aws.amazon.com/amplify)
 2. Clique em **Create new app**
-3. Selecione **GitHub** como fonte
-4. Autorize o acesso e selecione o repositório `vincelogan/achoq`
-5. Selecione a branch **`main`**
-6. **App root directory:** deixe em branco (raiz `/`)
+3. Selecione **GitHub** → autorize → repositório `vincelogan/achoq`
+4. Branch: **`main`**
+5. **App root directory:** deixe **em branco** (raiz `/`)
+6. O Amplify detecta o `amplify.yml` automaticamente
 
-### 2. Configurar o build
+### 2. Confirmar configurações de build
 
-O Amplify detectará automaticamente o `amplify.yml` na raiz.
+O `amplify.yml` já está configurado. Confirme na tela:
 
-Confirme as configurações na tela de build:
-- **Framework:** Web Compute (Node.js SSR)
-- **Build command:** `pnpm run build`
-- **Start command:** `node dist/index.js`
-- **Output directory:** `dist`
+- **Build command:** `node scripts/build-amplify.mjs`
+- **Base directory:** `.amplify-hosting`
 
-### 3. Configurar as variáveis de ambiente
+### 3. Configurar variáveis de ambiente
 
 Em **App Settings → Environment Variables**, adicione:
 
@@ -63,38 +61,35 @@ Em **App Settings → Environment Variables**, adicione:
 
 > Referência completa em `env.example.txt` na raiz do repositório.
 
-### 4. Rodar as migrations do banco
-
-Após o primeiro deploy, execute localmente apontando para o banco de produção:
+### 4. Rodar migrations do banco (primeira vez)
 
 ```bash
-DATABASE_URL="sua-connection-string-de-producao" pnpm db:push
+# Execute localmente apontando para o banco de produção:
+DATABASE_URL="sua-connection-string-producao" pnpm db:push
 ```
 
 ### 5. Deploy
 
-Clique em **Save and deploy**.
-
-A partir daí, qualquer push na branch `main` dispara um novo deploy automático.
+Clique em **Save and deploy**. A partir daí, qualquer push na `main` dispara deploy automático.
 
 ---
 
-## Como o Build Funciona
+## Roteamento
 
-```
-pnpm run build
-├── vite build          → compila o frontend React para dist/
-└── esbuild             → empacota o servidor Node.js em dist/index.js
-```
-
-O servidor `dist/index.js` serve tanto a API (`/api/trpc`) quanto os arquivos estáticos do frontend.
+| Rota | Destino |
+|---|---|
+| `/api/*` | Compute (Express) — tRPC, OAuth, API |
+| `/assets/*` | Static (CloudFront) — JS/CSS bundlados |
+| `/*` | Compute (Express) — serve o React SPA |
 
 ---
 
-## Variáveis VITE_*
+## Banco de dados recomendado
 
-Variáveis com prefixo `VITE_` são embutidas no bundle do frontend **em tempo de build**.
-Configure-as no Amplify **antes** de iniciar o build.
+Para produção na AWS, use um banco MySQL compatível:
+- **PlanetScale** (serverless MySQL, free tier generoso)
+- **AWS RDS MySQL** (na mesma região do Amplify para menor latência)
+- **Neon** (PostgreSQL — requer ajuste no schema para `pg` em vez de `mysql2`)
 
 ---
 

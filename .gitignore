@@ -111,3 +111,6 @@ temp/
 .webdev/
 page_texts/
 screenshots/
+
+# AWS Amplify build output (gerado automaticamente no CI)
+.amplify-hosting/
