@@ -1,0 +1,61 @@
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean } from "drizzle-orm/mysql-core";
+
+export const users = mysqlTable("users", {
+  id: int("id").autoincrement().primaryKey(),
+  openId: varchar("openId", { length: 64 }).notNull().unique(),
+  name: text("name"),
+  email: varchar("email", { length: 320 }),
+  loginMethod: varchar("loginMethod", { length: 64 }),
+  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
+});
+
+export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
+
+/**
+ * Tabela de mercados de previsão (perguntas)
+ * Cada mercado é uma pergunta com opções de resposta
+ */
+export const markets = mysqlTable("markets", {
+  id: int("id").autoincrement().primaryKey(),
+  slug: varchar("slug", { length: 128 }).notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 64 }).notNull().default("politica"),
+  optionA: varchar("optionA", { length: 128 }).notNull(),
+  optionB: varchar("optionB", { length: 128 }).notNull(),
+  labelA: varchar("labelA", { length: 64 }).notNull(),
+  labelB: varchar("labelB", { length: 64 }).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  endsAt: timestamp("endsAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Market = typeof markets.$inferSelect;
+export type InsertMarket = typeof markets.$inferInsert;
+
+/**
+ * Tabela de votos
+ * Cada voto é anônimo por padrão (fingerprint do browser)
+ * Se o usuário estiver logado, o userId é salvo também
+ */
+export const votes = mysqlTable("votes", {
+  id: int("id").autoincrement().primaryKey(),
+  marketId: int("marketId").notNull(),
+  choice: mysqlEnum("choice", ["A", "B"]).notNull(),
+  // Identificador anônimo do browser (fingerprint)
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  // Opcional: userId se o usuário estiver logado
+  userId: int("userId"),
+  // Dados geográficos opcionais (para o mapa demográfico)
+  country: varchar("country", { length: 64 }),
+  region: varchar("region", { length: 64 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Vote = typeof votes.$inferSelect;
+export type InsertVote = typeof votes.$inferInsert;
