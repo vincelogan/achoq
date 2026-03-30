@@ -114,3 +114,9 @@ screenshots/
 
 # AWS Amplify build output (gerado automaticamente no CI)
 .amplify-hosting/
+
+# Arquivos internos
+guia_deploy_aws.md
+ideas.md
+todo.md
+.gitkeep
