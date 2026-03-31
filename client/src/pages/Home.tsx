@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HowItWorks from "@/components/HowItWorks";
@@ -8,6 +9,9 @@ import { trpc } from "@/lib/trpc";
 import { Loader2, BarChart3 } from "lucide-react";
 
 export default function Home() {
+  useEffect(() => {
+    document.title = "AchoQ - Opinião Coletiva sobre Eventos Futuros";
+  }, []);
   const { data: markets, isLoading, error } = trpc.markets.list.useQuery(undefined, {
     refetchInterval: 30_000, // Atualizar a cada 30 segundos
   });
