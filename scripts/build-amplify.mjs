@@ -1,16 +1,24 @@
 /**
  * build-amplify.mjs
  * 
- * Gera a estrutura de diretórios que o AWS Amplify SSR espera:
+ * Gera a estrutura que o AWS Amplify Hosting SSR espera:
  * 
  * .amplify-hosting/
- * ├── deploy-manifest.json   ← roteamento SSR vs estático
+ * ├── deploy-manifest.json
  * ├── compute/
  * │   └── default/
- * │       ├── index.js       ← servidor Express bundlado
- * │       └── package.json   ← dependências de runtime
+ * │       ├── index.js          ← servidor Express bundlado
+ * │       ├── package.json      ← dependências de runtime
+ * │       └── public/           ← cópia dos estáticos para SPA fallback
+ * │           ├── index.html
+ * │           └── assets/
  * └── static/
- *     └── **                 ← assets do Vite (JS, CSS, imagens)
+ *     ├── index.html            ← estáticos servidos pelo CloudFront
+ *     └── assets/
+ * 
+ * O Express em produção resolve estáticos de `__dirname/public/`.
+ * O CloudFront serve `/assets/*` diretamente de `static/`.
+ * O catch-all `/*` vai para Compute, que serve o index.html (SPA).
  */
 
 import { execSync } from "child_process";
@@ -22,53 +30,69 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const OUT = path.resolve(ROOT, ".amplify-hosting");
 
-// 1. Limpar saída anterior
+// ─── 1. Limpar saída anterior ───
 if (fs.existsSync(OUT)) fs.rmSync(OUT, { recursive: true });
 fs.mkdirSync(OUT, { recursive: true });
 
-console.log("▶ Building frontend (Vite)...");
+// ─── 2. Build frontend (Vite) ───
+console.log("▶ [1/4] Building frontend (Vite)...");
 execSync("pnpm vite build", { cwd: ROOT, stdio: "inherit" });
 
-console.log("▶ Building server (esbuild)...");
+// ─── 3. Build server (esbuild) ───
+console.log("▶ [2/4] Building server (esbuild)...");
 execSync(
   "pnpm esbuild server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/server.js",
   { cwd: ROOT, stdio: "inherit" }
 );
 
-// 2. Criar estrutura .amplify-hosting/
+// ─── 4. Montar estrutura .amplify-hosting/ ───
+console.log("▶ [3/4] Montando .amplify-hosting/...");
+
 const computeDir = path.join(OUT, "compute", "default");
 const staticDir = path.join(OUT, "static");
+const computePublicDir = path.join(computeDir, "public");
+
 fs.mkdirSync(computeDir, { recursive: true });
 fs.mkdirSync(staticDir, { recursive: true });
+fs.mkdirSync(computePublicDir, { recursive: true });
 
-// 3. Copiar servidor bundlado
+// 4a. Copiar servidor bundlado
 fs.copyFileSync(
   path.join(ROOT, "dist", "server.js"),
   path.join(computeDir, "index.js")
 );
 
-// 4. Copiar assets estáticos do Vite (dist/public → static/)
+// 4b. Copiar estáticos do Vite para AMBOS os lugares:
+//     - static/ → CloudFront serve diretamente
+//     - compute/default/public/ → Express serve SPA fallback
 const viteDist = path.join(ROOT, "dist", "public");
 copyDir(viteDist, staticDir);
+copyDir(viteDist, computePublicDir);
 
-// 5. Criar package.json mínimo para o compute (runtime deps)
+// 4c. Criar package.json mínimo para o compute (runtime deps)
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf-8"));
 const runtimeDeps = {};
-// Incluir apenas dependências de runtime necessárias (não devDependencies)
 const needed = [
   "express", "cookie", "jose", "drizzle-orm", "mysql2",
   "@aws-sdk/client-s3", "@aws-sdk/s3-request-presigner",
-  "dotenv", "nanoid", "superjson", "@trpc/server", "zod"
+  "dotenv", "nanoid", "superjson", "@trpc/server", "zod", "axios"
 ];
 for (const dep of needed) {
   if (pkg.dependencies[dep]) runtimeDeps[dep] = pkg.dependencies[dep];
 }
 fs.writeFileSync(
   path.join(computeDir, "package.json"),
-  JSON.stringify({ name: "achoq-server", version: "1.0.0", type: "module", dependencies: runtimeDeps }, null, 2)
+  JSON.stringify({
+    name: "achoq-server",
+    version: "1.0.0",
+    type: "module",
+    dependencies: runtimeDeps
+  }, null, 2)
 );
 
-// 6. Criar deploy-manifest.json
+// ─── 5. Criar deploy-manifest.json ───
+console.log("▶ [4/4] Gerando deploy-manifest.json...");
+
 const manifest = {
   version: 1,
   framework: { name: "express", version: "4" },
@@ -79,7 +103,8 @@ const manifest = {
     },
     {
       path: "/assets/*",
-      target: { kind: "Static" }
+      target: { kind: "Static" },
+      fallback: { kind: "Compute", src: "default" }
     },
     {
       path: "/*",
@@ -99,12 +124,19 @@ fs.writeFileSync(
   JSON.stringify(manifest, null, 2)
 );
 
+// ─── Resumo ───
+const staticCount = countFiles(staticDir);
+const computeCount = countFiles(computeDir);
+console.log("");
 console.log("✅ .amplify-hosting/ gerado com sucesso!");
-console.log("   ├── deploy-manifest.json");
-console.log("   ├── compute/default/index.js");
-console.log("   └── static/ (" + countFiles(staticDir) + " arquivos)");
+console.log(`   ├── deploy-manifest.json`);
+console.log(`   ├── compute/default/ (${computeCount} arquivos)`);
+console.log(`   │   ├── index.js (servidor Express)`);
+console.log(`   │   ├── package.json (runtime deps)`);
+console.log(`   │   └── public/ (SPA fallback)`);
+console.log(`   └── static/ (${staticCount} arquivos, CloudFront)`);
 
-// Utilitários
+// ─── Utilitários ───
 function copyDir(src, dest) {
   if (!fs.existsSync(src)) return;
   fs.mkdirSync(dest, { recursive: true });

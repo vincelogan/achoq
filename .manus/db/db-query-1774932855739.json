@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE markets SET slug = 'bbb-26-campeao', title = 'Quem vai ganhar o BBB 26?', description = 'O Big Brother Brasil 26 está na reta final. Quem leva o prêmio: Ana Paula ou algum outro participante?' WHERE slug = 'bbb-25-campeao';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4GDbSVGW3f2hmhv.8b14ae9d96e0 --database X5pkFNdVA2a4EtC5Ypx3aG --execute UPDATE markets SET slug = 'bbb-26-campeao', title = 'Quem vai ganhar o BBB 26?', description = 'O Big Brother Brasil 26 está na reta final. Quem leva o prêmio: Ana Paula ou algum outro participante?' WHERE slug = 'bbb-25-campeao';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 58
+}

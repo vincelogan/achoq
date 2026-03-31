@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO markets (slug, title, description, category, optionA, optionB, labelA, labelB, isActive)\nVALUES (\n  'bbb-25-campeao',\n  'Quem vai ganhar o BBB 25?',\n  'O Big Brother Brasil 25 está na reta final. Quem leva o prêmio: Ana Paula ou algum outro participante?',\n  'entretenimento',\n  'Ana Paula',\n  'Outros',\n  'Ana Paula',\n  'Outros',\n  true\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4GDbSVGW3f2hmhv.8b14ae9d96e0 --database X5pkFNdVA2a4EtC5Ypx3aG --execute INSERT INTO markets (slug, title, description, category, optionA, optionB, labelA, labelB, isActive)\nVALUES (\n  'bbb-25-campeao',\n  'Quem vai ganhar o BBB 25?',\n  'O Big Brother Brasil 25 está na reta final. Quem leva o prêmio: Ana Paula ou algum outro participante?',\n  'entretenimento',\n  'Ana Paula',\n  'Outros',\n  'Ana Paula',\n  'Outros',\n  true\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 687
+}
