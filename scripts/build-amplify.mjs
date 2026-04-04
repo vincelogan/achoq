@@ -7,7 +7,7 @@
  * ├── deploy-manifest.json
  * ├── compute/
  * │   └── default/
- * │       ├── index.js          ← servidor Express bundlado
+ * │       ├── index.js          ← servidor Express bundlado (CommonJS)
  * │       ├── package.json      ← dependências de runtime
  * │       └── public/           ← cópia dos estáticos para SPA fallback
  * │           ├── index.html
@@ -15,10 +15,6 @@
  * └── static/
  *     ├── index.html            ← estáticos servidos pelo CloudFront
  *     └── assets/
- * 
- * O Express em produção resolve estáticos de `__dirname/public/`.
- * O CloudFront serve `/assets/*` diretamente de `static/`.
- * O catch-all `/*` vai para Compute, que serve o index.html (SPA).
  */
 
 import { execSync } from "child_process";
@@ -39,9 +35,27 @@ console.log("▶ [1/4] Building frontend (Vite)...");
 execSync("pnpm vite build", { cwd: ROOT, stdio: "inherit" });
 
 // ─── 3. Build server (esbuild) ───
+// IMPORTANTE: Usar --format=cjs para compatibilidade com Lambda do Amplify
+// O --banner injeta __dirname para compatibilidade com import.meta.dirname
 console.log("▶ [2/4] Building server (esbuild)...");
+// --packages=external marca TODOS os node_modules como external
+// Adicionamos --external para vite.config.ts explicitamente
 execSync(
-  "pnpm esbuild server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/server.js",
+  [
+    'pnpm esbuild server/_core/index.ts',
+    '--platform=node',
+    '--packages=external',
+    '--bundle',
+    '--format=cjs',
+    '--outfile=dist/server.cjs',
+    '--external:../../vite.config',
+    '--external:../../vite.config.ts',
+    '--external:vite',
+    '--external:@vitejs/plugin-react',
+    '--external:@builder.io/vite-plugin-jsx-loc',
+    '--external:vite-plugin-manus-runtime',
+    '--banner:js="const __importMetaDirname = __dirname;"',
+  ].join(' '),
   { cwd: ROOT, stdio: "inherit" }
 );
 
@@ -56,11 +70,21 @@ fs.mkdirSync(computeDir, { recursive: true });
 fs.mkdirSync(staticDir, { recursive: true });
 fs.mkdirSync(computePublicDir, { recursive: true });
 
-// 4a. Copiar servidor bundlado
-fs.copyFileSync(
-  path.join(ROOT, "dist", "server.js"),
-  path.join(computeDir, "index.js")
+// 4a. Copiar servidor bundlado e corrigir import.meta → __dirname para CJS
+let serverCode = fs.readFileSync(path.join(ROOT, "dist", "server.cjs"), "utf-8");
+
+// O esbuild gera `var import_meta = {};` e `var import_meta2 = {};` para CJS
+// Precisamos substituir esses objetos vazios por objetos com dirname e url
+serverCode = serverCode.replace(
+  /var import_meta(\d*) = \{\};/g,
+  'var import_meta$1 = { dirname: __dirname, url: "file://" + __filename };'
 );
+
+// Substituir qualquer import.meta.dirname ou import.meta.url restante
+serverCode = serverCode.replace(/import\.meta\.dirname/g, "__dirname");
+serverCode = serverCode.replace(/import\.meta\.url/g, '("file://" + __filename)');
+
+fs.writeFileSync(path.join(computeDir, "index.js"), serverCode);
 
 // 4b. Copiar estáticos do Vite para AMBOS os lugares:
 //     - static/ → CloudFront serve diretamente
@@ -70,6 +94,7 @@ copyDir(viteDist, staticDir);
 copyDir(viteDist, computePublicDir);
 
 // 4c. Criar package.json mínimo para o compute (runtime deps)
+// NÃO usar "type": "module" — o bundle é CommonJS
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf-8"));
 const runtimeDeps = {};
 const needed = [
@@ -85,7 +110,6 @@ fs.writeFileSync(
   JSON.stringify({
     name: "achoq-server",
     version: "1.0.0",
-    type: "module",
     dependencies: runtimeDeps
   }, null, 2)
 );
@@ -98,13 +122,15 @@ const manifest = {
   framework: { name: "express", version: "4.21.0" },
   routes: [
     {
-      path: "/api/*",
-      target: { kind: "Compute", src: "default" }
-    },
-    {
-      path: "/assets/*",
-      target: { kind: "Static" },
-      fallback: { kind: "Compute", src: "default" }
+      path: "/*.*",
+      target: {
+        kind: "Static",
+        cacheControl: "public, max-age=2"
+      },
+      fallback: {
+        kind: "Compute",
+        src: "default"
+      }
     },
     {
       path: "/*",
@@ -114,7 +140,7 @@ const manifest = {
   computeResources: [
     {
       name: "default",
-      runtime: "nodejs20.x",
+      runtime: "nodejs22.x",
       entrypoint: "index.js"
     }
   ]
@@ -131,7 +157,7 @@ console.log("");
 console.log("✅ .amplify-hosting/ gerado com sucesso!");
 console.log(`   ├── deploy-manifest.json`);
 console.log(`   ├── compute/default/ (${computeCount} arquivos)`);
-console.log(`   │   ├── index.js (servidor Express)`);
+console.log(`   │   ├── index.js (servidor Express, CommonJS)`);
 console.log(`   │   ├── package.json (runtime deps)`);
 console.log(`   │   └── public/ (SPA fallback)`);
 console.log(`   └── static/ (${staticCount} arquivos, CloudFront)`);
