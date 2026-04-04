@@ -95,7 +95,7 @@ console.log("▶ [4/4] Gerando deploy-manifest.json...");
 
 const manifest = {
   version: 1,
-  framework: { name: "express", version: "4" },
+  framework: { name: "express", version: "4.21.0" },
   routes: [
     {
       path: "/api/*",
