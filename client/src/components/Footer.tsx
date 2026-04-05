@@ -1,6 +1,8 @@
 import { Link } from "wouter";
 import { Twitter, Instagram, Linkedin } from "lucide-react";
 
+const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/QAchoQ_47636312.jpg";
+
 export default function Footer() {
   return (
     <footer className="w-full bg-white border-t border-gray-200 py-12">
@@ -8,9 +10,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
-            <Link href="/" className="flex flex-col leading-none mb-4 w-fit">
-              <span className="font-sans text-2xl font-black tracking-tighter text-black">AchoQ</span>
-              <span className="font-mono text-[10px] text-gray-500 tracking-wide uppercase">powered by Nexar</span>
+            <Link href="/" className="flex items-center gap-2.5 mb-4 w-fit">
+              <img src={LOGO_URL} alt="AchoQ" className="h-9 w-9 rounded-md object-cover" />
+              <div className="flex flex-col leading-none">
+                <span className="font-sans text-xl font-black tracking-tight text-[#1a4971]">AchoQ</span>
+                <span className="font-sans text-[9px] text-gray-400 tracking-wide">Uma empresa Nexar</span>
+              </div>
             </Link>
             <p className="text-sm text-gray-500 max-w-xs leading-relaxed">
               Primeira plataforma de opinião coletiva do Brasil. Simples, transparente e sem apostas.
@@ -26,17 +31,17 @@ export default function Footer() {
             <h4 className="font-bold text-xs uppercase tracking-wider text-gray-900 mb-4">Plataforma</h4>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/como-funciona" className="text-gray-500 hover:text-black transition-colors">
+                <Link href="/como-funciona" className="text-gray-500 hover:text-[#1a4971] transition-colors">
                   Como funciona
                 </Link>
               </li>
               <li>
-                <Link href="/ranking" className="text-gray-500 hover:text-black transition-colors">
+                <Link href="/ranking" className="text-gray-500 hover:text-[#1a4971] transition-colors">
                   Ranking
                 </Link>
               </li>
               <li>
-                <Link href="/metodologia" className="text-gray-500 hover:text-black transition-colors">
+                <Link href="/metodologia" className="text-gray-500 hover:text-[#1a4971] transition-colors">
                   Metodologia
                 </Link>
               </li>
@@ -48,17 +53,17 @@ export default function Footer() {
             <h4 className="font-bold text-xs uppercase tracking-wider text-gray-900 mb-4">Legal</h4>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/legal" className="text-gray-500 hover:text-black transition-colors">
+                <Link href="/legal" className="text-gray-500 hover:text-[#1a4971] transition-colors">
                   Informações Legais
                 </Link>
               </li>
               <li>
-                <Link href="/termos" className="text-gray-500 hover:text-black transition-colors">
+                <Link href="/termos" className="text-gray-500 hover:text-[#1a4971] transition-colors">
                   Termos de Uso
                 </Link>
               </li>
               <li>
-                <Link href="/privacidade" className="text-gray-500 hover:text-black transition-colors">
+                <Link href="/privacidade" className="text-gray-500 hover:text-[#1a4971] transition-colors">
                   Privacidade (LGPD)
                 </Link>
               </li>
@@ -70,31 +75,27 @@ export default function Footer() {
         <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
             <p className="text-xs text-gray-400">
-              © 2026 AchoQ. Todos os direitos reservados.
-            </p>
-            <span className="hidden md:block text-gray-200">|</span>
-            <p className="text-xs text-gray-400">
-              CNPJ: a definir
+              © 2026 AchoQ — Uma empresa Nexar. Todos os direitos reservados.
             </p>
           </div>
           <div className="flex gap-4">
             <a
               href="#"
-              className="text-gray-400 hover:text-black transition-colors"
+              className="text-gray-400 hover:text-[#1a4971] transition-colors"
               aria-label="Twitter"
             >
               <Twitter className="h-4 w-4" />
             </a>
             <a
               href="#"
-              className="text-gray-400 hover:text-black transition-colors"
+              className="text-gray-400 hover:text-[#1a4971] transition-colors"
               aria-label="Instagram"
             >
               <Instagram className="h-4 w-4" />
             </a>
             <a
               href="#"
-              className="text-gray-400 hover:text-black transition-colors"
+              className="text-gray-400 hover:text-[#1a4971] transition-colors"
               aria-label="LinkedIn"
             >
               <Linkedin className="h-4 w-4" />

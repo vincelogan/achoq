@@ -11,6 +11,7 @@ import Metodologia from "./pages/Metodologia";
 import Legal from "./pages/Legal";
 import Termos from "./pages/Termos";
 import Privacidade from "./pages/Privacidade";
+import Admin from "./pages/Admin";
 
 function Router() {
   return (
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/legal" component={Legal} />
       <Route path="/termos" component={Termos} />
       <Route path="/privacidade" component={Privacidade} />
+      <Route path="/admin" component={Admin} />
       <Route path="/404" component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

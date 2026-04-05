@@ -2,6 +2,8 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 
+const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/QAchoQ_47636312.jpg";
+
 const navLinks = [
   { href: "/como-funciona", label: "Como funciona" },
   { href: "/ranking", label: "Ranking" },
@@ -17,9 +19,12 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container flex h-16 items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex flex-col leading-none">
-          <span className="font-sans text-2xl font-black tracking-tighter text-black">AchoQ</span>
-          <span className="font-mono text-[10px] text-gray-500 tracking-wide uppercase">powered by Nexar</span>
+        <Link href="/" className="flex items-center gap-2.5">
+          <img src={LOGO_URL} alt="AchoQ" className="h-9 w-9 rounded-md object-cover" />
+          <div className="flex flex-col leading-none">
+            <span className="font-sans text-xl font-black tracking-tight text-[#1a4971]">AchoQ</span>
+            <span className="font-sans text-[9px] text-gray-400 tracking-wide">Uma empresa Nexar</span>
+          </div>
         </Link>
 
         {/* Nav Desktop */}
@@ -30,8 +35,8 @@ export default function Header() {
               href={href}
               className={`font-sans text-sm font-medium transition-colors ${
                 location === href
-                  ? "text-black border-b-2 border-black pb-0.5"
-                  : "text-gray-500 hover:text-black"
+                  ? "text-[#1a4971] border-b-2 border-[#1a4971] pb-0.5"
+                  : "text-gray-500 hover:text-[#1a4971]"
               }`}
             >
               {label}
@@ -60,8 +65,8 @@ export default function Header() {
                 onClick={() => setMobileOpen(false)}
                 className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   location === href
-                    ? "bg-gray-100 text-black"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-black"
+                    ? "bg-gray-100 text-[#1a4971]"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-[#1a4971]"
                 }`}
               >
                 {label}

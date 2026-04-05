@@ -1,15 +1,47 @@
 import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 import { InsertUser, users, markets, votes, InsertMarket, InsertVote } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
-let _db: ReturnType<typeof drizzle> | null = null;
+let _db: any | null = null;
+
+/**
+ * Parse DATABASE_URL manually to handle SSL robustly.
+ * The JSON in the query string (ssl={"rejectUnauthorized":true}) can break
+ * in some environments (e.g., AWS Amplify env vars panel).
+ */
+function createDbConnection(dbUrl: string) {
+  try {
+    const url = new URL(dbUrl);
+    const config: mysql.ConnectionOptions = {
+      host: url.hostname,
+      port: parseInt(url.port) || 3306,
+      user: decodeURIComponent(url.username),
+      password: decodeURIComponent(url.password),
+      database: url.pathname.slice(1),
+    };
+
+    // Always enable SSL for TiDB Cloud / production databases
+    if (url.hostname.includes('tidbcloud.com') || url.searchParams.has('ssl') || process.env.NODE_ENV === 'production') {
+      config.ssl = { rejectUnauthorized: true };
+    }
+
+    const pool = mysql.createPool(config);
+    return drizzle(pool);
+  } catch (error) {
+    console.error("[Database] Failed to parse DATABASE_URL:", error);
+    // Fallback: try passing the URL directly to drizzle
+    return drizzle(dbUrl);
+  }
+}
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      _db = createDbConnection(process.env.DATABASE_URL);
+      console.log("[Database] Connected successfully.");
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -182,13 +214,53 @@ export async function hasVoted(marketId: number, fingerprint: string) {
     .from(votes)
     .where(eq(votes.marketId, marketId))
     .limit(500);
-  return result.some(v => v.fingerprint === fingerprint);
+  return result.some((v: any) => v.fingerprint === fingerprint);
 }
 
 export async function castVote(data: InsertVote) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.insert(votes).values(data);
+}
+
+// ─── Admin ───────────────────────────────────────────────────────────────────
+
+export async function getAllMarketsAdmin() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(markets);
+}
+
+export async function createMarket(data: InsertMarket) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(markets).values(data);
+  return { success: true };
+}
+
+export async function updateMarket(id: number, data: Partial<InsertMarket>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(markets).set(data).where(eq(markets.id, id));
+  return { success: true };
+}
+
+export async function deleteMarket(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Soft delete: desativar em vez de remover
+  await db.update(markets).set({ isActive: false }).where(eq(markets.id, id));
+  return { success: true };
+}
+
+export async function getMarketVoteCount(marketId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(votes)
+    .where(eq(votes.marketId, marketId));
+  return Number(result[0]?.count ?? 0);
 }
 
 export async function getDemographics(marketId: number) {

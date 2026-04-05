@@ -2,7 +2,7 @@ import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, router, adminProcedure } from "./_core/trpc";
 import {
   getAllMarkets,
   getMarketBySlug,
@@ -11,6 +11,11 @@ import {
   castVote,
   getDemographics,
   seedMarketsIfEmpty,
+  getAllMarketsAdmin,
+  createMarket,
+  updateMarket,
+  deleteMarket,
+  getMarketVoteCount,
 } from "./db";
 
 // Seed mercados na inicialização
@@ -35,7 +40,7 @@ export const appRouter = router({
     list: publicProcedure.query(async () => {
       const allMarkets = await getAllMarkets();
       const marketsWithStats = await Promise.all(
-        allMarkets.map(async (market) => {
+        allMarkets.map(async (market: any) => {
           const stats = await getVoteStats(market.id);
           const total = stats.total;
           const pctA = total > 0 ? Math.round((stats.countA / total) * 100) : 50;
@@ -99,6 +104,81 @@ export const appRouter = router({
       .input(z.object({ marketId: z.number() }))
       .query(async ({ input }) => {
         return getDemographics(input.marketId);
+      }),
+  }),
+
+  // ─── Admin ─────────────────────────────────────────────────────────────────
+  admin: router({
+    // Listar TODOS os mercados (incluindo inativos) com contagem de votos
+    listAll: adminProcedure.query(async () => {
+      const allMarkets = await getAllMarketsAdmin();
+      const marketsWithVotes = await Promise.all(
+        allMarkets.map(async (market: any) => {
+          const stats = await getVoteStats(market.id);
+          const voteCount = await getMarketVoteCount(market.id);
+          return { ...market, voteCount, stats };
+        })
+      );
+      return marketsWithVotes;
+    }),
+
+    // Criar novo mercado
+    create: adminProcedure
+      .input(z.object({
+        slug: z.string().min(3).max(128).regex(/^[a-z0-9-]+$/, "Slug deve conter apenas letras minúsculas, números e hífens"),
+        title: z.string().min(5),
+        description: z.string().optional(),
+        category: z.string().min(1).default("geral"),
+        optionA: z.string().min(1),
+        optionB: z.string().min(1),
+        labelA: z.string().min(1),
+        labelB: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        return createMarket({
+          slug: input.slug,
+          title: input.title,
+          description: input.description ?? null,
+          category: input.category,
+          optionA: input.optionA,
+          optionB: input.optionB,
+          labelA: input.labelA,
+          labelB: input.labelB,
+          isActive: true,
+        });
+      }),
+
+    // Editar mercado existente
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        slug: z.string().min(3).max(128).regex(/^[a-z0-9-]+$/).optional(),
+        title: z.string().min(5).optional(),
+        description: z.string().optional(),
+        category: z.string().optional(),
+        optionA: z.string().optional(),
+        optionB: z.string().optional(),
+        labelA: z.string().optional(),
+        labelB: z.string().optional(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return updateMarket(id, data);
+      }),
+
+    // Desativar mercado (soft delete)
+    deactivate: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deleteMarket(input.id);
+      }),
+
+    // Reativar mercado
+    activate: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return updateMarket(input.id, { isActive: true });
       }),
   }),
 });
