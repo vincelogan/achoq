@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Share2, TrendingUp, CheckCircle2, Loader2, Link2, X } from "lucide-react";
+import { Share2, TrendingUp, CheckCircle2, Loader2, Link2, X, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { useFingerprint } from "@/hooks/useFingerprint";
@@ -44,7 +44,6 @@ function SharePopup({
       toast.success("Link copiado!");
       onClose();
     } catch {
-      // Fallback para navegadores sem suporte a clipboard
       const input = document.createElement("input");
       input.value = shareUrl;
       document.body.appendChild(input);
@@ -73,8 +72,6 @@ function SharePopup({
   };
 
   const handleInstagram = () => {
-    // Instagram não tem API de compartilhamento direta via web.
-    // Copiamos o texto + link para o clipboard e orientamos o usuário.
     navigator.clipboard
       .writeText(shareText + "\n\n" + shareUrl)
       .then(() => {
@@ -96,12 +93,7 @@ function SharePopup({
 
   return (
     <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black/30 z-40"
-        onClick={onClose}
-      />
-      {/* Popup */}
+      <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -110,7 +102,6 @@ function SharePopup({
           transition={{ duration: 0.15 }}
           className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-sm overflow-hidden"
         >
-          {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <h3 className="font-bold text-gray-900 text-base">Compartilhar</h3>
             <button
@@ -120,10 +111,7 @@ function SharePopup({
               <X className="w-5 h-5" />
             </button>
           </div>
-
-          {/* Botões de compartilhamento */}
           <div className="p-5 grid grid-cols-2 gap-3">
-            {/* WhatsApp */}
             <button
               onClick={handleWhatsApp}
               className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:bg-[#25D366]/5 hover:border-[#25D366]/30 transition-all group"
@@ -133,8 +121,6 @@ function SharePopup({
               </svg>
               <span className="font-medium text-sm text-gray-700 group-hover:text-[#25D366]">WhatsApp</span>
             </button>
-
-            {/* Facebook */}
             <button
               onClick={handleFacebook}
               className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:bg-[#1877F2]/5 hover:border-[#1877F2]/30 transition-all group"
@@ -144,8 +130,6 @@ function SharePopup({
               </svg>
               <span className="font-medium text-sm text-gray-700 group-hover:text-[#1877F2]">Facebook</span>
             </button>
-
-            {/* Instagram */}
             <button
               onClick={handleInstagram}
               className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:bg-[#E4405F]/5 hover:border-[#E4405F]/30 transition-all group"
@@ -155,8 +139,6 @@ function SharePopup({
               </svg>
               <span className="font-medium text-sm text-gray-700 group-hover:text-[#E4405F]">Instagram</span>
             </button>
-
-            {/* X (Twitter) */}
             <button
               onClick={handleTwitter}
               className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:bg-black/5 hover:border-black/20 transition-all group"
@@ -167,8 +149,6 @@ function SharePopup({
               <span className="font-medium text-sm text-gray-700 group-hover:text-black">X (Twitter)</span>
             </button>
           </div>
-
-          {/* Copiar link */}
           <div className="px-5 pb-5">
             <button
               onClick={handleCopyLink}
@@ -181,6 +161,44 @@ function SharePopup({
         </motion.div>
       </div>
     </>
+  );
+}
+
+/** Mini confetti burst — lightweight CSS-only particles */
+function ConfettiBurst() {
+  const particles = Array.from({ length: 12 }, (_, i) => {
+    const angle = (i / 12) * 360;
+    const distance = 40 + Math.random() * 30;
+    const colors = ["#B91C1C", "#002B5C", "#16a34a", "#eab308", "#7c3aed", "#0ea5e9"];
+    const color = colors[i % colors.length];
+    const size = 4 + Math.random() * 4;
+    return { angle, distance, color, size, delay: Math.random() * 0.15 };
+  });
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
+      {particles.map((p, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            width: p.size,
+            height: p.size,
+            backgroundColor: p.color,
+            left: "50%",
+            top: "50%",
+          }}
+          initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+          animate={{
+            x: Math.cos((p.angle * Math.PI) / 180) * p.distance,
+            y: Math.sin((p.angle * Math.PI) / 180) * p.distance,
+            opacity: 0,
+            scale: 0.3,
+          }}
+          transition={{ duration: 0.7, delay: p.delay, ease: "easeOut" }}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -201,6 +219,9 @@ export default function MarketCard({
   const [hasVoted, setHasVoted] = useState(false);
   const [myChoice, setMyChoice] = useState<"A" | "B" | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [votingChoice, setVotingChoice] = useState<"A" | "B" | null>(null);
 
   // Verificar se já votou neste mercado
   const { data: checkData } = trpc.markets.checkVote.useQuery(
@@ -222,10 +243,19 @@ export default function MarketCard({
   const voteMutation = trpc.markets.vote.useMutation({
     onSuccess: (data) => {
       setLocalStats(data.stats);
-      setHasVoted(true);
-      toast.success("Voto registrado com sucesso!");
+      // Mostrar feedback visual antes de transicionar
+      setShowConfirmation(true);
+      setShowConfetti(true);
+      // Após 2 segundos, transicionar para os resultados
+      setTimeout(() => {
+        setHasVoted(true);
+        setShowConfirmation(false);
+      }, 2200);
+      // Confetti desaparece sozinho via animação
+      setTimeout(() => setShowConfetti(false), 1000);
     },
     onError: (err) => {
+      setVotingChoice(null);
       if (err.message.includes("já votou")) {
         setHasVoted(true);
         toast.info("Você já votou neste mercado.");
@@ -238,18 +268,24 @@ export default function MarketCard({
   const handleVote = (choice: "A" | "B") => {
     if (!fingerprint || hasVoted || voteMutation.isPending) return;
     setMyChoice(choice);
+    setVotingChoice(choice);
     localStorage.setItem(`achoq_vote_${marketId}`, choice);
     voteMutation.mutate({ marketId, choice, fingerprint });
   };
 
   const shareText = `No AchoQ: "${title}" — ${localStats.pctA}% acham ${optionA} vs ${localStats.pctB}% acham ${optionB}. E você?`;
-  const shareUrl = typeof window !== "undefined" ? window.location.origin : "https://achoq.com.br";
+  const shareUrl = typeof window !== "undefined" ? window.location.origin : "";
 
   const colorA = "#B91C1C";
   const colorB = "#002B5C";
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col ${hero ? "w-full" : ""}`}>
+    <div className={`relative bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col ${hero ? "w-full" : ""}`}>
+      {/* Confetti burst */}
+      <AnimatePresence>
+        {showConfetti && <ConfettiBurst />}
+      </AnimatePresence>
+
       {/* Header do card */}
       <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
         <div className="flex items-center gap-2">
@@ -269,7 +305,104 @@ export default function MarketCard({
         </h3>
 
         <AnimatePresence mode="wait">
-          {!hasVoted ? (
+          {/* Estado: Confirmação de voto (feedback visual) */}
+          {showConfirmation && !hasVoted ? (
+            <motion.div
+              key="confirmation"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="mt-auto"
+            >
+              <div className="flex flex-col items-center justify-center py-8 gap-4">
+                {/* Ícone animado de sucesso */}
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.1 }}
+                >
+                  <div className="w-16 h-16 rounded-full bg-green-50 border-2 border-green-200 flex items-center justify-center">
+                    <motion.div
+                      initial={{ scale: 0, rotate: -45 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 12, delay: 0.25 }}
+                    >
+                      <CheckCircle2 className="w-9 h-9 text-green-600" />
+                    </motion.div>
+                  </div>
+                </motion.div>
+
+                {/* Texto de confirmação */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.35 }}
+                  className="text-center"
+                >
+                  <p className="text-lg font-bold text-gray-900">Voto registrado!</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Você escolheu{" "}
+                    <span
+                      className="font-bold px-1.5 py-0.5 rounded"
+                      style={{
+                        backgroundColor: myChoice === "A" ? "#B91C1C15" : "#002B5C15",
+                        color: myChoice === "A" ? colorA : colorB,
+                      }}
+                    >
+                      {myChoice === "A" ? optionA : optionB}
+                    </span>
+                  </p>
+                </motion.div>
+
+                {/* Barra de progresso animada */}
+                <motion.div
+                  initial={{ opacity: 0, width: "60%" }}
+                  animate={{ opacity: 1, width: "100%" }}
+                  transition={{ delay: 0.5 }}
+                  className="w-full max-w-xs"
+                >
+                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden flex">
+                    <motion.div
+                      className="h-full rounded-l-full"
+                      style={{ backgroundColor: colorA }}
+                      initial={{ width: "50%" }}
+                      animate={{ width: `${localStats.pctA}%` }}
+                      transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+                    />
+                    <motion.div
+                      className="h-full rounded-r-full"
+                      style={{ backgroundColor: colorB }}
+                      initial={{ width: "50%" }}
+                      animate={{ width: `${localStats.pctB}%` }}
+                      transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-1.5">
+                    <motion.span
+                      className="text-xs font-bold"
+                      style={{ color: colorA }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.8 }}
+                    >
+                      {localStats.pctA}% {optionA}
+                    </motion.span>
+                    <motion.span
+                      className="text-xs font-bold"
+                      style={{ color: colorB }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.8 }}
+                    >
+                      {localStats.pctB}% {optionB}
+                    </motion.span>
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
+
+          ) : !hasVoted ? (
             <motion.div
               key="voting"
               initial={{ opacity: 0 }}
@@ -281,10 +414,25 @@ export default function MarketCard({
               <button
                 onClick={() => handleVote("A")}
                 disabled={voteMutation.isPending || !fingerprint}
-                className="group w-full border-2 border-[#B91C1C] bg-[#B91C1C]/5 hover:bg-[#B91C1C]/10 transition-all duration-200 rounded-lg p-4 flex justify-between items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`group w-full border-2 border-[#B91C1C] transition-all duration-200 rounded-lg p-4 flex justify-between items-center disabled:cursor-not-allowed ${
+                  votingChoice === "A"
+                    ? "bg-[#B91C1C]/20 scale-[0.98]"
+                    : votingChoice === "B"
+                    ? "opacity-40"
+                    : "bg-[#B91C1C]/5 hover:bg-[#B91C1C]/10"
+                }`}
               >
                 <div className="flex flex-col items-start">
-                  <span className="font-bold text-[#B91C1C]">{optionA}</span>
+                  <span className="font-bold text-[#B91C1C]">
+                    {votingChoice === "A" && voteMutation.isPending ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        {optionA}
+                      </span>
+                    ) : (
+                      optionA
+                    )}
+                  </span>
                   <span className="text-xs text-[#B91C1C]/70">{labelA}</span>
                 </div>
                 <div className="bg-[#B91C1C]/10 text-[#B91C1C] px-4 py-2 rounded-md font-mono font-bold">
@@ -296,10 +444,25 @@ export default function MarketCard({
               <button
                 onClick={() => handleVote("B")}
                 disabled={voteMutation.isPending || !fingerprint}
-                className="group w-full border-2 border-[#002B5C] bg-[#002B5C]/5 hover:bg-[#002B5C]/10 transition-all duration-200 rounded-lg p-4 flex justify-between items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`group w-full border-2 border-[#002B5C] transition-all duration-200 rounded-lg p-4 flex justify-between items-center disabled:cursor-not-allowed ${
+                  votingChoice === "B"
+                    ? "bg-[#002B5C]/20 scale-[0.98]"
+                    : votingChoice === "A"
+                    ? "opacity-40"
+                    : "bg-[#002B5C]/5 hover:bg-[#002B5C]/10"
+                }`}
               >
                 <div className="flex flex-col items-start">
-                  <span className="font-bold text-[#002B5C]">{optionB}</span>
+                  <span className="font-bold text-[#002B5C]">
+                    {votingChoice === "B" && voteMutation.isPending ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        {optionB}
+                      </span>
+                    ) : (
+                      optionB
+                    )}
+                  </span>
                   <span className="text-xs text-[#002B5C]/70">{labelB}</span>
                 </div>
                 <div className="bg-[#002B5C]/10 text-[#002B5C] px-4 py-2 rounded-md font-mono font-bold">
@@ -307,14 +470,7 @@ export default function MarketCard({
                 </div>
               </button>
 
-              {voteMutation.isPending && (
-                <div className="flex items-center justify-center gap-2 text-sm text-gray-500 py-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Registrando voto...
-                </div>
-              )}
-
-              {/* Botão compartilhar — disponível mesmo antes de votar */}
+              {/* Botão compartilhar */}
               <div className="flex justify-end pt-2 border-t border-gray-100">
                 <Button
                   variant="outline"
@@ -336,9 +492,14 @@ export default function MarketCard({
             >
               {/* Badge da escolha do usuário */}
               {myChoice && (
-                <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-gray-600">Sua previsão:</span>
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="flex items-center gap-2 bg-green-50 px-4 py-2.5 rounded-lg border border-green-200"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                  <span className="text-sm text-green-800">Sua previsao:</span>
                   <span
                     className="font-bold text-sm px-2 py-0.5 rounded"
                     style={{
@@ -348,7 +509,7 @@ export default function MarketCard({
                   >
                     {myChoice === "A" ? optionA : optionB}
                   </span>
-                </div>
+                </motion.div>
               )}
 
               {/* Resultados */}
@@ -366,13 +527,19 @@ export default function MarketCard({
 
                 {/* Barra de progresso */}
                 <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden flex">
-                  <div
-                    className="h-full transition-all duration-1000"
-                    style={{ width: `${localStats.pctA}%`, backgroundColor: colorA }}
+                  <motion.div
+                    className="h-full"
+                    style={{ backgroundColor: colorA }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${localStats.pctA}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
                   />
-                  <div
-                    className="h-full transition-all duration-1000"
-                    style={{ width: `${localStats.pctB}%`, backgroundColor: colorB }}
+                  <motion.div
+                    className="h-full"
+                    style={{ backgroundColor: colorB }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${localStats.pctB}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
                   />
                 </div>
 
