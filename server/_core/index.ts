@@ -1,4 +1,10 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Carregar .env do mesmo diretório do index.js (necessário no Lambda do Amplify)
+dotenv.config({ path: path.resolve(__dirname, ".env") });
+
 import express from "express";
 import { createServer } from "http";
 import net from "net";

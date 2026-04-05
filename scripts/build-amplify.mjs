@@ -86,6 +86,15 @@ serverCode = serverCode.replace(/import\.meta\.url/g, '("file://" + __filename)'
 
 fs.writeFileSync(path.join(computeDir, "index.js"), serverCode);
 
+// 4a-extra. Copiar .env.runtime para compute/default/.env (para dotenv carregar no Lambda)
+const envRuntimePath = path.join(ROOT, ".env.runtime");
+if (fs.existsSync(envRuntimePath)) {
+  fs.copyFileSync(envRuntimePath, path.join(computeDir, ".env"));
+  console.log("   ✅ .env.runtime copiado para compute/default/.env");
+} else {
+  console.warn("   ⚠️  .env.runtime não encontrado — variáveis de ambiente podem não estar disponíveis no runtime");
+}
+
 // 4b. Copiar estáticos do Vite para AMBOS os lugares:
 //     - static/ → CloudFront serve diretamente
 //     - compute/default/public/ → Express serve SPA fallback

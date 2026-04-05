@@ -7,6 +7,23 @@ frontend:
         - pnpm install --frozen-lockfile
     build:
       commands:
+        # Gerar .env para o runtime (Lambda não herda env vars do build automaticamente)
+        - echo "DATABASE_URL=$DATABASE_URL" >> .env.runtime
+        - echo "JWT_SECRET=$JWT_SECRET" >> .env.runtime
+        - echo "NODE_ENV=$NODE_ENV" >> .env.runtime
+        - echo "VITE_APP_TITLE=$VITE_APP_TITLE" >> .env.runtime
+        - echo "VITE_APP_ID=$VITE_APP_ID" >> .env.runtime
+        - echo "OAUTH_SERVER_URL=$OAUTH_SERVER_URL" >> .env.runtime
+        - echo "VITE_OAUTH_PORTAL_URL=$VITE_OAUTH_PORTAL_URL" >> .env.runtime
+        - echo "OWNER_OPEN_ID=$OWNER_OPEN_ID" >> .env.runtime
+        - echo "OWNER_NAME=$OWNER_NAME" >> .env.runtime
+        - echo "BUILT_IN_FORGE_API_URL=$BUILT_IN_FORGE_API_URL" >> .env.runtime
+        - echo "BUILT_IN_FORGE_API_KEY=$BUILT_IN_FORGE_API_KEY" >> .env.runtime
+        - echo "VITE_FRONTEND_FORGE_API_KEY=$VITE_FRONTEND_FORGE_API_KEY" >> .env.runtime
+        - echo "VITE_FRONTEND_FORGE_API_URL=$VITE_FRONTEND_FORGE_API_URL" >> .env.runtime
+        - echo "VITE_ANALYTICS_ENDPOINT=$VITE_ANALYTICS_ENDPOINT" >> .env.runtime
+        - echo "VITE_ANALYTICS_WEBSITE_ID=$VITE_ANALYTICS_WEBSITE_ID" >> .env.runtime
+        - echo "[INFO] .env.runtime generated with env vars for Lambda runtime"
         - node scripts/build-amplify.mjs
         - cd .amplify-hosting/compute/default && pnpm install --prod --no-frozen-lockfile
   artifacts:

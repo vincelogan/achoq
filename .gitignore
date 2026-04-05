@@ -120,3 +120,4 @@ guia_deploy_aws.md
 ideas.md
 todo.md
 .gitkeep
+.env.runtime
