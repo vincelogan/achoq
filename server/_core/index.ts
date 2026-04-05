@@ -7,6 +7,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { getDb } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -33,6 +34,27 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  // Health check / diagnostic endpoint
+  app.get("/api/health", async (_req, res) => {
+    const info: Record<string, any> = {
+      timestamp: new Date().toISOString(),
+      nodeEnv: process.env.NODE_ENV,
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      databaseUrlPrefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 30) + "..." : "NOT SET",
+    };
+    try {
+      const db = await getDb();
+      info.dbConnected = !!db;
+      if (db) {
+        const { sql } = await import("drizzle-orm");
+        const result = await db.execute(sql`SELECT COUNT(*) as cnt FROM markets`);
+        info.marketsCount = result[0]?.[0]?.cnt ?? result[0]?.cnt ?? "unknown";
+      }
+    } catch (e: any) {
+      info.dbError = e.message;
+    }
+    res.json(info);
+  });
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // tRPC API
