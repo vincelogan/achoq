@@ -10,6 +10,8 @@ import {
   hasVoted,
   castVote,
   getDemographics,
+  getVoteHistory,
+  getRelatedMarkets,
   seedMarketsIfEmpty,
   getAllMarketsAdmin,
   createMarket,
@@ -104,6 +106,30 @@ export const appRouter = router({
       .input(z.object({ marketId: z.number() }))
       .query(async ({ input }) => {
         return getDemographics(input.marketId);
+      }),
+
+    // Histórico de votos (para gráfico temporal)
+    voteHistory: publicProcedure
+      .input(z.object({ marketId: z.number() }))
+      .query(async ({ input }) => {
+        return getVoteHistory(input.marketId);
+      }),
+
+    // Mercados relacionados
+    related: publicProcedure
+      .input(z.object({ marketId: z.number(), category: z.string() }))
+      .query(async ({ input }) => {
+        const relatedMarkets = await getRelatedMarkets(input.marketId, input.category);
+        const marketsWithStats = await Promise.all(
+          relatedMarkets.map(async (market: any) => {
+            const stats = await getVoteStats(market.id);
+            const total = stats.total;
+            const pctA = total > 0 ? Math.round((stats.countA / total) * 100) : 50;
+            const pctB = total > 0 ? Math.round((stats.countB / total) * 100) : 50;
+            return { ...market, stats: { countA: stats.countA, countB: stats.countB, total, pctA, pctB } };
+          })
+        );
+        return marketsWithStats;
       }),
   }),
 

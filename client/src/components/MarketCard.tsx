@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { useFingerprint } from "@/hooks/useFingerprint";
 import { toast } from "sonner";
+import { Link } from "wouter";
 
 type MarketCardProps = {
   marketId: number;
@@ -274,7 +275,7 @@ export default function MarketCard({
   };
 
   const shareText = `No AchoQ: "${title}" — ${localStats.pctA}% acham ${optionA} vs ${localStats.pctB}% acham ${optionB}. E você?`;
-  const shareUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/mercado/${slug}` : "";
 
   const colorA = "#B91C1C";
   const colorB = "#002B5C";
@@ -300,9 +301,11 @@ export default function MarketCard({
 
       {/* Corpo do card */}
       <div className={`flex-1 flex flex-col ${hero ? "p-6 md:p-8" : "p-5"}`}>
-        <h3 className={`font-bold text-gray-900 mb-5 ${hero ? "text-2xl md:text-3xl" : "text-lg"}`}>
-          {title}
-        </h3>
+        <Link href={`/mercado/${slug}`}>
+          <h3 className={`font-bold text-gray-900 mb-5 hover:text-[#1a4971] transition-colors cursor-pointer ${hero ? "text-2xl md:text-3xl" : "text-lg"}`}>
+            {title}
+          </h3>
+        </Link>
 
         <AnimatePresence mode="wait">
           {/* Estado: Confirmação de voto (feedback visual) */}

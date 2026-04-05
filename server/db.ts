@@ -263,6 +263,34 @@ export async function getMarketVoteCount(marketId: number) {
   return Number(result[0]?.count ?? 0);
 }
 
+export async function getVoteHistory(marketId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const result = await db
+    .select({
+      date: sql<string>`DATE(${votes.createdAt})`,
+      choice: votes.choice,
+      count: sql<number>`COUNT(*)`,
+    })
+    .from(votes)
+    .where(eq(votes.marketId, marketId))
+    .groupBy(sql`DATE(${votes.createdAt})`, votes.choice)
+    .orderBy(sql`DATE(${votes.createdAt})`);
+  return result;
+}
+
+export async function getRelatedMarkets(marketId: number, category: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const result = await db
+    .select()
+    .from(markets)
+    .where(eq(markets.isActive, true))
+    .limit(10);
+  // Filter out current market and return up to 4
+  return result.filter((m: any) => m.id !== marketId).slice(0, 4);
+}
+
 export async function getDemographics(marketId: number) {
   const db = await getDb();
   if (!db) return { regions: [], countries: [] };
