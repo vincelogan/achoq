@@ -13,6 +13,7 @@ import Termos from "./pages/Termos";
 import Privacidade from "./pages/Privacidade";
 import Admin from "./pages/Admin";
 import MarketDetail from "./pages/MarketDetail";
+import ScrollToTop from "./components/ScrollToTop";
 
 function Router() {
   return (
@@ -39,6 +40,7 @@ function App() {
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
+          <ScrollToTop />
           <Router />
         </TooltipProvider>
       </ThemeProvider>
