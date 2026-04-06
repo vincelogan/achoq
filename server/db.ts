@@ -266,17 +266,22 @@ export async function getMarketVoteCount(marketId: number) {
 export async function getVoteHistory(marketId: number) {
   const db = await getDb();
   if (!db) return [];
-  const result = await db
-    .select({
-      date: sql<string>`DATE(${votes.createdAt})`,
-      choice: votes.choice,
-      count: sql<number>`COUNT(*)`,
-    })
-    .from(votes)
-    .where(eq(votes.marketId, marketId))
-    .groupBy(sql`DATE(${votes.createdAt})`, votes.choice)
-    .orderBy(sql`DATE(${votes.createdAt})`);
-  return result;
+  try {
+    const result = await db.execute(
+      sql`SELECT DATE(${votes.createdAt}) as date, ${votes.choice} as choice, COUNT(*) as count FROM ${votes} WHERE ${votes.marketId} = ${marketId} GROUP BY DATE(${votes.createdAt}), ${votes.choice} ORDER BY DATE(${votes.createdAt})`
+    );
+    // db.execute retorna [rows, fields] - extrair apenas as rows
+    const rows = Array.isArray(result) ? result[0] : (result as any).rows ?? result;
+    // Normalizar os dados para formato consistente
+    return (Array.isArray(rows) ? rows : []).map((row: any) => ({
+      date: String(row.date),
+      choice: String(row.choice),
+      count: Number(row.count),
+    }));
+  } catch (e) {
+    console.error('[getVoteHistory] Query error:', e);
+    return [];
+  }
 }
 
 export async function getRelatedMarkets(marketId: number, category: string) {

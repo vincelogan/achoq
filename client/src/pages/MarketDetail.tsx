@@ -98,7 +98,7 @@ function SharePopup({ open, onClose, title, slug }: { open: boolean; onClose: ()
   );
 }
 
-function VoteChart({ history }: { history: { date: string; choice: string; count: number }[] }) {
+function VoteChart({ history, optionA, optionB }: { history: { date: string; choice: string; count: number }[]; optionA?: string; optionB?: string }) {
   const chartData = useMemo(() => {
     const dateMap = new Map<string, { a: number; b: number }>();
     for (const row of history) {
@@ -129,8 +129,8 @@ function VoteChart({ history }: { history: { date: string; choice: string; count
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-[#B91C1C]" /><span>Opção A</span></div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-[#002B5C]" /><span>Opção B</span></div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-[#B91C1C]" /><span>{optionA || "Opção A"}</span></div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-[#002B5C]" /><span>{optionB || "Opção B"}</span></div>
       </div>
       <div className="flex items-end gap-1 h-32">
         {displayData.map((d, i) => (
@@ -278,7 +278,7 @@ export default function MarketDetail() {
               {/* Gráfico */}
               <div className="bg-white rounded-2xl border border-gray-200 p-6">
                 <div className="flex items-center gap-2 mb-4"><BarChart3 className="w-5 h-5 text-[#1a4971]" /><h2 className="font-bold text-gray-900">Evolução das opiniões</h2></div>
-                <VoteChart history={history || []} />
+                <VoteChart history={history || []} optionA={market.optionA} optionB={market.optionB} />
               </div>
 
               {/* Resultados */}
