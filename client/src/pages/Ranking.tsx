@@ -1,6 +1,7 @@
 import InstitutionalLayout from "@/components/InstitutionalLayout";
 import { trpc } from "@/lib/trpc";
 import { Trophy, Users, Activity, TrendingUp, Info, Loader2 } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Ranking() {
   const { data: markets, isLoading } = trpc.markets.list.useQuery();
@@ -42,9 +43,10 @@ export default function Ranking() {
             {markets
               ?.sort((a, b) => b.stats.total - a.stats.total)
               .map((market, index) => (
-                <div
+                <Link
                   key={market.id}
-                  className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col md:flex-row md:items-center gap-4"
+                  href={`/mercado/${market.slug}`}
+                  className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col md:flex-row md:items-center gap-4 hover:border-gray-300 hover:shadow-md transition-all duration-200 cursor-pointer block"
                 >
                   {/* Posição */}
                   <div className="flex items-center gap-4 md:w-12 shrink-0">
@@ -101,7 +103,7 @@ export default function Ranking() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
           </div>
         )}
