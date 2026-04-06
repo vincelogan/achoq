@@ -85,7 +85,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ input, ctx }) => {
         const alreadyVoted = await hasVoted(input.marketId, input.fingerprint);
-        if (alreadyVoted) throw new Error("Você já votou neste mercado.");
+        if (alreadyVoted) throw new Error("Você já opinou nesta enquete.");
         await castVote({
           marketId: input.marketId,
           choice: input.choice,

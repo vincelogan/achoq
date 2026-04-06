@@ -31,7 +31,7 @@ export default function Legal() {
           </p>
           <ul className="space-y-3">
             {[
-              { ok: false, text: "Não realiza apostas ou jogos de azar de qualquer natureza" },
+              { ok: false, text: "Não realiza jogos de azar de qualquer natureza" },
               { ok: false, text: "Não intermedia jogos de azar ou atividades reguladas pela Lei nº 14.790/2023" },
               { ok: false, text: "Não oferece qualquer tipo de retorno financeiro aos participantes" },
               { ok: false, text: "Não constitui, opera ou se equipara a instituição financeira" },

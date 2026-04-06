@@ -49,11 +49,11 @@ export default function Metodologia() {
                 <span className="font-mono font-bold text-gray-900">100</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-[#B91C1C] font-medium">Opção A (60 votos)</span>
+                <span className="text-[#B91C1C] font-medium">Opção A (60 opiniões)</span>
                 <span className="font-mono font-bold text-[#B91C1C]">60%</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-[#002B5C] font-medium">Opção B (40 votos)</span>
+                <span className="text-[#002B5C] font-medium">Opção B (40 opiniões)</span>
                 <span className="font-mono font-bold text-[#002B5C]">40%</span>
               </div>
               <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden flex mt-2">

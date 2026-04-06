@@ -76,7 +76,7 @@ export default function Ranking() {
                       <div className="text-lg font-bold text-gray-900">
                         {market.stats.total.toLocaleString("pt-BR")}
                       </div>
-                      <div className="text-xs text-gray-400 uppercase tracking-wide">votos</div>
+                      <div className="text-xs text-gray-400 uppercase tracking-wide">opiniões</div>
                     </div>
 
                     {/* Mini barra */}

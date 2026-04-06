@@ -47,7 +47,7 @@ const sections: Section[] = [
         <ul className="space-y-2">
           {[
             "Utilizar a plataforma para fins ilícitos ou contrários à ordem pública e aos bons costumes.",
-            "Manipular ou tentar manipular resultados por qualquer meio, incluindo votos coordenados ou automatizados.",
+            "Manipular ou tentar manipular resultados por qualquer meio, incluindo opiniões coordenadas ou automatizadas.",
             "Utilizar robôs, scripts, automações ou qualquer mecanismo não humano sem autorização expressa e prévia.",
             "Realizar engenharia reversa, descompilar ou tentar extrair o código-fonte da plataforma.",
             "Interferir no funcionamento técnico da plataforma ou de sua infraestrutura.",
@@ -73,7 +73,7 @@ const sections: Section[] = [
         <ul className="space-y-2">
           {[
             "A participação é gratuita e não gera qualquer direito financeiro, crédito ou remuneração.",
-            "A plataforma não constitui, em nenhuma hipótese, investimento, aposta ou jogo de azar.",
+            "A plataforma não constitui, em nenhuma hipótese, investimento ou jogo de azar.",
             "Os percentuais exibidos são meros indicadores de opinião coletiva, sem valor preditivo garantido.",
             "Nenhuma participação gera obrigação contratual entre o usuário e o AchoQ.",
           ].map((item, i) => (

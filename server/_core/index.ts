@@ -2,8 +2,13 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 
+// Resolver __dirname para ESM (dev) e CJS (produção/Lambda)
+const __dirnameCompat = typeof __dirname !== "undefined"
+  ? __dirname
+  : path.dirname(fileURLToPath(import.meta.url));
+
 // Carregar .env do mesmo diretório do index.js (necessário no Lambda do Amplify)
-dotenv.config({ path: path.resolve(__dirname, ".env") });
+dotenv.config({ path: path.resolve(__dirnameCompat, ".env") });
 
 import express from "express";
 import { createServer } from "http";

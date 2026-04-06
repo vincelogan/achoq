@@ -323,7 +323,7 @@ export default function Admin() {
           <Card>
             <CardContent className="pt-4 pb-4 text-center">
               <p className="text-2xl font-bold text-orange-500">{markets?.reduce((sum, m) => sum + (m.voteCount ?? 0), 0) ?? 0}</p>
-              <p className="text-xs text-gray-500">Total de votos</p>
+              <p className="text-xs text-gray-500">Total de opiniões</p>
             </CardContent>
           </Card>
         </div>
@@ -398,7 +398,7 @@ export default function Admin() {
                             <span className="bg-gray-100 px-2 py-0.5 rounded">{market.category}</span>
                             <span>/{market.slug}</span>
                             <span className="flex items-center gap-1">
-                              <BarChart3 className="w-3 h-3" /> {market.voteCount} votos
+                              <BarChart3 className="w-3 h-3" /> {market.voteCount} opiniões
                             </span>
                           </div>
                           <div className="flex gap-3 mt-2 text-xs">

@@ -83,7 +83,7 @@ export default function ComoFunciona() {
         <h2 className="text-xl font-bold text-gray-900 mb-3">Atualização em tempo real</h2>
         <p className="text-gray-600 leading-relaxed">
           Os dados são atualizados continuamente conforme novas participações ocorrem.
-          Cada voto registrado é imediatamente refletido nos percentuais exibidos,
+          Cada opinião registrada é imediatamente refletida nos percentuais exibidos,
           garantindo que você veja sempre a opinião mais recente da comunidade.
         </p>
       </div>
@@ -99,7 +99,7 @@ export default function ComoFunciona() {
           {[
             { icon: DollarSign, label: "Pagamento para participar" },
             { icon: DollarSign, label: "Premiação financeira de qualquer tipo" },
-            { icon: Ban, label: "Sistema de apostas ou jogos de azar" },
+            { icon: Ban, label: "Jogos de azar ou similar" },
             { icon: Bot, label: "Negociação de ativos financeiros" },
           ].map(({ icon: Icon, label }) => (
             <div key={label} className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">

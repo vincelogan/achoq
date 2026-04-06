@@ -68,6 +68,7 @@ export default function Home() {
                 labelA={featuredMarket.labelA}
                 labelB={featuredMarket.labelB}
                 initialStats={featuredMarket.stats}
+                endsAt={featuredMarket.endsAt}
                 hero
               />
             ) : null}
@@ -98,6 +99,7 @@ export default function Home() {
                     labelA={market.labelA}
                     labelB={market.labelB}
                     initialStats={market.stats}
+                    endsAt={market.endsAt}
                   />
                 ))}
               </div>

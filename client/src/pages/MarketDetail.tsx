@@ -118,7 +118,7 @@ function VoteChart({ history }: { history: { date: string; choice: string; count
     return (
       <div className="flex items-center justify-center h-40 text-gray-400 text-sm">
         <Clock className="w-4 h-4 mr-2" />
-        Dados de evolução aparecerão após mais votos
+        Dados de evolução aparecerão após mais opiniões
       </div>
     );
   }
@@ -174,7 +174,7 @@ export default function MarketDetail() {
       utils.markets.checkVote.invalidate({ marketId: market?.id ?? 0, fingerprint });
       utils.markets.voteHistory.invalidate({ marketId: market?.id ?? 0 });
     },
-    onError: (err) => { toast.error(err.message || "Erro ao votar"); },
+    onError: (err) => { toast.error(err.message || "Erro ao registrar opinião"); },
     onSettled: () => { setVotingFor(null); },
   });
 
@@ -267,7 +267,7 @@ export default function MarketDetail() {
                 </div>
                 {market.description && <p className="text-gray-600 leading-relaxed mb-5">{market.description}</p>}
                 <div className="flex flex-wrap gap-4 text-sm">
-                  <div className="flex items-center gap-1.5 text-gray-500"><Users className="w-4 h-4" /><span className="font-semibold text-gray-900">{stats?.total ?? 0}</span><span>votos</span></div>
+                  <div className="flex items-center gap-1.5 text-gray-500"><Users className="w-4 h-4" /><span className="font-semibold text-gray-900">{stats?.total ?? 0}</span><span>opiniões</span></div>
                   <div className="flex items-center gap-1.5 text-gray-500"><Calendar className="w-4 h-4" /><span>Criado em {createdDate}</span></div>
                   {market.endsAt && (
                     <div className="flex items-center gap-1.5 text-gray-500"><Clock className="w-4 h-4" /><span>Encerra em {new Date(market.endsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</span></div>
@@ -277,7 +277,7 @@ export default function MarketDetail() {
 
               {/* Gráfico */}
               <div className="bg-white rounded-2xl border border-gray-200 p-6">
-                <div className="flex items-center gap-2 mb-4"><BarChart3 className="w-5 h-5 text-[#1a4971]" /><h2 className="font-bold text-gray-900">Evolução dos votos</h2></div>
+                <div className="flex items-center gap-2 mb-4"><BarChart3 className="w-5 h-5 text-[#1a4971]" /><h2 className="font-bold text-gray-900">Evolução das opiniões</h2></div>
                 <VoteChart history={history || []} />
               </div>
 
@@ -298,12 +298,12 @@ export default function MarketDetail() {
                   <div className="bg-red-50/50 rounded-xl p-4 border border-red-100">
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{market.labelA}</p>
                     <p className="text-2xl font-bold text-[#B91C1C]">{stats?.countA ?? 0}</p>
-                    <p className="text-xs text-gray-400">votos</p>
+                    <p className="text-xs text-gray-400">opiniões</p>
                   </div>
                   <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100">
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{market.labelB}</p>
                     <p className="text-2xl font-bold text-[#002B5C]">{stats?.countB ?? 0}</p>
-                    <p className="text-xs text-gray-400">votos</p>
+                    <p className="text-xs text-gray-400">opiniões</p>
                   </div>
                 </div>
               </div>
@@ -318,7 +318,7 @@ export default function MarketDetail() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-gray-900 group-hover:text-[#1a4971] transition-colors line-clamp-2">{rm.title}</p>
                           <div className="flex items-center gap-2 mt-1.5">
-                            <span className="text-xs text-gray-400">{rm.stats.total} votos</span>
+                            <span className="text-xs text-gray-400">{rm.stats.total} opiniões</span>
                             <span className="text-xs font-medium text-[#B91C1C]">{rm.stats.pctA}%</span>
                             <span className="text-xs text-gray-300">vs</span>
                             <span className="text-xs font-medium text-[#002B5C]">{rm.stats.pctB}%</span>
@@ -336,7 +336,7 @@ export default function MarketDetail() {
             <div className="lg:col-span-1">
               <div className="sticky top-20 space-y-4">
                 <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-                  <h3 className="font-bold text-gray-900 mb-1">Qual é a sua previsão?</h3>
+                  <h3 className="font-bold text-gray-900 mb-1">Qual é a sua opinião?</h3>
                   <p className="text-sm text-gray-500 mb-5">Registre sua opinião de forma anônima</p>
                   <AnimatePresence mode="wait">
                     {showConfirmation ? (
@@ -345,14 +345,14 @@ export default function MarketDetail() {
                           <CheckCircle2 className="w-16 h-16 text-emerald-500" />
                           <motion.div initial={{ scale: 0 }} animate={{ scale: [0, 1.3, 1] }} transition={{ delay: 0.2 }} className="absolute -top-2 -right-2"><PartyPopper className="w-6 h-6 text-amber-500" /></motion.div>
                         </div>
-                        <p className="font-bold text-emerald-600 text-lg">Voto registrado!</p>
+                        <p className="font-bold text-emerald-600 text-lg">Opinião registrada!</p>
                         <p className="text-sm text-gray-500">Obrigado por participar</p>
                       </motion.div>
                     ) : hasVoted ? (
                       <motion.div key="voted" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
                         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-200 mb-4">
                           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                          <span className="text-sm font-medium text-emerald-700">Você já votou nesta enquete</span>
+                          <span className="text-sm font-medium text-emerald-700">Você já opinou nesta enquete</span>
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between"><span className="text-sm font-medium text-gray-700">{market.optionA}</span><span className="text-sm font-bold text-[#B91C1C]">{stats?.pctA ?? 50}%</span></div>
@@ -362,7 +362,7 @@ export default function MarketDetail() {
                           <div className="flex items-center justify-between"><span className="text-sm font-medium text-gray-700">{market.optionB}</span><span className="text-sm font-bold text-[#002B5C]">{stats?.pctB ?? 50}%</span></div>
                           <div className="h-3 rounded-full bg-gray-100 overflow-hidden"><motion.div className="h-full bg-[#002B5C] rounded-full" initial={{ width: 0 }} animate={{ width: `${stats?.pctB ?? 50}%` }} transition={{ duration: 0.6 }} /></div>
                         </div>
-                        <p className="text-center text-xs text-gray-400 mt-3">{stats?.total ?? 0} votos registrados</p>
+                        <p className="text-center text-xs text-gray-400 mt-3">{stats?.total ?? 0} opiniões registradas</p>
                       </motion.div>
                     ) : (
                       <motion.div key="voting" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
@@ -392,7 +392,7 @@ export default function MarketDetail() {
                     <div className="flex justify-between"><span className="text-gray-500">Status</span><span className="font-medium text-emerald-600">Ativo</span></div>
                     <div className="flex justify-between"><span className="text-gray-500">Categoria</span><span className="font-medium text-gray-900">{CATEGORY_LABELS[market.category] || market.category}</span></div>
                     <div className="flex justify-between"><span className="text-gray-500">Criado em</span><span className="font-medium text-gray-900">{createdDate}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">Total de votos</span><span className="font-medium text-gray-900">{stats?.total ?? 0}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Total de opiniões</span><span className="font-medium text-gray-900">{stats?.total ?? 0}</span></div>
                   </div>
                 </div>
 

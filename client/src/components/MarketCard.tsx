@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Share2, TrendingUp, CheckCircle2, Loader2, Link2, X, PartyPopper } from "lucide-react";
+import { Share2, TrendingUp, CheckCircle2, Loader2, Link2, X, PartyPopper, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { useFingerprint } from "@/hooks/useFingerprint";
@@ -24,6 +24,7 @@ type MarketCardProps = {
     pctB: number;
   };
   hero?: boolean;
+  endsAt?: string | Date | null;
 };
 
 function SharePopup({
@@ -214,6 +215,7 @@ export default function MarketCard({
   labelB,
   initialStats,
   hero = false,
+  endsAt,
 }: MarketCardProps) {
   const fingerprint = useFingerprint();
   const [localStats, setLocalStats] = useState(initialStats);
@@ -259,9 +261,9 @@ export default function MarketCard({
       setVotingChoice(null);
       if (err.message.includes("já votou")) {
         setHasVoted(true);
-        toast.info("Você já votou neste mercado.");
+        toast.info("Você já opinou nesta enquete.");
       } else {
-        toast.error("Erro ao registrar voto. Tente novamente.");
+        toast.error("Erro ao registrar opinião. Tente novamente.");
       }
     },
   });
@@ -293,9 +295,17 @@ export default function MarketCard({
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
           <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">{category}</span>
         </div>
-        <div className="flex items-center gap-1 text-xs text-gray-400">
-          <TrendingUp className="w-3 h-3" />
-          <span>{localStats.total.toLocaleString("pt-BR")} votos</span>
+        <div className="flex items-center gap-3">
+          {endsAt && (
+            <div className="flex items-center gap-1 text-xs text-gray-400">
+              <Calendar className="w-3 h-3" />
+              <span>Encerra {new Date(endsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-1 text-xs text-gray-400">
+            <TrendingUp className="w-3 h-3" />
+            <span>{localStats.total.toLocaleString("pt-BR")} opiniões</span>
+          </div>
         </div>
       </div>
 
@@ -343,7 +353,7 @@ export default function MarketCard({
                   transition={{ delay: 0.35 }}
                   className="text-center"
                 >
-                  <p className="text-lg font-bold text-gray-900">Voto registrado!</p>
+                  <p className="text-lg font-bold text-gray-900">Opinião registrada!</p>
                   <p className="text-sm text-gray-500 mt-1">
                     Você escolheu{" "}
                     <span
@@ -502,7 +512,7 @@ export default function MarketCard({
                   className="flex items-center gap-2 bg-green-50 px-4 py-2.5 rounded-lg border border-green-200"
                 >
                   <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-                  <span className="text-sm text-green-800">Sua previsao:</span>
+                  <span className="text-sm text-green-800">Sua opinião:</span>
                   <span
                     className="font-bold text-sm px-2 py-0.5 rounded"
                     style={{
@@ -547,7 +557,7 @@ export default function MarketCard({
                 </div>
 
                 <div className="text-xs text-center text-gray-400">
-                  {localStats.total.toLocaleString("pt-BR")} votos registrados
+                  {localStats.total.toLocaleString("pt-BR")} opiniões registradas
                 </div>
               </div>
 

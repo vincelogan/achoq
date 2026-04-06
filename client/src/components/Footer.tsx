@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Twitter, Instagram, Linkedin } from "lucide-react";
 
-const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/QAchoQ_47636312.jpg";
+const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/QAchoQ_transparent_a9657e09.png";
 
 export default function Footer() {
   return (
@@ -18,10 +18,10 @@ export default function Footer() {
               </div>
             </Link>
             <p className="text-sm text-gray-500 max-w-xs leading-relaxed">
-              Primeira plataforma de opinião coletiva do Brasil. Simples, transparente e sem apostas.
+              Primeira plataforma de opinião coletiva do Brasil. Simples, transparente e democrática.
             </p>
             <p className="text-xs text-gray-400 mt-3 max-w-xs leading-relaxed">
-              Não é pesquisa eleitoral. Não é plataforma de apostas.
+              Não é pesquisa eleitoral. Não constitui plataforma de investimento.
               Os resultados refletem apenas a opinião dos participantes.
             </p>
           </div>
@@ -80,21 +80,27 @@ export default function Footer() {
           </div>
           <div className="flex gap-4">
             <a
-              href="#"
+              href="https://x.com/achoq"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-400 hover:text-[#1a4971] transition-colors"
-              aria-label="Twitter"
+              aria-label="X (Twitter)"
             >
               <Twitter className="h-4 w-4" />
             </a>
             <a
-              href="#"
+              href="https://instagram.com/AchoQ.com.br"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-400 hover:text-[#1a4971] transition-colors"
               aria-label="Instagram"
             >
               <Instagram className="h-4 w-4" />
             </a>
             <a
-              href="#"
+              href="https://linkedin.com/company/achoq"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-400 hover:text-[#1a4971] transition-colors"
               aria-label="LinkedIn"
             >

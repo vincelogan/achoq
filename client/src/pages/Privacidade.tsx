@@ -229,7 +229,7 @@ export default function Privacidade() {
             "Não vendemos seus dados para ninguém.",
             "Coletamos apenas o mínimo necessário para a plataforma funcionar.",
             "Você pode solicitar a exclusão dos seus dados a qualquer momento.",
-            "Usamos um identificador anônimo (sem nome ou e-mail) para controlar votos únicos.",
+            "Usamos um identificador anônimo (sem nome ou e-mail) para controlar opiniões únicas.",
             "Seus direitos pela LGPD são integralmente respeitados.",
           ].map((item, i) => (
             <li key={i} className="flex items-start gap-2 text-sm text-blue-700">
