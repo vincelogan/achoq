@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Twitter, Instagram, Linkedin } from "lucide-react";
 
-const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/QAchoQ_transparent_a9657e09.png";
+const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/QACHOQ_16a7e9d3.png";
 
 export default function Footer() {
   return (
@@ -11,7 +11,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
             <Link href="/" className="flex items-center gap-2.5 mb-4 w-fit">
-              <img src={LOGO_URL} alt="AchoQ" className="h-9 w-9 rounded-md object-cover" />
+              <img src={LOGO_URL} alt="AchoQ" className="h-11 w-11 object-contain" />
               <div className="flex flex-col leading-none">
                 <span className="font-sans text-xl font-black tracking-tight text-[#1a4971]">AchoQ</span>
                 <span className="font-sans text-[9px] text-gray-400 tracking-wide">Uma empresa Nexar</span>
