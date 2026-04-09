@@ -15,6 +15,13 @@
       "when": 1774832728753,
       "tag": "0001_rapid_supreme_intelligence",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1775748820507,
+      "tag": "0002_cuddly_unicorn",
+      "breakpoints": true
     }
   ]
 }

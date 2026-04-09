@@ -246,7 +246,19 @@ export default function MarketDetail() {
             {/* Coluna Principal */}
             <div className="lg:col-span-2 space-y-6">
               {/* Título */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8">
+              <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                {/* Imagem da enquete */}
+                {market.imageUrl && (
+                  <div className="relative h-48 md:h-64 overflow-hidden">
+                    <img
+                      src={market.imageUrl}
+                      alt={market.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  </div>
+                )}
+                <div className="p-6 md:p-8">
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-3">
@@ -272,6 +284,7 @@ export default function MarketDetail() {
                   {market.endsAt && (
                     <div className="flex items-center gap-1.5 text-gray-500"><Clock className="w-4 h-4" /><span>Encerra em {new Date(market.endsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</span></div>
                   )}
+                </div>
                 </div>
               </div>
 

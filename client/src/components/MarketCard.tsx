@@ -25,6 +25,7 @@ type MarketCardProps = {
   };
   hero?: boolean;
   endsAt?: string | Date | null;
+  imageUrl?: string | null;
 };
 
 function SharePopup({
@@ -216,6 +217,7 @@ export default function MarketCard({
   initialStats,
   hero = false,
   endsAt,
+  imageUrl,
 }: MarketCardProps) {
   const fingerprint = useFingerprint();
   const [localStats, setLocalStats] = useState(initialStats);
@@ -288,6 +290,20 @@ export default function MarketCard({
       <AnimatePresence>
         {showConfetti && <ConfettiBurst />}
       </AnimatePresence>
+
+      {/* Imagem da enquete */}
+      {imageUrl && (
+        <Link href={`/mercado/${slug}`}>
+          <div className={`relative overflow-hidden ${hero ? "h-48 md:h-64" : "h-36"}`}>
+            <img
+              src={imageUrl}
+              alt={title}
+              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+          </div>
+        </Link>
+      )}
 
       {/* Header do card */}
       <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">

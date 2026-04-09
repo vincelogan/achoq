@@ -29,6 +29,10 @@ export const markets = mysqlTable("markets", {
   optionB: varchar("optionB", { length: 128 }).notNull(),
   labelA: varchar("labelA", { length: 64 }).notNull(),
   labelB: varchar("labelB", { length: 64 }).notNull(),
+  // Imagens ilustrativas
+  imageUrl: text("imageUrl"), // Imagem principal da enquete
+  imageA: text("imageA"),     // Imagem da opção A
+  imageB: text("imageB"),     // Imagem da opção B
   isActive: boolean("isActive").default(true).notNull(),
   endsAt: timestamp("endsAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
