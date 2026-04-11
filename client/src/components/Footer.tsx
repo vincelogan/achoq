@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Instagram, Linkedin } from "lucide-react";
 
-const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/QFulltranspperfeito_6e765cf6.webp";
+const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/achoq-logo-q-transparent_c7177ac9.png";
 
 function XIcon({ className }: { className?: string }) {
   return (

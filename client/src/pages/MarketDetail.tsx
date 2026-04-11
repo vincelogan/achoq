@@ -193,7 +193,7 @@ export default function MarketDetail() {
       const metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) metaDesc.setAttribute("content", market.description || `Veja o que o Brasil acha: ${market.title}`);
     }
-    return () => { document.title = "AchoQ - Plataforma de Expectativa Coletiva"; };
+    return () => { document.title = "Veja o que o Brasil acha em tempo real - Plataforma de Expectativa Coletiva"; };
   }, [market]);
 
   if (isLoading) {

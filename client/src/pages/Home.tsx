@@ -11,7 +11,7 @@ import UserScoreCard from "@/components/UserScoreCard";
 
 export default function Home() {
   useEffect(() => {
-    document.title = "AchoQ - Plataforma de Expectativa Coletiva";
+    document.title = "Veja o que o Brasil acha em tempo real - Plataforma de Expectativa Coletiva";
   }, []);
   const { data: markets, isLoading, error } = trpc.markets.list.useQuery(undefined, {
     refetchInterval: 30_000, // Atualizar a cada 30 segundos
