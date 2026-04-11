@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 
-const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/QAchoQ_47636312.jpg";
+const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/logowhite_07ee886e.png";
 
 function slugify(text: string) {
   return text
@@ -238,12 +238,18 @@ export default function Admin() {
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <p className="text-gray-500 text-sm">Faça login para acessar o painel de administração.</p>
-            <Button
-              className="w-full bg-[#1a4971] hover:bg-[#0d3a5c] text-white"
-              onClick={() => { window.location.href = getLoginUrl(); }}
-            >
-              Entrar com Manus
-            </Button>
+            {getLoginUrl() === "#login-unavailable" ? (
+              <p className="text-amber-600 text-sm bg-amber-50 p-3 rounded-lg">
+                Autenticação não disponível neste domínio. Acesse pelo painel Manus.
+              </p>
+            ) : (
+              <Button
+                className="w-full bg-[#1a4971] hover:bg-[#0d3a5c] text-white"
+                onClick={() => { window.location.href = getLoginUrl(); }}
+              >
+                Entrar com Manus
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
