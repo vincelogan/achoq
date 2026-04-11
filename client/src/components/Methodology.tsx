@@ -20,7 +20,7 @@ export default function Methodology() {
               <h3 className="text-xl font-bold">O que somos</h3>
             </div>
             <p className="text-gray-500">
-              Uma plataforma de opinião coletiva que agrega a expectativa dos usuários sobre eventos futuros.
+              Uma plataforma de expectativa coletiva que agrega a opinião dos usuários sobre eventos futuros.
             </p>
           </div>
 

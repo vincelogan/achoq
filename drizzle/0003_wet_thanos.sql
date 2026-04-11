@@ -1,0 +1,1 @@
+ALTER TABLE `markets` ADD `resolvedChoice` enum('A','B');

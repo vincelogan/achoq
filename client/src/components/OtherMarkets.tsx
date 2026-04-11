@@ -94,7 +94,7 @@ export default function OtherMarkets() {
                         className="mt-auto space-y-4"
                       >
                         <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md border border-gray-100">
-                          <span className="text-xs text-gray-500">Sua previsão:</span>
+                          <span className="text-xs text-gray-500">Sua opinião:</span>
                           <span className={`font-bold uppercase text-xs px-2 py-1 rounded ${vote === 'yes' ? 'bg-[#002B5C]/10 text-[#002B5C]' : 'bg-[#B91C1C]/10 text-[#B91C1C]'}`}>
                             Acho que {vote === 'yes' ? 'sim' : 'não'}
                           </span>

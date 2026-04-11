@@ -1,7 +1,15 @@
 import { Link } from "wouter";
-import { Twitter, Instagram, Linkedin } from "lucide-react";
+import { Instagram, Linkedin } from "lucide-react";
 
-const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/QACHOQ_16a7e9d3.png";
+const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/QFulltranspperfeito_6e765cf6.webp";
+
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
 
 export default function Footer() {
   return (
@@ -14,15 +22,15 @@ export default function Footer() {
               <img src={LOGO_URL} alt="AchoQ" className="h-11 w-11 object-contain" />
               <div className="flex flex-col leading-none">
                 <span className="font-sans text-xl font-black tracking-tight text-[#1a4971]">AchoQ</span>
-                <span className="font-sans text-[9px] text-gray-400 tracking-wide">Uma empresa Nexar</span>
+                <span className="font-sans text-[9px] text-gray-400 tracking-wide">Expectativa Coletiva</span>
               </div>
             </Link>
             <p className="text-sm text-gray-500 max-w-xs leading-relaxed">
-              Primeira plataforma de opinião coletiva do Brasil. Simples, transparente e democrática.
+              A primeira plataforma de expectativa coletiva do Brasil. Veja o que o Brasil acha agora!
             </p>
             <p className="text-xs text-gray-400 mt-3 max-w-xs leading-relaxed">
-              Não é pesquisa eleitoral. Não constitui plataforma de investimento.
-              Os resultados refletem apenas a opinião dos participantes.
+              Não é pesquisa eleitoral. Não constitui plataforma de apostas.
+              Os resultados refletem a opinião dos usuários participantes.
             </p>
           </div>
 
@@ -84,9 +92,9 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-400 hover:text-[#1a4971] transition-colors"
-              aria-label="X (Twitter)"
+              aria-label="X"
             >
-              <Twitter className="h-4 w-4" />
+              <XIcon className="h-4 w-4" />
             </a>
             <a
               href="https://instagram.com/AchoQ.com.br"

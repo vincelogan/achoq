@@ -5,7 +5,7 @@ export default function Metodologia() {
   return (
     <InstitutionalLayout
       title="Metodologia"
-      subtitle="Como o AchoQ calcula e exibe os percentuais de opinião coletiva."
+      subtitle="Como o AchoQ calcula e exibe os percentuais de expectativa coletiva."
       badge="Transparência"
       breadcrumbs={[{ label: "Metodologia" }]}
     >

@@ -18,7 +18,7 @@ export default function Ranking() {
             Participações mais ativas
           </h2>
           <p className="max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-            Quem está mais engajado na construção da opinião coletiva.
+            Quem está mais engajado na construção da expectativa coletiva.
           </p>
         </div>
 

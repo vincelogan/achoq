@@ -33,6 +33,8 @@ export const markets = mysqlTable("markets", {
   imageUrl: text("imageUrl"), // Imagem principal da enquete
   imageA: text("imageA"),     // Imagem da opção A
   imageB: text("imageB"),     // Imagem da opção B
+  // Resultado final: quando a enquete é resolvida, armazena a resposta correta
+  resolvedChoice: mysqlEnum("resolvedChoice", ["A", "B"]),
   isActive: boolean("isActive").default(true).notNull(),
   endsAt: timestamp("endsAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

@@ -5,14 +5,14 @@ export default function ComoFunciona() {
   return (
     <InstitutionalLayout
       title="Como funciona o AchoQ"
-      subtitle="Uma plataforma de opinião coletiva em tempo real. Simples, transparente e sem intermediários."
+      subtitle="Uma plataforma de expectativa coletiva em tempo real. Simples, transparente e sem intermediários."
       badge="Plataforma"
       breadcrumbs={[{ label: "Como Funciona" }]}
     >
       {/* Intro */}
       <div className="prose prose-gray max-w-none mb-12">
         <p className="text-lg text-gray-600 leading-relaxed">
-          O AchoQ é uma plataforma digital de <strong>opinião coletiva em tempo real</strong>.
+          O AchoQ é uma plataforma digital de <strong>expectativa coletiva em tempo real</strong>.
           Qualquer pessoa pode indicar o que acredita que vai acontecer em relação a temas
           relevantes — como política, economia, esportes e acontecimentos do cotidiano.
         </p>
@@ -65,7 +65,7 @@ export default function ComoFunciona() {
         </p>
         <ul className="space-y-2">
           {[
-            "Previsão garantida de qualquer resultado",
+            "Garantia de qualquer resultado",
             "Probabilidade científica ou estatística",
             "Recomendação de qualquer natureza",
             "Pesquisa eleitoral regulamentada pelo TSE",

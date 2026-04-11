@@ -294,7 +294,7 @@ export default function MarketCard({
       {/* Imagem da enquete */}
       {imageUrl && (
         <Link href={`/mercado/${slug}`}>
-          <div className={`relative overflow-hidden ${hero ? "h-48 md:h-64" : "h-36"}`}>
+          <div className={`relative overflow-hidden ${hero ? "h-40 md:h-52" : "h-28"}`}>
             <img
               src={imageUrl}
               alt={title}

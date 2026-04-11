@@ -74,7 +74,7 @@ const sections: Section[] = [
           {[
             "A participação é gratuita e não gera qualquer direito financeiro, crédito ou remuneração.",
             "A plataforma não constitui, em nenhuma hipótese, investimento ou jogo de azar.",
-            "Os percentuais exibidos são meros indicadores de opinião coletiva, sem valor preditivo garantido.",
+            "Os percentuais exibidos são meros indicadores de expectativa coletiva, sem valor preditivo garantido.",
             "Nenhuma participação gera obrigação contratual entre o usuário e o AchoQ.",
           ].map((item, i) => (
             <li key={i} className="flex items-start gap-2 text-sm text-gray-600">

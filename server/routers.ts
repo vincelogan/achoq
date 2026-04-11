@@ -18,6 +18,8 @@ import {
   updateMarket,
   deleteMarket,
   getMarketVoteCount,
+  getUserScore,
+  getUserVotesWithResults,
 } from "./db";
 
 // Seed mercados na inicialização
@@ -132,10 +134,25 @@ export const appRouter = router({
         return marketsWithStats;
       }),
   }),
+  // ─── Score de Usuário ───────────────────────────────────────────────────────────────
+  score: router({
+    // Score de acerto do usuário (baseado no fingerprint)
+    get: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .query(async ({ input }) => {
+        return getUserScore(input.fingerprint);
+      }),
 
-  // ─── Admin ─────────────────────────────────────────────────────────────────
-  admin: router({
-    // Listar TODOS os mercados (incluindo inativos) com contagem de votos
+    // Histórico de votos com resultados
+    history: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .query(async ({ input }) => {
+        return getUserVotesWithResults(input.fingerprint);
+      }),
+  }),
+
+  // ─── Admin ───────────────────────────────────────────────────────────────────────
+  admin: router({// Listar TODOS os mercados (incluindo inativos) com contagem de votos
     listAll: adminProcedure.query(async () => {
       const allMarkets = await getAllMarketsAdmin();
       const marketsWithVotes = await Promise.all(

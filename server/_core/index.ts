@@ -66,6 +66,42 @@ async function startServer() {
     }
     res.json(info);
   });
+  // Sitemap XML dinâmico para Google Search Console
+  app.get("/sitemap.xml", async (_req, res) => {
+    try {
+      const db = await getDb();
+      const { sql } = await import("drizzle-orm");
+      const result = await db.execute(sql`SELECT slug FROM markets WHERE isActive = 1`);
+      const rows = Array.isArray(result[0]) ? result[0] : (result.rows || []);
+      const baseUrl = "https://achoq.com.br";
+      const staticPages = [
+        { loc: "/", priority: "1.0", changefreq: "daily" },
+        { loc: "/como-funciona", priority: "0.7", changefreq: "monthly" },
+        { loc: "/ranking", priority: "0.8", changefreq: "daily" },
+        { loc: "/metodologia", priority: "0.6", changefreq: "monthly" },
+        { loc: "/legal", priority: "0.5", changefreq: "monthly" },
+        { loc: "/termos", priority: "0.5", changefreq: "monthly" },
+        { loc: "/privacidade", priority: "0.5", changefreq: "monthly" },
+      ];
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+      xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+      for (const page of staticPages) {
+        xml += `  <url>\n    <loc>${baseUrl}${page.loc}</loc>\n    <changefreq>${page.changefreq}</changefreq>\n    <priority>${page.priority}</priority>\n  </url>\n`;
+      }
+      for (const row of rows) {
+        const slug = (row as any).slug;
+        if (slug) {
+          xml += `  <url>\n    <loc>${baseUrl}/mercado/${slug}</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.9</priority>\n  </url>\n`;
+        }
+      }
+      xml += `</urlset>`;
+      res.set("Content-Type", "application/xml");
+      res.send(xml);
+    } catch (e) {
+      res.status(500).send("Error generating sitemap");
+    }
+  });
+
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // tRPC API

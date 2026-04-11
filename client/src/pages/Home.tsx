@@ -7,10 +7,11 @@ import Disclaimer from "@/components/Disclaimer";
 import MarketCard from "@/components/MarketCard";
 import { trpc } from "@/lib/trpc";
 import { Loader2, BarChart3 } from "lucide-react";
+import UserScoreCard from "@/components/UserScoreCard";
 
 export default function Home() {
   useEffect(() => {
-    document.title = "AchoQ - Opinião Coletiva sobre Eventos Futuros";
+    document.title = "AchoQ - Plataforma de Expectativa Coletiva";
   }, []);
   const { data: markets, isLoading, error } = trpc.markets.list.useQuery(undefined, {
     refetchInterval: 30_000, // Atualizar a cada 30 segundos
@@ -32,7 +33,7 @@ export default function Home() {
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-100 px-3 py-1 rounded-full">
-                  Mercado em Destaque
+                  Enquete em Destaque
                 </span>
               </div>
               {isLoading ? (
@@ -62,7 +63,7 @@ export default function Home() {
                 marketId={featuredMarket.id}
                 slug={featuredMarket.slug}
                 title={featuredMarket.title}
-                category={featuredMarket.category === "politica" ? "Política" : "Esportes"}
+                category={({politica:"Política",esportes:"Esportes",economia:"Economia",entretenimento:"Entretenimento",tecnologia:"Tecnologia",geral:"Geral"} as Record<string,string>)[featuredMarket.category] || featuredMarket.category}
                 optionA={featuredMarket.optionA}
                 optionB={featuredMarket.optionB}
                 labelA={featuredMarket.labelA}
@@ -83,7 +84,7 @@ export default function Home() {
               <div className="mb-6 flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-gray-500" />
                 <h2 className="text-2xl font-bold tracking-tight text-gray-900">
-                  Outros Mercados em Destaque
+                  Outras Enquetes em Destaque
                 </h2>
               </div>
 
@@ -94,7 +95,7 @@ export default function Home() {
                     marketId={market.id}
                     slug={market.slug}
                     title={market.title}
-                    category={market.category === "politica" ? "Política" : "Esportes"}
+                    category={({politica:"Política",esportes:"Esportes",economia:"Economia",entretenimento:"Entretenimento",tecnologia:"Tecnologia",geral:"Geral"} as Record<string,string>)[market.category] || market.category}
                     optionA={market.optionA}
                     optionB={market.optionB}
                     labelA={market.labelA}
@@ -108,6 +109,9 @@ export default function Home() {
             </div>
           </section>
         )}
+
+        {/* Score de Usuário */}
+        <UserScoreCard />
 
         {/* Seções informativas */}
         <HowItWorks />

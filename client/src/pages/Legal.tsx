@@ -36,7 +36,7 @@ export default function Legal() {
               { ok: false, text: "Não oferece qualquer tipo de retorno financeiro aos participantes" },
               { ok: false, text: "Não constitui, opera ou se equipara a instituição financeira" },
               { ok: false, text: "Não negocia ativos financeiros, tokens ou criptoativos" },
-              { ok: true, text: "É um serviço gratuito de expressão de opinião coletiva" },
+              { ok: true, text: "É um serviço gratuito de expressão de expectativa coletiva" },
             ].map(({ ok, text }, i) => (
               <li key={i} className="flex items-start gap-3">
                 <span className={`mt-0.5 shrink-0 text-sm font-bold ${ok ? "text-green-500" : "text-red-400"}`}>

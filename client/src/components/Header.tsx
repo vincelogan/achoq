@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 
-const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/QACHOQ_16a7e9d3.png";
+const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/QFulltranspperfeito_6e765cf6.webp";
 
 const navLinks = [
   { href: "/como-funciona", label: "Como funciona" },
@@ -23,7 +23,7 @@ export default function Header() {
           <img src={LOGO_URL} alt="AchoQ" className="h-11 w-11 object-contain" />
           <div className="flex flex-col leading-none">
             <span className="font-sans text-xl font-black tracking-tight text-[#1a4971]">AchoQ</span>
-            <span className="font-sans text-[9px] text-gray-400 tracking-wide">Uma empresa Nexar</span>
+            <span className="font-sans text-[9px] text-gray-400 tracking-wide">Expectativa Coletiva</span>
           </div>
         </Link>
 

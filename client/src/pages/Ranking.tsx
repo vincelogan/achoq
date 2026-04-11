@@ -30,7 +30,7 @@ export default function Ranking() {
       <div className="mb-12">
         <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-gray-500" />
-          Mercados em Atividade
+          Enquetes em Atividade
         </h2>
 
         {isLoading ? (
@@ -147,7 +147,7 @@ export default function Ranking() {
           <strong>Aviso legal:</strong> O ranking do AchoQ não representa desempenho financeiro,
           não mede capacidade preditiva de forma científica e não implica qualquer tipo de
           recompensa econômica. É exclusivamente um indicador de atividade dentro da plataforma
-          de opinião coletiva.
+          de expectativa coletiva.
         </p>
       </div>
     </InstitutionalLayout>

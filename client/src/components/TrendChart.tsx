@@ -20,7 +20,7 @@ export default function TrendChart() {
             Evolução da Expectativa
           </h2>
           <p className="max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-            Acompanhe como a opinião coletiva mudou nas últimas semanas.
+            Acompanhe como a expectativa coletiva mudou nas últimas semanas.
           </p>
         </div>
         

@@ -33,7 +33,7 @@ export default function Hero() {
           </h1>
           <p className="text-gray-500 text-sm md:text-base flex items-center gap-2">
             <TrendingUp className="w-4 h-4" />
-            Mercado de Opinião • {stats.total.toLocaleString()} participações
+            Plataforma de Expectativa Coletiva • {stats.total.toLocaleString()} participações
           </p>
         </div>
 
@@ -59,7 +59,7 @@ export default function Hero() {
                   className="space-y-6"
                 >
                   <div className="flex justify-between text-sm text-gray-500 mb-2 px-1">
-                    <span>Escolha sua previsão</span>
+                    <span>Registre sua opinião</span>
                     <span>Probabilidade atual</span>
                   </div>
                   
@@ -98,7 +98,7 @@ export default function Hero() {
                   className="space-y-8"
                 >
                   <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-100">
-                    <span className="text-sm text-gray-600">Sua previsão:</span>
+                    <span className="text-sm text-gray-600">Sua opinião:</span>
                     <span className={`font-bold uppercase text-sm px-3 py-1 rounded-md ${vote === 'left' ? 'bg-[#B91C1C]/10 text-[#B91C1C]' : 'bg-[#002B5C]/10 text-[#002B5C]'}`}>
                       {vote === 'left' ? 'Esquerda' : 'Direita'}
                     </span>

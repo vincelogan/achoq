@@ -10,7 +10,7 @@ const steps = [
   {
     icon: BarChart3,
     title: "Veja",
-    description: "Visualize o percentual agregado da opinião coletiva em tempo real.",
+    description: "Visualize o percentual agregado da expectativa coletiva em tempo real.",
     color: "text-[#0047FF]"
   },
   {

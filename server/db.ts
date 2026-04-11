@@ -322,3 +322,66 @@ export async function getDemographics(marketId: number) {
 
   return { regions: regionStats, countries: countryStats };
 }
+
+// ─── User Score ─────────────────────────────────────────────────────────────
+
+/**
+ * Calcula o score de acerto de um usuário baseado no fingerprint.
+ * Considera apenas enquetes que já foram resolvidas (resolvedChoice != null).
+ * Retorna: total de votos em enquetes resolvidas, acertos, e percentual.
+ */
+export async function getUserScore(fingerprint: string) {
+  const db = await getDb();
+  if (!db) return { totalResolved: 0, correct: 0, score: 0 };
+
+  try {
+    const result = await db.execute(
+      sql`SELECT v.choice as userChoice, m.resolvedChoice
+          FROM ${votes} v
+          INNER JOIN ${markets} m ON v.marketId = m.id
+          WHERE v.fingerprint = ${fingerprint}
+          AND m.resolvedChoice IS NOT NULL`
+    );
+    const rows = Array.isArray(result[0]) ? result[0] : (result as any).rows ?? [];
+    const totalResolved = rows.length;
+    const correct = rows.filter((r: any) => r.userChoice === r.resolvedChoice).length;
+    const score = totalResolved > 0 ? Math.round((correct / totalResolved) * 100) : 0;
+    return { totalResolved, correct, score };
+  } catch (e) {
+    console.error('[getUserScore] Error:', e);
+    return { totalResolved: 0, correct: 0, score: 0 };
+  }
+}
+
+/**
+ * Retorna o score de um fingerprint por enquete (para exibir no perfil).
+ */
+export async function getUserVotesWithResults(fingerprint: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  try {
+    const result = await db.execute(
+      sql`SELECT v.marketId, v.choice as userChoice, m.title, m.slug, m.resolvedChoice, m.optionA, m.optionB
+          FROM ${votes} v
+          INNER JOIN ${markets} m ON v.marketId = m.id
+          WHERE v.fingerprint = ${fingerprint}
+          ORDER BY v.createdAt DESC`
+    );
+    const rows = Array.isArray(result[0]) ? result[0] : (result as any).rows ?? [];
+    return (Array.isArray(rows) ? rows : []).map((r: any) => ({
+      marketId: r.marketId,
+      title: r.title,
+      slug: r.slug,
+      userChoice: r.userChoice,
+      resolvedChoice: r.resolvedChoice,
+      optionA: r.optionA,
+      optionB: r.optionB,
+      isResolved: r.resolvedChoice !== null,
+      isCorrect: r.resolvedChoice !== null && r.userChoice === r.resolvedChoice,
+    }));
+  } catch (e) {
+    console.error('[getUserVotesWithResults] Error:', e);
+    return [];
+  }
+}
