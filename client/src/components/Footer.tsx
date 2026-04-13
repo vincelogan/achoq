@@ -30,7 +30,7 @@ export default function Footer() {
             </p>
             <p className="text-xs text-gray-400 mt-3 max-w-xs leading-relaxed">
               Não é pesquisa eleitoral. Não constitui plataforma de apostas.
-              Os resultados refletem a opinião dos usuários participantes.
+              Os resultados refletem a opinião/expectativa dos usuários participantes.
             </p>
           </div>
 

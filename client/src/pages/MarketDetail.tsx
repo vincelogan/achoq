@@ -411,7 +411,7 @@ export default function MarketDetail() {
 
                 <div className="rounded-xl bg-amber-50/50 border border-amber-200/50 p-4">
                   <p className="text-xs text-amber-700 leading-relaxed">
-                    <strong>Aviso:</strong> Esta enquete reflete apenas a opinião dos participantes. Não é pesquisa eleitoral. Não constitui plataforma de apostas. Os resultados refletem a opinião dos usuários participantes.
+                    <strong>Aviso:</strong> Esta enquete reflete apenas a opinião dos participantes. Não é pesquisa eleitoral. Não constitui plataforma de apostas. Os resultados refletem a opinião/expectativa dos usuários participantes.
                     <Link href="/legal" className="underline ml-1 hover:text-amber-900">Saiba mais</Link>
                   </p>
                 </div>
