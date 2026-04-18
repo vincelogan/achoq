@@ -55,6 +55,97 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet" />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://achoq.com.br/#organization",
+          "name": "AchoQ",
+          "alternateName": "Índice ACHOQ",
+          "url": "https://achoq.com.br",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/achoq-logo-white-BLiPCqaJbJJwJNXxmtqJqA.png",
+            "width": 512,
+            "height": 512
+          },
+          "description": "A primeira plataforma de expectativa coletiva do Brasil. Veja o que o Brasil acha em tempo real.",
+          "sameAs": [
+            "https://x.com/achoq"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://achoq.com.br/#website",
+          "url": "https://achoq.com.br",
+          "name": "AchoQ",
+          "description": "Plataforma de Expectativa Coletiva - Veja o que o Brasil acha em tempo real",
+          "publisher": {
+            "@id": "https://achoq.com.br/#organization"
+          },
+          "inLanguage": "pt-BR",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://achoq.com.br/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://achoq.com.br/#webpage",
+          "url": "https://achoq.com.br",
+          "name": "Veja o que o Brasil acha em tempo real - Plataforma de Expectativa Coletiva",
+          "isPartOf": {
+            "@id": "https://achoq.com.br/#website"
+          },
+          "about": {
+            "@id": "https://achoq.com.br/#organization"
+          },
+          "description": "Participe do AchoQ e registre sua opinião sobre política, esportes e entretenimento. Veja o que o Brasil acha agora!",
+          "inLanguage": "pt-BR",
+          "breadcrumb": {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Início",
+                "item": "https://achoq.com.br/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Como Funciona",
+                "item": "https://achoq.com.br/como-funciona"
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "Ranking",
+                "item": "https://achoq.com.br/ranking"
+              },
+              {
+                "@type": "ListItem",
+                "position": 4,
+                "name": "Metodologia",
+                "item": "https://achoq.com.br/metodologia"
+              },
+              {
+                "@type": "ListItem",
+                "position": 5,
+                "name": "Legal",
+                "item": "https://achoq.com.br/legal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+    </script>
   </head>
 
   <body>

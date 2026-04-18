@@ -212,6 +212,48 @@ export default function MarketDetail() {
       if (twTitle) twTitle.setAttribute("content", `${market.title} | AchoQ`);
       const twDesc = document.querySelector('meta[name="twitter:description"]');
       if (twDesc) twDesc.setAttribute("content", market.description || `Veja o que o Brasil acha: ${market.title}`);
+
+      // JSON-LD Structured Data for this poll/article
+      const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": market.title,
+        "description": market.description || `Veja o que o Brasil acha: ${market.title}`,
+        "image": market.imageUrl || "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/achoq-og-image-aawMaQuDuycX5rNEb2EqnQ.png",
+        "url": `${window.location.origin}/mercado/${market.slug}`,
+        "datePublished": market.createdAt ? new Date(market.createdAt).toISOString() : undefined,
+        "dateModified": market.updatedAt ? new Date(market.updatedAt).toISOString() : undefined,
+        "author": {
+          "@type": "Organization",
+          "name": "AchoQ",
+          "url": "https://achoq.com.br"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "AchoQ",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/achoq-logo-white-BLiPCqaJbJJwJNXxmtqJqA.png"
+          }
+        },
+        "mainEntityOfPage": {
+          "@type": "WebPage",
+          "@id": `${window.location.origin}/mercado/${market.slug}`
+        },
+        "interactionStatistic": {
+          "@type": "InteractionCounter",
+          "interactionType": "https://schema.org/VoteAction",
+          "userInteractionCount": stats ? (stats.countA + stats.countB) : 0
+        }
+      };
+      let scriptTag = document.getElementById("jsonld-market") as HTMLScriptElement | null;
+      if (!scriptTag) {
+        scriptTag = document.createElement("script");
+        scriptTag.id = "jsonld-market";
+        scriptTag.type = "application/ld+json";
+        document.head.appendChild(scriptTag);
+      }
+      scriptTag.textContent = JSON.stringify(jsonLd);
     }
     return () => {
       document.title = "Veja o que o Brasil acha em tempo real - Plataforma de Expectativa Coletiva";
@@ -220,8 +262,11 @@ export default function MarketDetail() {
       if (canonical) canonical.setAttribute("href", "https://achoq.com.br/");
       const ogUrl = document.querySelector('meta[property="og:url"]');
       if (ogUrl) ogUrl.setAttribute("content", "https://achoq.com.br/");
+      // Remove JSON-LD
+      const scriptTag = document.getElementById("jsonld-market");
+      if (scriptTag) scriptTag.remove();
     };
-  }, [market]);
+  }, [market, stats]);
 
   if (isLoading) {
     return (
