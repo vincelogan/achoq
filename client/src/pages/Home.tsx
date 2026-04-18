@@ -18,14 +18,15 @@ export default function Home() {
   });
   const { data: allNews } = trpc.news.allActive.useQuery();
 
-  // Map news by marketId for quick lookup
+  // Map news by marketId for quick lookup - group all news per market
   const newsByMarketId = useMemo(() => {
-    const map = new Map<number, { tickerText: string; sourceName: string }>();
+    const map = new Map<number, Array<{ tickerText: string; sourceName: string }>>();
     if (allNews) {
       for (const n of allNews as any[]) {
         if (!map.has(n.marketId)) {
-          map.set(n.marketId, { tickerText: n.tickerText, sourceName: n.sourceName });
+          map.set(n.marketId, []);
         }
+        map.get(n.marketId)!.push({ tickerText: n.tickerText, sourceName: n.sourceName });
       }
     }
     return map;
@@ -85,8 +86,7 @@ export default function Home() {
                 initialStats={featuredMarket.stats}
                 endsAt={featuredMarket.endsAt}
                 imageUrl={featuredMarket.imageUrl}
-                tickerText={newsByMarketId.get(featuredMarket.id)?.tickerText}
-                tickerSource={newsByMarketId.get(featuredMarket.id)?.sourceName}
+                tickerItems={newsByMarketId.get(featuredMarket.id) ?? null}
                 hero
               />
             ) : null}
@@ -119,8 +119,7 @@ export default function Home() {
                     initialStats={market.stats}
                     endsAt={market.endsAt}
                     imageUrl={market.imageUrl}
-                    tickerText={newsByMarketId.get(market.id)?.tickerText}
-                    tickerSource={newsByMarketId.get(market.id)?.sourceName}
+                    tickerItems={newsByMarketId.get(market.id) ?? null}
                   />
                 ))}
               </div>

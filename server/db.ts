@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import { InsertUser, users, markets, votes, marketNews, InsertMarket, InsertVote, InsertMarketNews } from "../drizzle/schema";
@@ -328,13 +328,13 @@ export async function getDemographics(marketId: number) {
 export async function getNewsByMarketId(marketId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(marketNews).where(eq(marketNews.marketId, marketId));
+  return db.select().from(marketNews).where(and(eq(marketNews.marketId, marketId), eq(marketNews.isActive, true))).orderBy(desc(marketNews.newsDate));
 }
 
 export async function getAllActiveNews() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(marketNews).where(eq(marketNews.isActive, true));
+  return db.select().from(marketNews).where(eq(marketNews.isActive, true)).orderBy(desc(marketNews.newsDate));
 }
 
 export async function createMarketNews(data: InsertMarketNews) {

@@ -26,8 +26,7 @@ type MarketCardProps = {
   hero?: boolean;
   endsAt?: string | Date | null;
   imageUrl?: string | null;
-  tickerText?: string | null;
-  tickerSource?: string | null;
+  tickerItems?: Array<{ tickerText: string; sourceName: string }> | null;
 };
 
 function SharePopup({
@@ -220,8 +219,7 @@ export default function MarketCard({
   hero = false,
   endsAt,
   imageUrl,
-  tickerText,
-  tickerSource,
+  tickerItems,
 }: MarketCardProps) {
   const fingerprint = useFingerprint();
   const [localStats, setLocalStats] = useState(initialStats);
@@ -337,15 +335,20 @@ export default function MarketCard({
           </h3>
         </Link>
 
-        {/* Ticker de notícia/contexto */}
-        {tickerText && (
+        {/* Ticker de notícias scrolling */}
+        {tickerItems && tickerItems.length > 0 && (
           <div className="mb-4 overflow-hidden rounded-lg bg-gray-50 border border-gray-100 px-3 py-1.5">
             <div className="flex items-center gap-2">
-              <span className="shrink-0 text-[10px] font-bold text-white bg-[#1a4971] px-1.5 py-0.5 rounded uppercase tracking-wider">Contexto</span>
+              <span className="shrink-0 text-[10px] font-bold text-white bg-[#B91C1C] px-1.5 py-0.5 rounded uppercase tracking-wider">News</span>
               <div className="overflow-hidden flex-1">
                 <div className="animate-marquee whitespace-nowrap text-xs text-gray-600">
-                  {tickerText}
-                  {tickerSource && <span className="text-gray-400 ml-2">({tickerSource})</span>}
+                  {tickerItems.map((item, idx) => (
+                    <span key={idx}>
+                      {item.tickerText}
+                      <span className="text-gray-400 ml-1">({item.sourceName})</span>
+                      {idx < tickerItems.length - 1 && <span className="mx-4 text-gray-300">|</span>}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
