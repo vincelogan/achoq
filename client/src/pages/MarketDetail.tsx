@@ -257,7 +257,7 @@ export default function MarketDetail() {
       scriptTag.textContent = JSON.stringify(jsonLd);
     }
     return () => {
-      document.title = "Veja o que o Brasil acha em tempo real - Plataforma de Expectativa Coletiva";
+      document.title = "AchoQ - Expectativa Coletiva do Brasil";
       // Reset meta tags
       const canonical = document.querySelector('link[rel="canonical"]');
       if (canonical) canonical.setAttribute("href", "https://achoq.com.br/");
