@@ -29,6 +29,13 @@
       "when": 1775922650016,
       "tag": "0003_wet_thanos",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1776526516186,
+      "tag": "0004_handy_zombie",
+      "breakpoints": true
     }
   ]
 }

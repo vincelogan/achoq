@@ -163,6 +163,7 @@ export default function MarketDetail() {
   const { data: voteCheck } = trpc.markets.checkVote.useQuery({ marketId: market?.id ?? 0, fingerprint }, { enabled: !!market && !!fingerprint });
   const { data: history } = trpc.markets.voteHistory.useQuery({ marketId: market?.id ?? 0 }, { enabled: !!market });
   const { data: relatedMarkets } = trpc.markets.related.useQuery({ marketId: market?.id ?? 0, category: market?.category ?? "" }, { enabled: !!market });
+  const { data: newsItems } = trpc.news.byMarket.useQuery({ marketId: market?.id ?? 0 }, { enabled: !!market });
 
   const utils = trpc.useUtils();
   const voteMutation = trpc.markets.vote.useMutation({
@@ -392,6 +393,33 @@ export default function MarketDetail() {
                   </div>
                 </div>
               </div>
+
+              {/* Contexto / Notícias */}
+              {newsItems && newsItems.length > 0 && (
+                <div className="bg-white rounded-2xl border border-gray-200 p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <svg className="w-5 h-5 text-[#1a4971]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+                    <h2 className="font-bold text-gray-900">Contexto Atual</h2>
+                  </div>
+                  <div className="space-y-4">
+                    {newsItems.map((news: any) => (
+                      <div key={news.id} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                        <p className="text-sm text-gray-700 leading-relaxed mb-3">{news.contextText}</p>
+                        <div className="flex items-center justify-between">
+                          <a href={news.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#1a4971] hover:underline font-medium flex items-center gap-1">
+                            <Link2 className="w-3 h-3" />{news.sourceName}
+                          </a>
+                          {news.newsDate && (
+                            <span className="text-xs text-gray-400">
+                              {new Date(news.newsDate + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Mercados relacionados */}
               {relatedMarkets && relatedMarkets.length > 0 && (

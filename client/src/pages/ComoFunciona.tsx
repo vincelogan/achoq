@@ -1,5 +1,41 @@
 import InstitutionalLayout from "@/components/InstitutionalLayout";
 import { MousePointerClick, BarChart2, Bell, Ban, DollarSign, Bot, ShieldOff } from "lucide-react";
+import { useEffect } from "react";
+
+const faqData = [
+  {
+    question: "O que é o AchoQ?",
+    answer: "O AchoQ é a primeira plataforma de expectativa coletiva do Brasil. Qualquer pessoa pode indicar o que acredita que vai acontecer em relação a temas relevantes como política, economia, esportes e entretenimento."
+  },
+  {
+    question: "Como funciona o AchoQ?",
+    answer: "Você escolhe uma enquete ativa, seleciona a opção que acredita ser o resultado futuro, e sua escolha é somada à expectativa coletiva. Os percentuais são atualizados em tempo real."
+  },
+  {
+    question: "Preciso pagar para participar?",
+    answer: "Não. O AchoQ é totalmente gratuito. Não há pagamento para participar, nem premiação financeira de qualquer tipo."
+  },
+  {
+    question: "O AchoQ é uma plataforma de apostas?",
+    answer: "Não. O AchoQ não constitui plataforma de apostas, jogos de azar ou negociação de ativos financeiros. Os resultados refletem apenas a opinião/expectativa dos usuários participantes."
+  },
+  {
+    question: "O que os percentuais representam?",
+    answer: "Os percentuais exibidos refletem exclusivamente a distribuição das escolhas feitas pelos participantes da plataforma. Eles não constituem probabilidade científica, garantia de resultado ou pesquisa eleitoral regulamentada."
+  },
+  {
+    question: "O AchoQ é pesquisa eleitoral?",
+    answer: "Não. O AchoQ não é pesquisa eleitoral regulamentada pelo TSE. É uma plataforma de participação aberta e espontânea onde qualquer pessoa pode registrar sua expectativa."
+  },
+  {
+    question: "Posso votar mais de uma vez na mesma enquete?",
+    answer: "Não. Cada usuário pode registrar apenas uma opinião por enquete, garantindo a integridade dos resultados."
+  },
+  {
+    question: "Os dados são atualizados em tempo real?",
+    answer: "Sim. Cada opinião registrada é imediatamente refletida nos percentuais exibidos, garantindo que você veja sempre a expectativa mais recente da comunidade."
+  }
+];
 
 export default function ComoFunciona() {
   return (
@@ -87,6 +123,41 @@ export default function ComoFunciona() {
           garantindo que você veja sempre a opinião mais recente da comunidade.
         </p>
       </div>
+
+      {/* Perguntas Frequentes */}
+      <div className="mb-12">
+        <h2 className="text-xl font-bold text-gray-900 mb-6">Perguntas Frequentes</h2>
+        <div className="space-y-4">
+          {faqData.map(({ question, answer }, idx) => (
+            <details key={idx} className="group bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <summary className="flex items-center justify-between cursor-pointer px-6 py-4 text-gray-900 font-semibold text-sm hover:bg-gray-50 transition-colors">
+                {question}
+                <svg className="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </summary>
+              <div className="px-6 pb-4 text-sm text-gray-600 leading-relaxed">{answer}</div>
+            </details>
+          ))}
+        </div>
+      </div>
+
+      {/* FAQ JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqData.map(({ question, answer }) => ({
+              "@type": "Question",
+              name: question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: answer
+              }
+            }))
+          })
+        }}
+      />
 
       {/* Natureza da plataforma */}
       <div className="mb-4">

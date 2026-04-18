@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HowItWorks from "@/components/HowItWorks";
@@ -16,6 +16,20 @@ export default function Home() {
   const { data: markets, isLoading, error } = trpc.markets.list.useQuery(undefined, {
     refetchInterval: 30_000, // Atualizar a cada 30 segundos
   });
+  const { data: allNews } = trpc.news.allActive.useQuery();
+
+  // Map news by marketId for quick lookup
+  const newsByMarketId = useMemo(() => {
+    const map = new Map<number, { tickerText: string; sourceName: string }>();
+    if (allNews) {
+      for (const n of allNews as any[]) {
+        if (!map.has(n.marketId)) {
+          map.set(n.marketId, { tickerText: n.tickerText, sourceName: n.sourceName });
+        }
+      }
+    }
+    return map;
+  }, [allNews]);
 
   const featuredMarket = markets?.[0];
   const otherMarkets = markets?.slice(1) ?? [];
@@ -71,6 +85,8 @@ export default function Home() {
                 initialStats={featuredMarket.stats}
                 endsAt={featuredMarket.endsAt}
                 imageUrl={featuredMarket.imageUrl}
+                tickerText={newsByMarketId.get(featuredMarket.id)?.tickerText}
+                tickerSource={newsByMarketId.get(featuredMarket.id)?.sourceName}
                 hero
               />
             ) : null}
@@ -103,6 +119,8 @@ export default function Home() {
                     initialStats={market.stats}
                     endsAt={market.endsAt}
                     imageUrl={market.imageUrl}
+                    tickerText={newsByMarketId.get(market.id)?.tickerText}
+                    tickerSource={newsByMarketId.get(market.id)?.sourceName}
                   />
                 ))}
               </div>

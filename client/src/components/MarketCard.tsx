@@ -26,6 +26,8 @@ type MarketCardProps = {
   hero?: boolean;
   endsAt?: string | Date | null;
   imageUrl?: string | null;
+  tickerText?: string | null;
+  tickerSource?: string | null;
 };
 
 function SharePopup({
@@ -218,6 +220,8 @@ export default function MarketCard({
   hero = false,
   endsAt,
   imageUrl,
+  tickerText,
+  tickerSource,
 }: MarketCardProps) {
   const fingerprint = useFingerprint();
   const [localStats, setLocalStats] = useState(initialStats);
@@ -328,10 +332,25 @@ export default function MarketCard({
       {/* Corpo do card */}
       <div className={`flex-1 flex flex-col ${hero ? "p-6 md:p-8" : "p-5"}`}>
         <Link href={`/mercado/${slug}`}>
-          <h3 className={`font-bold text-gray-900 mb-5 hover:text-[#1a4971] transition-colors cursor-pointer ${hero ? "text-2xl md:text-3xl" : "text-lg"}`}>
+          <h3 className={`font-bold text-gray-900 mb-3 hover:text-[#1a4971] transition-colors cursor-pointer ${hero ? "text-2xl md:text-3xl" : "text-lg"}`}>
             {title}
           </h3>
         </Link>
+
+        {/* Ticker de notícia/contexto */}
+        {tickerText && (
+          <div className="mb-4 overflow-hidden rounded-lg bg-gray-50 border border-gray-100 px-3 py-1.5">
+            <div className="flex items-center gap-2">
+              <span className="shrink-0 text-[10px] font-bold text-white bg-[#1a4971] px-1.5 py-0.5 rounded uppercase tracking-wider">Contexto</span>
+              <div className="overflow-hidden flex-1">
+                <div className="animate-marquee whitespace-nowrap text-xs text-gray-600">
+                  {tickerText}
+                  {tickerSource && <span className="text-gray-400 ml-2">({tickerSource})</span>}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <AnimatePresence mode="wait">
           {/* Estado: Confirmação de voto (feedback visual) */}

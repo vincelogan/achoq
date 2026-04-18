@@ -20,6 +20,8 @@ import {
   getMarketVoteCount,
   getUserScore,
   getUserVotesWithResults,
+  getNewsByMarketId,
+  getAllActiveNews,
 } from "./db";
 
 // Seed mercados na inicialização
@@ -134,6 +136,21 @@ export const appRouter = router({
         return marketsWithStats;
       }),
   }),
+  // ─── Notícias de Contexto ────────────────────────────────────────────────────────────────────
+  news: router({
+    // Notícias de contexto por enquete
+    byMarket: publicProcedure
+      .input(z.object({ marketId: z.number() }))
+      .query(async ({ input }) => {
+        return getNewsByMarketId(input.marketId);
+      }),
+
+    // Todas as notícias ativas (para ticker na home)
+    allActive: publicProcedure.query(async () => {
+      return getAllActiveNews();
+    }),
+  }),
+
   // ─── Score de Usuário ───────────────────────────────────────────────────────────────
   score: router({
     // Score de acerto do usuário (baseado no fingerprint)

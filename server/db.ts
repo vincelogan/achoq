@@ -1,7 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
-import { InsertUser, users, markets, votes, InsertMarket, InsertVote } from "../drizzle/schema";
+import { InsertUser, users, markets, votes, marketNews, InsertMarket, InsertVote, InsertMarketNews } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: any | null = null;
@@ -323,7 +323,28 @@ export async function getDemographics(marketId: number) {
   return { regions: regionStats, countries: countryStats };
 }
 
-// ─── User Score ─────────────────────────────────────────────────────────────
+// ─── Market News ────────────────────────────────────────────────────────────────────────────
+
+export async function getNewsByMarketId(marketId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(marketNews).where(eq(marketNews.marketId, marketId));
+}
+
+export async function getAllActiveNews() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(marketNews).where(eq(marketNews.isActive, true));
+}
+
+export async function createMarketNews(data: InsertMarketNews) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(marketNews).values(data);
+  return { success: true };
+}
+
+// ─── User Score ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Calcula o score de acerto de um usuário baseado no fingerprint.

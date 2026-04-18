@@ -65,3 +65,22 @@ export const votes = mysqlTable("votes", {
 
 export type Vote = typeof votes.$inferSelect;
 export type InsertVote = typeof votes.$inferInsert;
+
+/**
+ * Tabela de notícias de contexto por enquete
+ * Cada enquete pode ter múltiplas notícias associadas
+ */
+export const marketNews = mysqlTable("market_news", {
+  id: int("id").autoincrement().primaryKey(),
+  marketId: int("marketId").notNull(),
+  tickerText: varchar("tickerText", { length: 200 }).notNull(), // Texto curto para scrolling na home
+  contextText: text("contextText").notNull(), // Texto mais completo para quadro de contexto
+  sourceName: varchar("sourceName", { length: 128 }).notNull(), // Nome do veículo
+  sourceUrl: text("sourceUrl"), // URL da notícia
+  newsDate: timestamp("newsDate"), // Data da notícia
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MarketNews = typeof marketNews.$inferSelect;
+export type InsertMarketNews = typeof marketNews.$inferInsert;
