@@ -1,4 +1,14 @@
+# AchoQ - Plataforma de Expectativa Coletiva
+# https://achoq.com.br
+
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /assets/
 
+# Sitemap
 Sitemap: https://achoq.com.br/sitemap.xml
+
+# Crawl-delay (optional, for polite crawlers)
+Crawl-delay: 1

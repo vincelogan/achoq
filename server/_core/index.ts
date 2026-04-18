@@ -71,31 +71,35 @@ async function startServer() {
     try {
       const db = await getDb();
       const { sql } = await import("drizzle-orm");
-      const result = await db.execute(sql`SELECT slug FROM markets WHERE isActive = 1`);
+      const result = await db.execute(sql`SELECT slug, updatedAt, createdAt FROM markets WHERE isActive = 1`);
       const rows = Array.isArray(result[0]) ? result[0] : (result.rows || []);
       const baseUrl = "https://achoq.com.br";
+      const today = new Date().toISOString().split("T")[0];
       const staticPages = [
-        { loc: "/", priority: "1.0", changefreq: "daily" },
-        { loc: "/como-funciona", priority: "0.7", changefreq: "monthly" },
-        { loc: "/ranking", priority: "0.8", changefreq: "daily" },
-        { loc: "/metodologia", priority: "0.6", changefreq: "monthly" },
-        { loc: "/legal", priority: "0.5", changefreq: "monthly" },
-        { loc: "/termos", priority: "0.5", changefreq: "monthly" },
-        { loc: "/privacidade", priority: "0.5", changefreq: "monthly" },
+        { loc: "/", priority: "1.0", changefreq: "daily", lastmod: today },
+        { loc: "/como-funciona", priority: "0.7", changefreq: "monthly", lastmod: "2026-04-01" },
+        { loc: "/ranking", priority: "0.8", changefreq: "daily", lastmod: today },
+        { loc: "/metodologia", priority: "0.6", changefreq: "monthly", lastmod: "2026-04-01" },
+        { loc: "/legal", priority: "0.5", changefreq: "monthly", lastmod: "2026-04-01" },
+        { loc: "/termos", priority: "0.5", changefreq: "monthly", lastmod: "2026-04-01" },
+        { loc: "/privacidade", priority: "0.5", changefreq: "monthly", lastmod: "2026-04-01" },
       ];
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
       xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
       for (const page of staticPages) {
-        xml += `  <url>\n    <loc>${baseUrl}${page.loc}</loc>\n    <changefreq>${page.changefreq}</changefreq>\n    <priority>${page.priority}</priority>\n  </url>\n`;
+        xml += `  <url>\n    <loc>${baseUrl}${page.loc}</loc>\n    <lastmod>${page.lastmod}</lastmod>\n    <changefreq>${page.changefreq}</changefreq>\n    <priority>${page.priority}</priority>\n  </url>\n`;
       }
       for (const row of rows) {
         const slug = (row as any).slug;
+        const updatedAt = (row as any).updatedAt || (row as any).createdAt;
+        const lastmod = updatedAt ? new Date(updatedAt).toISOString().split("T")[0] : today;
         if (slug) {
-          xml += `  <url>\n    <loc>${baseUrl}/mercado/${slug}</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.9</priority>\n  </url>\n`;
+          xml += `  <url>\n    <loc>${baseUrl}/mercado/${slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.9</priority>\n  </url>\n`;
         }
       }
       xml += `</urlset>`;
       res.set("Content-Type", "application/xml");
+      res.set("Cache-Control", "public, max-age=3600");
       res.send(xml);
     } catch (e) {
       res.status(500).send("Error generating sitemap");

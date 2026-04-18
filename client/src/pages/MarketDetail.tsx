@@ -190,10 +190,37 @@ export default function MarketDetail() {
   useEffect(() => {
     if (market) {
       document.title = `${market.title} | AchoQ`;
+      // Update meta description
       const metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) metaDesc.setAttribute("content", market.description || `Veja o que o Brasil acha: ${market.title}`);
+      // Update OG tags for social sharing
+      const ogTitle = document.querySelector('meta[property="og:title"]');
+      if (ogTitle) ogTitle.setAttribute("content", `${market.title} | AchoQ`);
+      const ogDesc = document.querySelector('meta[property="og:description"]');
+      if (ogDesc) ogDesc.setAttribute("content", market.description || `Veja o que o Brasil acha: ${market.title}`);
+      const ogUrl = document.querySelector('meta[property="og:url"]');
+      if (ogUrl) ogUrl.setAttribute("content", `${window.location.origin}/mercado/${market.slug}`);
+      if (market.imageUrl) {
+        const ogImage = document.querySelector('meta[property="og:image"]');
+        if (ogImage) ogImage.setAttribute("content", market.imageUrl);
+      }
+      // Update canonical URL
+      const canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) canonical.setAttribute("href", `${window.location.origin}/mercado/${market.slug}`);
+      // Update Twitter Card
+      const twTitle = document.querySelector('meta[name="twitter:title"]');
+      if (twTitle) twTitle.setAttribute("content", `${market.title} | AchoQ`);
+      const twDesc = document.querySelector('meta[name="twitter:description"]');
+      if (twDesc) twDesc.setAttribute("content", market.description || `Veja o que o Brasil acha: ${market.title}`);
     }
-    return () => { document.title = "Veja o que o Brasil acha em tempo real - Plataforma de Expectativa Coletiva"; };
+    return () => {
+      document.title = "Veja o que o Brasil acha em tempo real - Plataforma de Expectativa Coletiva";
+      // Reset meta tags
+      const canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) canonical.setAttribute("href", "https://achoq.com.br/");
+      const ogUrl = document.querySelector('meta[property="og:url"]');
+      if (ogUrl) ogUrl.setAttribute("content", "https://achoq.com.br/");
+    };
   }, [market]);
 
   if (isLoading) {
