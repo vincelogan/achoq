@@ -1,10 +1,8 @@
-import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -16,10 +14,14 @@ import {
   BarChart3,
   CheckCircle2,
   XCircle,
+  Lock,
+  LogOut,
 } from "lucide-react";
 import { Link } from "wouter";
 
 const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/logowhite_07ee886e.png";
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function slugify(text: string) {
   return text
@@ -30,6 +32,8 @@ function slugify(text: string) {
     .replace(/^-+|-+$/g, "")
     .slice(0, 128);
 }
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface MarketFormData {
   slug: string;
@@ -52,6 +56,8 @@ const emptyForm: MarketFormData = {
   labelA: "",
   labelB: "",
 };
+
+// ─── Market Form ──────────────────────────────────────────────────────────────
 
 function MarketForm({
   initial,
@@ -174,14 +180,104 @@ function MarketForm({
   );
 }
 
+// ─── Login Screen ─────────────────────────────────────────────────────────────
+
+function AdminLogin({ onLogin }: { onLogin: () => void }) {
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        onLogin();
+      } else {
+        setError(data.error || "Senha incorreta");
+      }
+    } catch {
+      setError("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <Card className="max-w-sm w-full mx-4 shadow-lg">
+        <CardHeader className="text-center pb-2">
+          <img src={LOGO_URL} alt="AchoQ" className="h-16 w-16 rounded-xl mx-auto mb-3 object-cover" />
+          <CardTitle className="text-xl text-[#1a4971]">Painel Admin</CardTitle>
+          <p className="text-sm text-gray-500 mt-1">AchoQ — Plataforma de Expectativa Coletiva</p>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Senha de administrador</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  type="password"
+                  placeholder="Digite a senha"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-9"
+                  autoFocus
+                />
+              </div>
+            </div>
+            {error && (
+              <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-md">{error}</p>
+            )}
+            <Button
+              type="submit"
+              disabled={loading || !password}
+              className="w-full bg-[#1a4971] hover:bg-[#0d3a5c] text-white"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
+              Entrar
+            </Button>
+          </form>
+          <div className="mt-4 text-center">
+            <Link href="/">
+              <button className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 mx-auto">
+                <ArrowLeft className="w-3 h-3" /> Voltar ao site
+              </button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ─── Admin Panel ──────────────────────────────────────────────────────────────
+
 export default function Admin() {
-  const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const [adminAuth, setAdminAuth] = useState<boolean | null>(null); // null = checking
   const [showCreate, setShowCreate] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
+  // Check if already authenticated as admin
+  useEffect(() => {
+    fetch("/api/admin/me", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => setAdminAuth(data.authenticated === true))
+      .catch(() => setAdminAuth(false));
+  }, []);
+
   const utils = trpc.useUtils();
   const { data: markets, isLoading } = trpc.admin.listAll.useQuery(undefined, {
-    enabled: isAuthenticated && user?.role === "admin",
+    enabled: adminAuth === true,
   });
 
   const createMutation = trpc.admin.create.useMutation({
@@ -218,8 +314,14 @@ export default function Admin() {
     onError: (err) => toast.error(err.message),
   });
 
-  // Loading state
-  if (authLoading) {
+  const handleLogout = async () => {
+    await fetch("/api/admin/logout", { method: "POST", credentials: "include" });
+    setAdminAuth(false);
+    toast.success("Sessão encerrada.");
+  };
+
+  // Checking auth state
+  if (adminAuth === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Loader2 className="w-8 h-8 animate-spin text-[#1a4971]" />
@@ -227,59 +329,12 @@ export default function Admin() {
     );
   }
 
-  // Not authenticated
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="max-w-md w-full mx-4">
-          <CardHeader className="text-center">
-            <img src={LOGO_URL} alt="AchoQ" className="h-16 w-16 rounded-xl mx-auto mb-4 object-cover" />
-            <CardTitle className="text-xl text-[#1a4971]">Painel Admin</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-gray-500 text-sm">Faça login para acessar o painel de administração.</p>
-            {getLoginUrl() === "#login-unavailable" ? (
-              <p className="text-amber-600 text-sm bg-amber-50 p-3 rounded-lg">
-                Autenticação não disponível neste domínio. Acesse pelo painel Manus.
-              </p>
-            ) : (
-              <Button
-                className="w-full bg-[#1a4971] hover:bg-[#0d3a5c] text-white"
-                onClick={() => { window.location.href = getLoginUrl(); }}
-              >
-                Entrar com Manus
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    );
+  // Not authenticated → show login form
+  if (!adminAuth) {
+    return <AdminLogin onLogin={() => setAdminAuth(true)} />;
   }
 
-  // Not admin
-  if (user?.role !== "admin") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="max-w-md w-full mx-4">
-          <CardHeader className="text-center">
-            <XCircle className="h-12 w-12 text-red-400 mx-auto mb-2" />
-            <CardTitle className="text-xl text-gray-800">Acesso Negado</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-gray-500 text-sm">
-              Você está logado como <strong>{user?.name || user?.email}</strong>, mas não tem permissão de administrador.
-            </p>
-            <Link href="/">
-              <Button variant="outline" className="w-full">
-                <ArrowLeft className="w-4 h-4 mr-2" /> Voltar ao site
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
+  // Authenticated → show admin panel
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Header */}
@@ -294,13 +349,20 @@ export default function Admin() {
               <span className="text-xs bg-[#1a4971] text-white px-2 py-0.5 rounded-full">Painel</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500">{user?.name || user?.email}</span>
+          <div className="flex items-center gap-2">
             <Link href="/">
               <Button variant="outline" size="sm">
                 <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Site
               </Button>
             </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="text-red-500 hover:text-red-700 hover:border-red-300"
+            >
+              <LogOut className="w-3.5 h-3.5 mr-1" /> Sair
+            </Button>
           </div>
         </div>
       </header>

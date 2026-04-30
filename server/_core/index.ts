@@ -10,15 +10,62 @@ const __dirnameCompat = typeof __dirname !== "undefined"
 // Carregar .env do mesmo diretório do index.js (necessário no Lambda do Amplify)
 dotenv.config({ path: path.resolve(__dirnameCompat, ".env") });
 
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
+import { SignJWT, jwtVerify } from "jose";
 import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { getDb } from "../db";
+
+// ─── Admin Auth Helpers ────────────────────────────────────────────────────────
+
+const ADMIN_COOKIE = "admin_session";
+
+function getAdminSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET || "fallback-admin-secret-change-me";
+  return new TextEncoder().encode(secret);
+}
+
+async function signAdminToken(): Promise<string> {
+  return new SignJWT({ role: "admin" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("24h")
+    .sign(getAdminSecret());
+}
+
+async function verifyAdminToken(token: string): Promise<boolean> {
+  try {
+    const { payload } = await jwtVerify(token, getAdminSecret());
+    return payload.role === "admin";
+  } catch {
+    return false;
+  }
+}
+
+export async function isAdminAuthenticated(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const token = req.cookies?.[ADMIN_COOKIE];
+  if (!token) {
+    res.status(401).json({ error: "Não autenticado" });
+    return;
+  }
+  const valid = await verifyAdminToken(token);
+  if (!valid) {
+    res.status(401).json({ error: "Sessão inválida ou expirada" });
+    return;
+  }
+  next();
+}
+
+// ─── Port Helpers ──────────────────────────────────────────────────────────────
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -39,12 +86,64 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
   throw new Error(`No available port found starting from ${startPort}`);
 }
 
+// ─── Server ────────────────────────────────────────────────────────────────────
+
 async function startServer() {
   const app = express();
   const server = createServer(app);
+
+  // Cookie parser (necessário para ler req.cookies)
+  const cookieParser = (await import("cookie-parser")).default;
+  app.use(cookieParser());
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+  // ── Admin Login ──────────────────────────────────────────────────────────────
+  app.post("/api/admin/login", async (req: Request, res: Response) => {
+    const { password } = req.body as { password?: string };
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminPassword) {
+      res.status(500).json({ error: "ADMIN_PASSWORD não configurado no servidor" });
+      return;
+    }
+
+    const trimmedEnvPassword = adminPassword.trim();
+    if (!password || password !== trimmedEnvPassword) {
+      res.status(401).json({ error: "Senha incorreta" });
+      return;
+    }
+
+    const token = await signAdminToken();
+    res.cookie(ADMIN_COOKIE, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 24 horas
+      path: "/",
+    });
+    res.json({ success: true });
+  });
+
+  // ── Admin Logout ─────────────────────────────────────────────────────────────
+  app.post("/api/admin/logout", (_req: Request, res: Response) => {
+    res.clearCookie(ADMIN_COOKIE, { path: "/" });
+    res.json({ success: true });
+  });
+
+  // ── Admin Auth Check ─────────────────────────────────────────────────────────
+  app.get("/api/admin/me", async (req: Request, res: Response) => {
+    const token = req.cookies?.[ADMIN_COOKIE];
+    if (!token) {
+      res.json({ authenticated: false });
+      return;
+    }
+    const valid = await verifyAdminToken(token);
+    res.json({ authenticated: valid });
+  });
+
   // Health check / diagnostic endpoint
   app.get("/api/health", async (_req, res) => {
     const info: Record<string, any> = {
@@ -66,6 +165,7 @@ async function startServer() {
     }
     res.json(info);
   });
+
   // Sitemap XML dinâmico para Google Search Console
   app.get("/sitemap.xml", async (_req, res) => {
     try {
@@ -108,6 +208,7 @@ async function startServer() {
 
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+
   // tRPC API
   app.use(
     "/api/trpc",
@@ -116,6 +217,7 @@ async function startServer() {
       createContext,
     })
   );
+
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
