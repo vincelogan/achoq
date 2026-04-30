@@ -23,6 +23,7 @@ frontend:
         - echo "VITE_FRONTEND_FORGE_API_URL=$VITE_FRONTEND_FORGE_API_URL" >> .env.runtime
         - echo "VITE_ANALYTICS_ENDPOINT=$VITE_ANALYTICS_ENDPOINT" >> .env.runtime
         - echo "VITE_ANALYTICS_WEBSITE_ID=$VITE_ANALYTICS_WEBSITE_ID" >> .env.runtime
+        - echo "ADMIN_PASSWORD=$ADMIN_PASSWORD" >> .env.runtime
         - echo "[INFO] .env.runtime generated with env vars for Lambda runtime"
         - node scripts/build-amplify.mjs
         - cd .amplify-hosting/compute/default && pnpm install --prod --no-frozen-lockfile

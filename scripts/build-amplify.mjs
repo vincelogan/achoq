@@ -107,7 +107,7 @@ copyDir(viteDist, computePublicDir);
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf-8"));
 const runtimeDeps = {};
 const needed = [
-  "express", "cookie", "jose", "drizzle-orm", "mysql2",
+  "express", "cookie", "cookie-parser", "jose", "drizzle-orm", "mysql2",
   "@aws-sdk/client-s3", "@aws-sdk/s3-request-presigner",
   "dotenv", "nanoid", "superjson", "@trpc/server", "zod", "axios"
 ];
