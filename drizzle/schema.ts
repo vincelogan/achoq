@@ -84,3 +84,30 @@ export const marketNews = mysqlTable("market_news", {
 
 export type MarketNews = typeof marketNews.$inferSelect;
 export type InsertMarketNews = typeof marketNews.$inferInsert;
+
+/**
+ * Tabela de pontuação de usuários (por fingerprint)
+ * Atualizada automaticamente quando uma enquete é resolvida
+ */
+export const userScores = mysqlTable("user_scores", {
+  id: int("id").autoincrement().primaryKey(),
+  // Identificador anônimo do browser
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull().unique(),
+  // Apelido opcional (definido pelo usuário)
+  nickname: varchar("nickname", { length: 64 }),
+  // Contadores
+  totalVotes: int("totalVotes").default(0).notNull(),
+  correctVotes: int("correctVotes").default(0).notNull(),
+  // Pontos: +10 por acerto, +2 por participação
+  points: int("points").default(0).notNull(),
+  // Sequência de acertos consecutivos
+  streak: int("streak").default(0).notNull(),
+  maxStreak: int("maxStreak").default(0).notNull(),
+  // Timestamps
+  lastVoteAt: timestamp("lastVoteAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserScore = typeof userScores.$inferSelect;
+export type InsertUserScore = typeof userScores.$inferInsert;

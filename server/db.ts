@@ -1,7 +1,7 @@
 import { eq, sql, and, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
-import { InsertUser, users, markets, votes, marketNews, InsertMarket, InsertVote, InsertMarketNews } from "../drizzle/schema";
+import { InsertUser, users, markets, votes, marketNews, userScores, InsertMarket, InsertVote, InsertMarketNews } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: any | null = null;
@@ -404,5 +404,181 @@ export async function getUserVotesWithResults(fingerprint: string) {
   } catch (e) {
     console.error('[getUserVotesWithResults] Error:', e);
     return [];
+  }
+}
+
+// ─── Ranking / User Scores ────────────────────────────────────────────────────
+
+/**
+ * Recalcula e salva a pontuação de um fingerprint na tabela user_scores.
+ * Chamado após resolução de enquete ou após um novo voto.
+ * Pontuação: +10 por acerto, +2 por participação em enquete resolvida.
+ */
+export async function recalcUserScore(fingerprint: string): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  try {
+    const result = await db.execute(
+      sql`SELECT v.choice as userChoice, m.resolvedChoice, v.createdAt
+          FROM ${votes} v
+          INNER JOIN ${markets} m ON v.marketId = m.id
+          WHERE v.fingerprint = ${fingerprint}
+          ORDER BY v.createdAt ASC`
+    );
+    const rows: any[] = Array.isArray(result[0]) ? result[0] : (result as any).rows ?? [];
+
+    let totalVotes = rows.length;
+    let correctVotes = 0;
+    let points = 0;
+    let streak = 0;
+    let maxStreak = 0;
+
+    for (const r of rows) {
+      if (r.resolvedChoice !== null) {
+        const isCorrect = r.userChoice === r.resolvedChoice;
+        points += 2; // participação
+        if (isCorrect) {
+          correctVotes++;
+          points += 10; // acerto
+          streak++;
+          if (streak > maxStreak) maxStreak = streak;
+        } else {
+          streak = 0;
+        }
+      }
+    }
+
+    // Upsert na tabela user_scores
+    const existing = await db.select().from(userScores).where(eq(userScores.fingerprint, fingerprint)).limit(1);
+    if (existing.length > 0) {
+      await db.update(userScores)
+        .set({ totalVotes, correctVotes, points, streak, maxStreak, lastVoteAt: new Date() })
+        .where(eq(userScores.fingerprint, fingerprint));
+    } else {
+      await db.insert(userScores).values({
+        fingerprint,
+        totalVotes,
+        correctVotes,
+        points,
+        streak,
+        maxStreak,
+        lastVoteAt: new Date(),
+      });
+    }
+  } catch (e) {
+    console.error('[recalcUserScore] Error:', e);
+  }
+}
+
+/**
+ * Retorna o top N usuários por pontos para o ranking público.
+ * Exibe apenas nickname (ou fingerprint truncado) e estatísticas.
+ */
+export async function getTopRanking(limit = 50) {
+  const db = await getDb();
+  if (!db) return [];
+
+  try {
+    const rows = await db
+      .select({
+        id: userScores.id,
+        nickname: userScores.nickname,
+        fingerprint: userScores.fingerprint,
+        totalVotes: userScores.totalVotes,
+        correctVotes: userScores.correctVotes,
+        points: userScores.points,
+        streak: userScores.streak,
+        maxStreak: userScores.maxStreak,
+      })
+      .from(userScores)
+      .where(sql`${userScores.totalVotes} > 0`)
+      .orderBy(desc(userScores.points))
+      .limit(limit);
+
+    return rows.map((r: any, index: number) => ({
+      rank: index + 1,
+      // Exibir nickname ou fingerprint truncado anonimizado
+      displayName: r.nickname || `Usuário #${r.id}`,
+      totalVotes: r.totalVotes,
+      correctVotes: r.correctVotes,
+      accuracy: r.totalVotes > 0 ? Math.round((r.correctVotes / r.totalVotes) * 100) : 0,
+      points: r.points,
+      streak: r.streak,
+      maxStreak: r.maxStreak,
+    }));
+  } catch (e) {
+    console.error('[getTopRanking] Error:', e);
+    return [];
+  }
+}
+
+/**
+ * Retorna a posição e pontuação de um fingerprint no ranking global.
+ */
+export async function getMyRankingPosition(fingerprint: string) {
+  const db = await getDb();
+  if (!db) return null;
+
+  try {
+    const myScore = await db.select().from(userScores).where(eq(userScores.fingerprint, fingerprint)).limit(1);
+    if (myScore.length === 0) return null;
+
+    const s = myScore[0];
+    const above = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(userScores)
+      .where(sql`${userScores.points} > ${s.points}`);
+
+    const position = Number(above[0]?.count ?? 0) + 1;
+    return {
+      position,
+      points: s.points,
+      totalVotes: s.totalVotes,
+      correctVotes: s.correctVotes,
+      accuracy: s.totalVotes > 0 ? Math.round((s.correctVotes / s.totalVotes) * 100) : 0,
+      streak: s.streak,
+      maxStreak: s.maxStreak,
+      nickname: s.nickname,
+    };
+  } catch (e) {
+    console.error('[getMyRankingPosition] Error:', e);
+    return null;
+  }
+}
+
+/**
+ * Define ou atualiza o apelido de um usuário no ranking.
+ */
+export async function setNickname(fingerprint: string, nickname: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const existing = await db.select().from(userScores).where(eq(userScores.fingerprint, fingerprint)).limit(1);
+  if (existing.length > 0) {
+    await db.update(userScores).set({ nickname }).where(eq(userScores.fingerprint, fingerprint));
+  } else {
+    await db.insert(userScores).values({ fingerprint, nickname, totalVotes: 0, correctVotes: 0, points: 0, streak: 0, maxStreak: 0 });
+  }
+  return { success: true };
+}
+
+/**
+ * Após resolver uma enquete, recalcula pontos de TODOS os votantes dessa enquete.
+ */
+export async function recalcScoresForMarket(marketId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  try {
+    const result = await db.execute(
+      sql`SELECT DISTINCT fingerprint FROM ${votes} WHERE ${votes.marketId} = ${marketId}`
+    );
+    const rows: any[] = Array.isArray(result[0]) ? result[0] : (result as any).rows ?? [];
+    for (const row of rows) {
+      await recalcUserScore(row.fingerprint);
+    }
+  } catch (e) {
+    console.error('[recalcScoresForMarket] Error:', e);
   }
 }

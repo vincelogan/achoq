@@ -206,6 +206,86 @@ async function startServer() {
     }
   });
 
+  // ── Scheduled: Listar enquetes com endsAt vencido e ainda ativas ────────────
+  app.get("/api/scheduled/pending-markets", async (_req: Request, res: Response) => {
+    try {
+      const db = await getDb();
+      if (!db) { res.json({ markets: [] }); return; }
+      const { sql } = await import("drizzle-orm");
+      const rows = await db.execute(
+        sql`SELECT id, title, description, optionA, optionB, category, endsAt
+            FROM markets
+            WHERE isActive = 1
+              AND resolvedChoice IS NULL
+              AND endsAt IS NOT NULL
+              AND endsAt < NOW()
+            ORDER BY endsAt ASC
+            LIMIT 20`
+      );
+      const markets = Array.isArray(rows[0]) ? rows[0] : (rows as any).rows || [];
+      res.json({ markets });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // ── Scheduled: Resolução automática de enquetes ────────────────────────────────
+  // Endpoint chamado pelo agente agendado para resolver enquetes e calcular pontos
+  // Aceita role "user" (cookie de scheduled task) ou admin cookie
+  app.post("/api/scheduled/resolve-markets", async (req: Request, res: Response) => {
+    // Verificar autenticação: admin cookie OU bearer token de scheduled task
+    const adminToken = req.cookies?.[ADMIN_COOKIE];
+    const bearerToken = req.headers.authorization?.replace("Bearer ", "");
+    const scheduledSecret = process.env.SCHEDULED_SECRET || process.env.JWT_SECRET;
+
+    let authorized = false;
+    if (adminToken) {
+      authorized = await verifyAdminToken(adminToken);
+    } else if (bearerToken && scheduledSecret) {
+      try {
+        const { jwtVerify } = await import("jose");
+        const secret = new TextEncoder().encode(scheduledSecret);
+        await jwtVerify(bearerToken, secret);
+        authorized = true;
+      } catch {
+        authorized = false;
+      }
+    }
+
+    if (!authorized) {
+      res.status(401).json({ error: "Não autorizado" });
+      return;
+    }
+
+    try {
+      const { resolutions } = req.body as {
+        resolutions: Array<{ marketId: number; resolvedChoice: "A" | "B" }>;
+      };
+
+      if (!Array.isArray(resolutions) || resolutions.length === 0) {
+        res.status(400).json({ error: "resolutions deve ser um array não vazio" });
+        return;
+      }
+
+      const { updateMarket, recalcScoresForMarket } = await import("../db");
+      const results: Array<{ marketId: number; success: boolean; error?: string }> = [];
+
+      for (const r of resolutions) {
+        try {
+          await updateMarket(r.marketId, { resolvedChoice: r.resolvedChoice, isActive: false });
+          await recalcScoresForMarket(r.marketId);
+          results.push({ marketId: r.marketId, success: true });
+        } catch (e: any) {
+          results.push({ marketId: r.marketId, success: false, error: e.message });
+        }
+      }
+
+      res.json({ success: true, results });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
 

@@ -98,6 +98,101 @@ function SharePopup({ open, onClose, title, slug }: { open: boolean; onClose: ()
   );
 }
 
+// ─── Modal pós-voto: compartilhamento com mensagem personalizada ─────────────
+function PostVoteShareModal({
+  open,
+  onClose,
+  market,
+  choice,
+}: {
+  open: boolean;
+  onClose: () => void;
+  market: { title: string; slug: string; optionA: string; optionB: string };
+  choice: "A" | "B" | null;
+}) {
+  if (!open || !choice) return null;
+
+  const chosenOption = choice === "A" ? market.optionA : market.optionB;
+  const url = `${window.location.origin}/mercado/${market.slug}?challenge=1`;
+  const shareText = `Eu acho que "${chosenOption}" — e você? Vote no AchoQ!`;
+  const encodedText = encodeURIComponent(shareText);
+  const encodedUrl = encodeURIComponent(url);
+
+  const handleShare = (platform: string) => {
+    if (platform === "whatsapp") {
+      window.open(`https://wa.me/?text=${encodedText}%20${encodedUrl}`, "_blank", "noopener,noreferrer");
+    } else if (platform === "x") {
+      window.open(`https://x.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`, "_blank", "noopener,noreferrer");
+    } else if (platform === "copy") {
+      navigator.clipboard.writeText(`${shareText} ${url}`);
+      toast.success("Link copiado!");
+    }
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 40 }}
+        className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl p-6 w-full sm:max-w-sm mx-0 sm:mx-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <PartyPopper className="w-5 h-5 text-amber-500" />
+              <span className="font-bold text-gray-900">Opinião registrada!</span>
+            </div>
+            <p className="text-xs text-gray-400">Desafie seus amigos a opinar também</p>
+          </div>
+          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100">
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
+
+        {/* Mensagem personalizada */}
+        <div className="bg-gray-50 rounded-xl p-4 mb-5 border border-gray-200">
+          <p className="text-sm text-gray-700 leading-relaxed">
+            <span className="font-semibold text-[#002B5C]">Eu acho que &ldquo;{chosenOption}&rdquo;</span>
+            {" — e você? Vote no AchoQ!"}
+          </p>
+        </div>
+
+        {/* Botões de compartilhamento */}
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => handleShare("whatsapp")}
+            className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-green-50 hover:bg-green-100 transition-colors border border-green-200"
+          >
+            <span className="text-xl">🟢</span>
+            <span className="text-sm font-semibold text-green-700">WhatsApp</span>
+          </button>
+          <button
+            onClick={() => handleShare("x")}
+            className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-200"
+          >
+            <span className="text-xl">✖️</span>
+            <span className="text-sm font-semibold text-gray-700">X (Twitter)</span>
+          </button>
+        </div>
+        <button
+          onClick={() => handleShare("copy")}
+          className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+        >
+          <Link2 className="w-4 h-4 text-gray-500" />
+          <span className="text-sm font-medium text-gray-600">Copiar link de desafio</span>
+        </button>
+        <button onClick={onClose} className="mt-2 w-full text-xs text-gray-400 hover:text-gray-600 py-2 transition-colors">
+          Agora não
+        </button>
+      </motion.div>
+    </div>
+  );
+}
+
 function VoteChart({ history, optionA, optionB }: { history: { date: string; choice: string; count: number }[]; optionA?: string; optionB?: string }) {
   const chartData = useMemo(() => {
     const dateMap = new Map<string, { a: number; b: number }>();
@@ -155,6 +250,12 @@ export default function MarketDetail() {
   const [, navigate] = useLocation();
   const fingerprint = useFingerprint();
   const [shareOpen, setShareOpen] = useState(false);
+  const [postVoteShareOpen, setPostVoteShareOpen] = useState(false);
+  // Detectar se o usuário chegou via link de desafio
+  const isChallenge = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return new URLSearchParams(window.location.search).get("challenge") === "1";
+  }, []);
   const [votingFor, setVotingFor] = useState<"A" | "B" | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [justVotedChoice, setJustVotedChoice] = useState<"A" | "B" | null>(null);
@@ -170,7 +271,11 @@ export default function MarketDetail() {
     onSuccess: (_result, variables) => {
       setJustVotedChoice(variables.choice);
       setShowConfirmation(true);
-      setTimeout(() => setShowConfirmation(false), 2500);
+      setTimeout(() => {
+        setShowConfirmation(false);
+        // Abrir modal de compartilhamento pós-voto após a confirmação
+        setPostVoteShareOpen(true);
+      }, 2000);
       utils.markets.bySlug.invalidate({ slug });
       utils.markets.checkVote.invalidate({ marketId: market?.id ?? 0, fingerprint });
       utils.markets.voteHistory.invalidate({ marketId: market?.id ?? 0 });
@@ -313,6 +418,18 @@ export default function MarketDetail() {
             </nav>
           </div>
         </div>
+
+        {/* Banner de desafio */}
+        {isChallenge && !hasVoted && (
+          <div className="bg-gradient-to-r from-amber-400 to-orange-400 text-white">
+            <div className="container py-3 flex items-center gap-3">
+              <span className="text-xl">🎯</span>
+              <p className="text-sm font-semibold">
+                Alguém te desafiou! Veja o que o Brasil acha e dê sua opinião.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="container py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -522,6 +639,12 @@ export default function MarketDetail() {
       <Footer />
       <AnimatePresence>
         <SharePopup open={shareOpen} onClose={() => setShareOpen(false)} title={market.title} slug={market.slug} />
+        <PostVoteShareModal
+          open={postVoteShareOpen}
+          onClose={() => setPostVoteShareOpen(false)}
+          market={market}
+          choice={justVotedChoice}
+        />
       </AnimatePresence>
     </div>
   );

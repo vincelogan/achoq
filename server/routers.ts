@@ -22,6 +22,10 @@ import {
   getUserVotesWithResults,
   getNewsByMarketId,
   getAllActiveNews,
+  getTopRanking,
+  getMyRankingPosition,
+  setNickname,
+  recalcScoresForMarket,
 } from "./db";
 
 // Seed mercados na inicialização
@@ -168,6 +172,31 @@ export const appRouter = router({
       }),
   }),
 
+  // ─── Ranking Público ──────────────────────────────────────────────────────────
+  ranking: router({
+    // Top 50 usuários por pontos
+    top: publicProcedure.query(async () => {
+      return getTopRanking(50);
+    }),
+
+    // Posição e score do usuário atual
+    myPosition: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .query(async ({ input }) => {
+        return getMyRankingPosition(input.fingerprint);
+      }),
+
+    // Definir apelido no ranking
+    setNickname: publicProcedure
+      .input(z.object({
+        fingerprint: z.string().min(8).max(128),
+        nickname: z.string().min(2).max(32).regex(/^[a-zA-Z0-9À-ÿ _-]+$/, "Apelido inválido"),
+      }))
+      .mutation(async ({ input }) => {
+        return setNickname(input.fingerprint, input.nickname);
+      }),
+  }),
+
   // ─── Admin ───────────────────────────────────────────────────────────────────────
   admin: router({// Listar TODOS os mercados (incluindo inativos) com contagem de votos
     listAll: adminProcedure.query(async () => {
@@ -239,6 +268,19 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return updateMarket(input.id, { isActive: true });
+      }),
+
+    // Resolver enquete e recalcular pontos de todos os votantes
+    resolve: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        resolvedChoice: z.enum(["A", "B"]),
+      }))
+      .mutation(async ({ input }) => {
+        await updateMarket(input.id, { resolvedChoice: input.resolvedChoice, isActive: false });
+        // Recalcular pontos de todos que votaram nessa enquete
+        await recalcScoresForMarket(input.id);
+        return { success: true };
       }),
   }),
 });

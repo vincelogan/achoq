@@ -36,6 +36,13 @@
       "when": 1776526516186,
       "tag": "0004_handy_zombie",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1777610266552,
+      "tag": "0005_bent_chimera",
+      "breakpoints": true
     }
   ]
 }
