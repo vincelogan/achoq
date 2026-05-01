@@ -66,26 +66,26 @@ export default function Hero() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <button 
                       onClick={() => handleVote("left")}
-                      className="group relative w-full bg-white border border-gray-200 hover:border-[#B91C1C] transition-all duration-200 rounded-lg p-4 flex justify-between items-center hover:shadow-sm"
+                      className="group relative w-full bg-white border border-gray-200 hover:border-[#B91C1C] transition-all duration-200 rounded-lg px-3 py-2.5 sm:p-4 flex justify-between items-center hover:shadow-sm"
                     >
                       <div className="flex flex-col items-start">
                         <span className="text-lg font-bold text-gray-900 group-hover:text-[#B91C1C] transition-colors">Esquerda</span>
                         <span className="text-xs text-gray-500">Campo Progressista</span>
                       </div>
-                      <div className="bg-gray-50 group-hover:bg-[#B91C1C]/10 text-gray-900 group-hover:text-[#B91C1C] px-4 py-2 rounded-md font-mono font-bold text-lg transition-colors">
+                      <div className="bg-gray-50 group-hover:bg-[#B91C1C]/10 text-gray-900 group-hover:text-[#B91C1C] px-2.5 py-1 sm:px-4 sm:py-2 rounded-md font-mono font-bold text-sm sm:text-lg transition-colors shrink-0">
                         {stats.left}%
                       </div>
                     </button>
 
                     <button 
                       onClick={() => handleVote("right")}
-                      className="group relative w-full bg-white border border-gray-200 hover:border-[#002B5C] transition-all duration-200 rounded-lg p-4 flex justify-between items-center hover:shadow-sm"
+                      className="group relative w-full bg-white border border-gray-200 hover:border-[#002B5C] transition-all duration-200 rounded-lg px-3 py-2.5 sm:p-4 flex justify-between items-center hover:shadow-sm"
                     >
                       <div className="flex flex-col items-start">
                         <span className="text-lg font-bold text-gray-900 group-hover:text-[#002B5C] transition-colors">Direita</span>
                         <span className="text-xs text-gray-500">Campo Conservador</span>
                       </div>
-                      <div className="bg-gray-50 group-hover:bg-[#002B5C]/10 text-gray-900 group-hover:text-[#002B5C] px-4 py-2 rounded-md font-mono font-bold text-lg transition-colors">
+                      <div className="bg-gray-50 group-hover:bg-[#002B5C]/10 text-gray-900 group-hover:text-[#002B5C] px-2.5 py-1 sm:px-4 sm:py-2 rounded-md font-mono font-bold text-sm sm:text-lg transition-colors shrink-0">
                         {stats.right}%
                       </div>
                     </button>

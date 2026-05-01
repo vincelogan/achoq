@@ -465,7 +465,7 @@ export default function MarketCard({
               <button
                 onClick={() => handleVote("A")}
                 disabled={voteMutation.isPending || !fingerprint}
-                className={`group w-full border-2 border-[#B91C1C] transition-all duration-200 rounded-lg p-4 flex justify-between items-center disabled:cursor-not-allowed ${
+                className={`group w-full border-2 border-[#B91C1C] transition-all duration-200 rounded-lg px-3 py-2.5 sm:p-4 flex justify-between items-center disabled:cursor-not-allowed ${
                   votingChoice === "A"
                     ? "bg-[#B91C1C]/20 scale-[0.98]"
                     : votingChoice === "B"
@@ -486,7 +486,7 @@ export default function MarketCard({
                   </span>
                   <span className="text-xs text-[#B91C1C]/70">{labelA}</span>
                 </div>
-                <div className="bg-[#B91C1C]/10 text-[#B91C1C] px-4 py-2 rounded-md font-mono font-bold">
+                <div className="bg-[#B91C1C]/10 text-[#B91C1C] px-2.5 py-1 sm:px-4 sm:py-2 rounded-md font-mono font-bold text-sm shrink-0">
                   {localStats.pctA}%
                 </div>
               </button>
@@ -495,7 +495,7 @@ export default function MarketCard({
               <button
                 onClick={() => handleVote("B")}
                 disabled={voteMutation.isPending || !fingerprint}
-                className={`group w-full border-2 border-[#002B5C] transition-all duration-200 rounded-lg p-4 flex justify-between items-center disabled:cursor-not-allowed ${
+                className={`group w-full border-2 border-[#002B5C] transition-all duration-200 rounded-lg px-3 py-2.5 sm:p-4 flex justify-between items-center disabled:cursor-not-allowed ${
                   votingChoice === "B"
                     ? "bg-[#002B5C]/20 scale-[0.98]"
                     : votingChoice === "A"
@@ -516,7 +516,7 @@ export default function MarketCard({
                   </span>
                   <span className="text-xs text-[#002B5C]/70">{labelB}</span>
                 </div>
-                <div className="bg-[#002B5C]/10 text-[#002B5C] px-4 py-2 rounded-md font-mono font-bold">
+                <div className="bg-[#002B5C]/10 text-[#002B5C] px-2.5 py-1 sm:px-4 sm:py-2 rounded-md font-mono font-bold text-sm shrink-0">
                   {localStats.pctB}%
                 </div>
               </button>

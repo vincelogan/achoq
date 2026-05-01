@@ -595,13 +595,13 @@ export default function MarketDetail() {
                       </motion.div>
                     ) : (
                       <motion.div key="voting" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-                        <button onClick={() => handleVote("A")} disabled={votingFor !== null} className="w-full flex items-center justify-between px-5 py-4 rounded-xl border-2 border-[#B91C1C]/30 bg-red-50/50 hover:bg-red-100/60 hover:border-[#B91C1C] transition-all group disabled:opacity-60">
-                          <div className="text-left"><p className="font-bold text-[#B91C1C] text-lg">{market.optionA}</p><p className="text-xs text-gray-500">{market.labelA}</p></div>
+                        <button onClick={() => handleVote("A")} disabled={votingFor !== null} className="w-full flex items-center justify-between px-3 py-3 sm:px-5 sm:py-4 rounded-xl border-2 border-[#B91C1C]/30 bg-red-50/50 hover:bg-red-100/60 hover:border-[#B91C1C] transition-all group disabled:opacity-60">
+                          <div className="text-left"><p className="font-bold text-[#B91C1C] text-base sm:text-lg">{market.optionA}</p><p className="text-xs text-gray-500">{market.labelA}</p></div>
                           {votingFor === "A" ? <Loader2 className="w-5 h-5 animate-spin text-[#B91C1C]" /> : <div className="w-8 h-8 rounded-full border-2 border-[#B91C1C]/30 group-hover:border-[#B91C1C] group-hover:bg-[#B91C1C]/10 transition-all" />}
                         </button>
                         <div className="flex items-center gap-3"><div className="flex-1 h-px bg-gray-200" /><span className="text-xs text-gray-400 font-medium">ou</span><div className="flex-1 h-px bg-gray-200" /></div>
-                        <button onClick={() => handleVote("B")} disabled={votingFor !== null} className="w-full flex items-center justify-between px-5 py-4 rounded-xl border-2 border-[#002B5C]/30 bg-blue-50/50 hover:bg-blue-100/60 hover:border-[#002B5C] transition-all group disabled:opacity-60">
-                          <div className="text-left"><p className="font-bold text-[#002B5C] text-lg">{market.optionB}</p><p className="text-xs text-gray-500">{market.labelB}</p></div>
+                        <button onClick={() => handleVote("B")} disabled={votingFor !== null} className="w-full flex items-center justify-between px-3 py-3 sm:px-5 sm:py-4 rounded-xl border-2 border-[#002B5C]/30 bg-blue-50/50 hover:bg-blue-100/60 hover:border-[#002B5C] transition-all group disabled:opacity-60">
+                          <div className="text-left"><p className="font-bold text-[#002B5C] text-base sm:text-lg">{market.optionB}</p><p className="text-xs text-gray-500">{market.labelB}</p></div>
                           {votingFor === "B" ? <Loader2 className="w-5 h-5 animate-spin text-[#002B5C]" /> : <div className="w-8 h-8 rounded-full border-2 border-[#002B5C]/30 group-hover:border-[#002B5C] group-hover:bg-[#002B5C]/10 transition-all" />}
                         </button>
                       </motion.div>
