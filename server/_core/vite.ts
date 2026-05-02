@@ -40,7 +40,16 @@ export async function setupVite(app: Express, server: Server) {
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`
       );
-      const page = await vite.transformIndexHtml(url, template);
+      let page = await vite.transformIndexHtml(url, template);
+      // Inject dynamic canonical in dev mode too
+      const BASE_URL = "https://achoq.com.br";
+      const rawPath2 = req.originalUrl.split("?")[0];
+      const canonicalPath = rawPath2 === "/" ? "/" : rawPath2.replace(/\/+$/, "");
+      const canonicalUrl = `${BASE_URL}${canonicalPath}`;
+      page = page.replace(
+        /<link rel="canonical" href="[^"]*" \/>/,
+        `<link rel="canonical" href="${canonicalUrl}" />`
+      );
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {
       vite.ssrFixStacktrace(e as Error);
@@ -60,10 +69,29 @@ export function serveStatic(app: Express) {
     );
   }
 
-  app.use(express.static(distPath));
+  // Serve static assets but NOT index.html (so our dynamic canonical handler runs)
+  app.use(express.static(distPath, { index: false }));
 
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  // fall through to index.html with dynamic canonical injection
+  app.use("*", (req, res) => {
+    const indexPath = path.resolve(distPath, "index.html");
+    fs.readFile(indexPath, "utf-8", (err, html) => {
+      if (err) {
+        res.status(500).send("Internal Server Error");
+        return;
+      }
+      // Inject canonical URL based on request path (strip query strings)
+      // Use req.originalUrl since req.path is always '/' in app.use('*', ...) handlers
+      const BASE_URL = "https://achoq.com.br";
+      const rawPath = req.originalUrl.split("?")[0]; // strip query string
+      const canonicalPath = rawPath === "/" ? "/" : rawPath.replace(/\/+$/, "");
+      const canonicalUrl = `${BASE_URL}${canonicalPath}`;
+      // Replace the hardcoded canonical with the dynamic one
+      const injected = html.replace(
+        /<link rel="canonical" href="[^"]*" \/>/,
+        `<link rel="canonical" href="${canonicalUrl}" />`
+      );
+      res.status(200).set({ "Content-Type": "text/html" }).send(injected);
+    });
   });
 }

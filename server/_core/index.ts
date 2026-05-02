@@ -177,12 +177,12 @@ async function startServer() {
       const today = new Date().toISOString().split("T")[0];
       const staticPages = [
         { loc: "/", priority: "1.0", changefreq: "daily", lastmod: today },
-        { loc: "/como-funciona", priority: "0.7", changefreq: "monthly", lastmod: "2026-04-01" },
+        { loc: "/como-funciona", priority: "0.7", changefreq: "monthly", lastmod: today },
         { loc: "/ranking", priority: "0.8", changefreq: "daily", lastmod: today },
-        { loc: "/metodologia", priority: "0.6", changefreq: "monthly", lastmod: "2026-04-01" },
-        { loc: "/legal", priority: "0.5", changefreq: "monthly", lastmod: "2026-04-01" },
-        { loc: "/termos", priority: "0.5", changefreq: "monthly", lastmod: "2026-04-01" },
-        { loc: "/privacidade", priority: "0.5", changefreq: "monthly", lastmod: "2026-04-01" },
+        { loc: "/metodologia", priority: "0.6", changefreq: "monthly", lastmod: today },
+        { loc: "/legal", priority: "0.5", changefreq: "monthly", lastmod: today },
+        { loc: "/termos", priority: "0.5", changefreq: "monthly", lastmod: today },
+        { loc: "/privacidade", priority: "0.5", changefreq: "monthly", lastmod: today },
       ];
       let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
       xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
