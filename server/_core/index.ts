@@ -233,10 +233,11 @@ async function startServer() {
   // Endpoint chamado pelo agente agendado para resolver enquetes e calcular pontos
   // Aceita role "user" (cookie de scheduled task) ou admin cookie
   app.post("/api/scheduled/resolve-markets", async (req: Request, res: Response) => {
-    // Verificar autenticação: admin cookie OU bearer token de scheduled task
+    // Verificar autenticação: admin cookie OU bearer token de scheduled task OU cron cookie
     const adminToken = req.cookies?.[ADMIN_COOKIE];
     const bearerToken = req.headers.authorization?.replace("Bearer ", "");
     const scheduledSecret = process.env.SCHEDULED_SECRET || process.env.JWT_SECRET;
+    const sessionCookie = req.cookies?.["app_session_id"];
 
     let authorized = false;
     if (adminToken) {
@@ -247,6 +248,19 @@ async function startServer() {
         const secret = new TextEncoder().encode(scheduledSecret);
         await jwtVerify(bearerToken, secret);
         authorized = true;
+      } catch {
+        authorized = false;
+      }
+    } else if (sessionCookie) {
+      // Verificar se é um cron cookie (openId começa com "cron_")
+      try {
+        const parts = sessionCookie.split(".");
+        if (parts.length === 3) {
+          const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf-8"));
+          if (payload.openId && payload.openId.startsWith("cron_")) {
+            authorized = true;
+          }
+        }
       } catch {
         authorized = false;
       }
