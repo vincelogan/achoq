@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
+import SearchBar from "./SearchBar";
 
 const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/logowhite_07ee886e.png";
 
@@ -27,6 +28,11 @@ export default function Header() {
             <span className="font-sans text-[9px] text-muted-foreground tracking-wide">Expectativa Coletiva</span>
           </div>
         </Link>
+
+        {/* Busca Desktop */}
+        <div className="hidden lg:block flex-1 max-w-xs mx-6">
+          <SearchBar />
+        </div>
 
         {/* Nav Desktop */}
         <nav className="hidden md:flex items-center gap-6">
@@ -62,6 +68,9 @@ export default function Header() {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="md:hidden border-t border-border/50 bg-card">
+          <div className="container pt-3">
+            <SearchBar />
+          </div>
           <nav className="container py-3 flex flex-col gap-1">
             {navLinks.map(({ href, label }) => (
               <Link

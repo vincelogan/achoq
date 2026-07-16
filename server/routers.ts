@@ -5,6 +5,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, adminProcedure } from "./_core/trpc";
 import {
   getAllMarkets,
+  getVotedMarketIds,
   getMarketBySlug,
   getVoteStats,
   hasVoted,
@@ -47,20 +48,37 @@ export const appRouter = router({
   }),
 
   markets: router({
-    // Listar todos os mercados ativos com estatísticas reais
-    list: publicProcedure.query(async () => {
-      const allMarkets = await getAllMarkets();
-      const marketsWithStats = await Promise.all(
-        allMarkets.map(async (market: any) => {
-          const stats = await getVoteStats(market.id);
-          const total = stats.total;
-          const pctA = total > 0 ? Math.round((stats.countA / total) * 100) : 50;
-          const pctB = total > 0 ? Math.round((stats.countB / total) * 100) : 50;
-          return { ...market, stats: { countA: stats.countA, countB: stats.countB, total, pctA, pctB } };
-        })
-      );
-      return marketsWithStats;
-    }),
+    // Listar mercados ativos com estatísticas reais.
+    // Filtros opcionais por categoria e busca textual; com fingerprint,
+    // devolve viewerHasVoted por enquete (evita N chamadas de checkVote).
+    list: publicProcedure
+      .input(
+        z.object({
+          category: z.string().min(1).max(64).optional(),
+          search: z.string().min(1).max(128).optional(),
+          fingerprint: z.string().min(8).max(128).optional(),
+        }).optional()
+      )
+      .query(async ({ input }) => {
+        const allMarkets = await getAllMarkets({ category: input?.category, search: input?.search });
+        const votedIds = input?.fingerprint
+          ? new Set(await getVotedMarketIds(input.fingerprint, allMarkets.map((m: any) => m.id)))
+          : null;
+        const marketsWithStats = await Promise.all(
+          allMarkets.map(async (market: any) => {
+            const stats = await getVoteStats(market.id);
+            const total = stats.total;
+            const pctA = total > 0 ? Math.round((stats.countA / total) * 100) : 50;
+            const pctB = total > 0 ? Math.round((stats.countB / total) * 100) : 50;
+            return {
+              ...market,
+              stats: { countA: stats.countA, countB: stats.countB, total, pctA, pctB },
+              viewerHasVoted: votedIds ? votedIds.has(market.id) : undefined,
+            };
+          })
+        );
+        return marketsWithStats;
+      }),
 
     // Buscar mercado pelo slug
     bySlug: publicProcedure

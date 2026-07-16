@@ -22,23 +22,7 @@ import { SharePopup, PostVoteShareModal } from "@/components/SharePopup";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-const CATEGORY_LABELS: Record<string, string> = {
-  politica: "Política",
-  esportes: "Esportes",
-  entretenimento: "Entretenimento",
-  economia: "Economia",
-  tecnologia: "Tecnologia",
-  geral: "Geral",
-};
-
-const CATEGORY_COLORS: Record<string, string> = {
-  politica: "bg-blue-100 text-blue-700",
-  esportes: "bg-green-100 text-green-700",
-  entretenimento: "bg-purple-100 text-purple-700",
-  economia: "bg-amber-100 text-amber-700",
-  tecnologia: "bg-cyan-100 text-cyan-700",
-  geral: "bg-muted text-foreground/80",
-};
+import { categoryLabel, categoryChipClasses } from "@/lib/categories";
 
 function VoteChart({ history, optionA, optionB }: { history: { date: string; choice: string; count: number }[]; optionA?: string; optionB?: string }) {
   const chartData = useMemo(() => {
@@ -246,9 +230,9 @@ export default function MarketDetail() {
             <nav className="flex items-center gap-2 text-sm text-muted-foreground">
               <Link href="/" className="hover:text-brand transition-colors">Mercados</Link>
               <ChevronRight className="w-3.5 h-3.5" />
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${CATEGORY_COLORS[market.category] || CATEGORY_COLORS.geral}`}>
-                {CATEGORY_LABELS[market.category] || market.category}
-              </span>
+              <Link href={`/categoria/${market.category}`} className={`px-2 py-0.5 rounded-full text-xs font-medium hover:opacity-80 transition-opacity ${categoryChipClasses(market.category)}`}>
+                {categoryLabel(market.category)}
+              </Link>
               <ChevronRight className="w-3.5 h-3.5" />
               <span className="text-foreground font-medium truncate max-w-[200px]">{market.title}</span>
             </nav>
@@ -288,8 +272,8 @@ export default function MarketDetail() {
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${CATEGORY_COLORS[market.category] || CATEGORY_COLORS.geral}`}>
-                        {CATEGORY_LABELS[market.category] || market.category}
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${categoryChipClasses(market.category)}`}>
+                        {categoryLabel(market.category)}
                       </span>
                       {market.isActive && (
                         <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
@@ -455,7 +439,7 @@ export default function MarketDetail() {
                   <h3 className="font-bold text-foreground mb-3">Sobre esta enquete</h3>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className="font-medium text-emerald-600 dark:text-emerald-400">Ativo</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Categoria</span><span className="font-medium text-foreground">{CATEGORY_LABELS[market.category] || market.category}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Categoria</span><span className="font-medium text-foreground">{categoryLabel(market.category)}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Criado em</span><span className="font-medium text-foreground">{createdDate}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Total de opiniões</span><span className="font-medium text-foreground">{stats?.total ?? 0}</span></div>
                   </div>

@@ -5,7 +5,10 @@ import HowItWorks from "@/components/HowItWorks";
 import Methodology from "@/components/Methodology";
 import Disclaimer from "@/components/Disclaimer";
 import MarketCard from "@/components/MarketCard";
+import CategoryNav from "@/components/CategoryNav";
 import { trpc } from "@/lib/trpc";
+import { useFingerprint } from "@/hooks/useFingerprint";
+import { categoryLabel } from "@/lib/categories";
 import { Loader2, BarChart3 } from "lucide-react";
 import UserScoreCard from "@/components/UserScoreCard";
 
@@ -13,9 +16,14 @@ export default function Home() {
   useEffect(() => {
     document.title = "AchoQ - Expectativa Coletiva do Brasil";
   }, []);
-  const { data: markets, isLoading, error } = trpc.markets.list.useQuery(undefined, {
-    refetchInterval: 30_000, // Atualizar a cada 30 segundos
-  });
+  const fingerprint = useFingerprint();
+  const { data: markets, isLoading, error } = trpc.markets.list.useQuery(
+    { fingerprint: fingerprint || undefined },
+    {
+      refetchInterval: 30_000, // Atualizar a cada 30 segundos
+      enabled: !!fingerprint,
+    }
+  );
   const { data: allNews } = trpc.news.allActive.useQuery();
 
   // Map news by marketId for quick lookup - group all news per market
@@ -43,6 +51,9 @@ export default function Home() {
         {/* Hero Section */}
         <section className="relative w-full py-8 md:py-16 bg-muted/50">
           <div className="container max-w-4xl mx-auto">
+
+            {/* Navegação por categoria */}
+            <CategoryNav className="mb-6" />
 
             {/* Título da seção */}
             <div className="mb-8">
@@ -78,7 +89,7 @@ export default function Home() {
                 marketId={featuredMarket.id}
                 slug={featuredMarket.slug}
                 title={featuredMarket.title}
-                category={({politica:"Política",esportes:"Esportes",economia:"Economia",entretenimento:"Entretenimento",tecnologia:"Tecnologia",geral:"Geral"} as Record<string,string>)[featuredMarket.category] || featuredMarket.category}
+                category={categoryLabel(featuredMarket.category)}
                 optionA={featuredMarket.optionA}
                 optionB={featuredMarket.optionB}
                 labelA={featuredMarket.labelA}
@@ -87,6 +98,7 @@ export default function Home() {
                 endsAt={featuredMarket.endsAt}
                 imageUrl={featuredMarket.imageUrl}
                 tickerItems={newsByMarketId.get(featuredMarket.id) ?? null}
+                initialVoted={featuredMarket.viewerHasVoted}
                 hero
               />
             ) : null}
@@ -111,7 +123,7 @@ export default function Home() {
                     marketId={market.id}
                     slug={market.slug}
                     title={market.title}
-                    category={({politica:"Política",esportes:"Esportes",economia:"Economia",entretenimento:"Entretenimento",tecnologia:"Tecnologia",geral:"Geral"} as Record<string,string>)[market.category] || market.category}
+                    category={categoryLabel(market.category)}
                     optionA={market.optionA}
                     optionB={market.optionB}
                     labelA={market.labelA}
@@ -120,6 +132,7 @@ export default function Home() {
                     endsAt={market.endsAt}
                     imageUrl={market.imageUrl}
                     tickerItems={newsByMarketId.get(market.id) ?? null}
+                    initialVoted={market.viewerHasVoted}
                   />
                 ))}
               </div>

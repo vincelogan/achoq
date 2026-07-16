@@ -21,29 +21,35 @@ type VoteStats = {
 export function useVote({
   marketId,
   onVoted,
+  initialVoted,
 }: {
   marketId: number | undefined;
   onVoted?: (choice: Choice, stats: VoteStats) => void;
+  /**
+   * Quando o chamador já sabe se o usuário votou (viewerHasVoted vindo do
+   * markets.list), a query individual de checkVote é dispensada.
+   */
+  initialVoted?: boolean;
 }) {
   const fingerprint = useFingerprint();
   const [votingChoice, setVotingChoice] = useState<Choice | null>(null);
   const [justVoted, setJustVoted] = useState<Choice | null>(null);
-  const [alreadyVoted, setAlreadyVoted] = useState(false);
+  const [alreadyVoted, setAlreadyVoted] = useState(initialVoted === true);
   const [myChoice, setMyChoice] = useState<Choice | null>(null);
 
-  const enabled = !!marketId && !!fingerprint;
+  const enabled = !!marketId && !!fingerprint && initialVoted === undefined;
   const { data: checkData } = trpc.markets.checkVote.useQuery(
     { marketId: marketId ?? 0, fingerprint },
     { enabled, refetchOnWindowFocus: false }
   );
 
   useEffect(() => {
-    if (checkData?.voted && marketId) {
+    if ((checkData?.voted || initialVoted) && marketId) {
       setAlreadyVoted(true);
       const saved = localStorage.getItem(`achoq_vote_${marketId}`);
       if (saved === "A" || saved === "B") setMyChoice(saved);
     }
-  }, [checkData, marketId]);
+  }, [checkData, initialVoted, marketId]);
 
   const voteMutation = trpc.markets.vote.useMutation({
     onSuccess: (data, variables) => {

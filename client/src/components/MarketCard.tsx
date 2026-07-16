@@ -26,6 +26,8 @@ type MarketCardProps = {
   endsAt?: string | Date | null;
   imageUrl?: string | null;
   tickerItems?: Array<{ tickerText: string; sourceName: string }> | null;
+  /** Se o chamador já sabe (via markets.list) se o usuário votou */
+  initialVoted?: boolean;
 };
 
 /** Mini confetti burst — lightweight CSS-only particles */
@@ -80,6 +82,7 @@ export default function MarketCard({
   endsAt,
   imageUrl,
   tickerItems,
+  initialVoted,
 }: MarketCardProps) {
   const [localStats, setLocalStats] = useState(initialStats);
   const [shareOpen, setShareOpen] = useState(false);
@@ -88,6 +91,7 @@ export default function MarketCard({
 
   const { fingerprint, vote, hasVoted, myChoice, votingChoice, isPending } = useVote({
     marketId,
+    initialVoted,
     onVoted: (_choice, stats) => {
       setLocalStats(stats);
       // Feedback visual antes de transicionar para os resultados

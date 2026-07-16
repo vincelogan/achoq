@@ -167,6 +167,15 @@ async function startServer() {
           xml += `  <url>\n    <loc>${baseUrl}/mercado/${slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.9</priority>\n  </url>\n`;
         }
       }
+      // Páginas de categoria (apenas categorias com enquetes ativas)
+      const catResult = await db.execute(sql`SELECT DISTINCT category FROM markets WHERE isActive = 1`);
+      const catRows = Array.isArray(catResult[0]) ? catResult[0] : (catResult.rows || []);
+      for (const row of catRows) {
+        const category = (row as any).category;
+        if (category) {
+          xml += `  <url>\n    <loc>${baseUrl}/categoria/${encodeURIComponent(category)}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+        }
+      }
       xml += `</urlset>`;
       res.set("Content-Type", "application/xml");
       res.set("Cache-Control", "public, max-age=3600");

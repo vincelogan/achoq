@@ -1,4 +1,4 @@
-import { eq, sql, and, desc, ne } from "drizzle-orm";
+import { eq, sql, and, desc, ne, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import { InsertUser, users, markets, votes, marketNews, userScores, InsertMarket, InsertVote, InsertMarketNews } from "../drizzle/schema";
@@ -123,10 +123,32 @@ export async function getUserByOpenId(openId: string) {
 
 // ─── Markets ─────────────────────────────────────────────────────────────────
 
-export async function getAllMarkets() {
+export async function getAllMarkets(filters?: { category?: string; search?: string }) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(markets).where(eq(markets.isActive, true));
+  const conditions = [eq(markets.isActive, true)];
+  if (filters?.category) {
+    conditions.push(eq(markets.category, filters.category));
+  }
+  if (filters?.search) {
+    const term = `%${filters.search}%`;
+    conditions.push(sql`(${markets.title} LIKE ${term} OR ${markets.description} LIKE ${term})`);
+  }
+  return db.select().from(markets).where(and(...conditions));
+}
+
+/**
+ * Retorna, em uma única query, os IDs de enquetes em que o fingerprint já
+ * votou (evita N chamadas de checkVote na home).
+ */
+export async function getVotedMarketIds(fingerprint: string, marketIds: number[]): Promise<number[]> {
+  const db = await getDb();
+  if (!db || marketIds.length === 0) return [];
+  const rows = await db
+    .select({ marketId: votes.marketId })
+    .from(votes)
+    .where(and(eq(votes.fingerprint, fingerprint), inArray(votes.marketId, marketIds)));
+  return rows.map((r: any) => r.marketId);
 }
 
 export async function getMarketBySlug(slug: string) {
