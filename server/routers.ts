@@ -31,7 +31,17 @@ import {
 import { resolveMarket } from "./resolution";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "./rateLimit";
 import { getWallet, getTransactions } from "./economy";
-import { processVoteRewards } from "./gamification";
+import {
+  processVoteRewards,
+  getAllBadges,
+  getMyBadges,
+  getCurrentSeason,
+  ensureEnrolled,
+  getLeagueStandings,
+  currentWeekStart,
+  DIVISIONS,
+  type Division,
+} from "./gamification";
 import {
   listShopItems,
   getMyItems,
@@ -284,6 +294,65 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         checkRateLimit(`shop:${getClientIp(ctx.req)}`, RATE_LIMITS.shop.max, RATE_LIMITS.shop.windowMs);
         return boostMarket(input.fingerprint, input.marketId);
+      }),
+  }),
+
+  // ─── Liga Semanal ─────────────────────────────────────────────────────────────
+  league: router({
+    /**
+     * Estado da liga da semana: temporada, minha divisão (inscreve lazy se
+     * houver fingerprint) e classificação da divisão exibida.
+     */
+    current: publicProcedure
+      .input(
+        z.object({
+          fingerprint: z.string().min(8).max(128).optional(),
+          division: z.enum(["bronze", "prata", "ouro", "diamante"]).optional(),
+        }).optional()
+      )
+      .query(async ({ input }) => {
+        const season = await getCurrentSeason();
+        if (!season) return null;
+
+        let myDivision: Division | null = null;
+        if (input?.fingerprint) {
+          const membership = await ensureEnrolled(input.fingerprint);
+          myDivision = (membership?.division as Division) ?? null;
+        }
+
+        const division = input?.division ?? myDivision ?? "bronze";
+        const standings = await getLeagueStandings(season.id, division);
+
+        // Fim da semana: próxima segunda 00:00 em SP (SP = UTC-3)
+        const weekStart = currentWeekStart();
+        const endsAt = new Date(new Date(`${weekStart}T03:00:00.000Z`).getTime() + 7 * 24 * 60 * 60 * 1000);
+
+        return {
+          season: { id: season.id, weekStart: season.weekStart },
+          divisions: DIVISIONS,
+          myDivision,
+          division,
+          standings: standings.map((s: any) => ({
+            rank: s.rank,
+            displayName: s.displayName,
+            weeklyQs: s.weeklyQs,
+            isMe: input?.fingerprint ? s.fingerprint === input.fingerprint : false,
+          })),
+          endsAt: endsAt.toISOString(),
+        };
+      }),
+  }),
+
+  // ─── Conquistas ───────────────────────────────────────────────────────────────
+  badges: router({
+    all: publicProcedure.query(async () => {
+      return getAllBadges();
+    }),
+
+    mine: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .query(async ({ input }) => {
+        return getMyBadges(input.fingerprint);
       }),
   }),
 

@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Flame, Loader2, ShieldCheck, ShoppingBag, TrendingDown, TrendingUp } from "lucide-react";
 import InstitutionalLayout from "@/components/InstitutionalLayout";
 import { QCoin } from "@/components/QsBalance";
+import BadgeList from "@/components/BadgeList";
 import { trpc } from "@/lib/trpc";
 import { useFingerprint } from "@/hooks/useFingerprint";
 
@@ -151,6 +152,11 @@ export default function Carteira() {
               ))}
             </div>
           )}
+
+          {/* Conquistas */}
+          <div className="mt-10">
+            <BadgeList fingerprint={fingerprint} />
+          </div>
 
           <p className="mt-6 text-xs text-muted-foreground leading-relaxed">
             Os Qs são uma moeda fictícia de engajamento, sem valor monetário, não compráveis e não

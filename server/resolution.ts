@@ -2,7 +2,7 @@ import { eq, sql } from "drizzle-orm";
 import { getDb, updateMarket, recalcScoresForMarket } from "./db";
 import { userScores, votes } from "../drizzle/schema";
 import { grantQs } from "./economy";
-import { REWARDS } from "./gamification";
+import { checkAndAwardBadges, REWARDS } from "./gamification";
 
 /**
  * Resolve uma enquete: grava o resultado, desativa, recalcula a pontuação
@@ -57,6 +57,9 @@ async function grantResolutionRewards(marketId: number, resolvedChoice: "A" | "B
           refId: marketId,
         });
       }
+
+      // Conquistas de acerto (Na Mosca, Certeiro, Vidente...)
+      await checkAndAwardBadges(fp);
     }
   } catch (e) {
     // Recompensas nunca devem impedir a resolução em si

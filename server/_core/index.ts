@@ -250,6 +250,23 @@ async function startServer() {
     }
   });
 
+  // ── Scheduled: Fechamento da liga semanal ──────────────────────────────────
+  // Fecha temporadas de semanas passadas (promoção/rebaixamento) e inscreve
+  // os membros na semana corrente. Idempotente; chamado por agente agendado.
+  app.post("/api/scheduled/close-league", async (req: Request, res: Response) => {
+    if (!(await isScheduledRequestAuthorized(req))) {
+      res.status(401).json({ error: "Não autorizado" });
+      return;
+    }
+    try {
+      const { closeFinishedSeasons } = await import("../gamification");
+      const result = await closeFinishedSeasons();
+      res.json({ success: true, ...result });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
 

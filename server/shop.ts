@@ -1,7 +1,7 @@
 import { and, eq, gt, sql } from "drizzle-orm";
 import { getDb } from "./db";
 import { marketBoosts, markets, shopItems, userItems, userScores } from "../drizzle/schema";
-import { spendQs, spDate } from "./economy";
+import { isDuplicateEntry, spendQs, spDate } from "./economy";
 
 /**
  * Loja fictícia: molduras, títulos, proteção de streak e boost de enquete.
@@ -103,7 +103,7 @@ export async function buyItem(fingerprint: string, itemCode: string) {
     await db.insert(userItems).values({ fingerprint, itemId: item.id });
   } catch (e: any) {
     // Corrida de dupla compra: o UNIQUE já garante 1 exemplar
-    if (!(e?.code === "ER_DUP_ENTRY" || e?.errno === 1062)) throw e;
+    if (!isDuplicateEntry(e)) throw e;
   }
   return { success: true, balance: result.balance };
 }

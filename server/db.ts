@@ -547,6 +547,29 @@ export async function getTopRanking(limit = 50) {
       .orderBy(desc(userScores.points))
       .limit(limit);
 
+    // Itens equipados (moldura/título comprados na loja) dos rankeados
+    const fingerprints = rows.map((r: any) => r.fingerprint);
+    const equippedByFp = new Map<string, { frame?: string; title?: string }>();
+    if (fingerprints.length > 0) {
+      try {
+        const equipped = await db.execute(
+          sql`SELECT ui.fingerprint, si.kind, si.code, si.name
+              FROM user_items ui
+              INNER JOIN shop_items si ON ui.itemId = si.id
+              WHERE ui.isEquipped = 1 AND ui.fingerprint IN (${sql.join(fingerprints.map((f: string) => sql`${f}`), sql`, `)})`
+        );
+        const equippedRows: any[] = Array.isArray(equipped[0]) ? equipped[0] : (equipped as any).rows ?? [];
+        for (const item of equippedRows) {
+          const entry = equippedByFp.get(item.fingerprint) ?? {};
+          if (item.kind === "frame") entry.frame = item.code;
+          if (item.kind === "title") entry.title = String(item.name).replace(/^Título: /, "");
+          equippedByFp.set(item.fingerprint, entry);
+        }
+      } catch (e) {
+        console.error('[getTopRanking] equipped items:', e);
+      }
+    }
+
     return rows.map((r: any, index: number) => ({
       rank: index + 1,
       // Exibir nickname ou fingerprint truncado anonimizado
@@ -557,6 +580,8 @@ export async function getTopRanking(limit = 50) {
       points: r.points,
       streak: r.streak,
       maxStreak: r.maxStreak,
+      equippedFrame: equippedByFp.get(r.fingerprint)?.frame ?? null,
+      equippedTitle: equippedByFp.get(r.fingerprint)?.title ?? null,
     }));
   } catch (e) {
     console.error('[getTopRanking] Error:', e);

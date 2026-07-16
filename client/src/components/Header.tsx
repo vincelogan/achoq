@@ -10,8 +10,8 @@ const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkF
 const navLinks = [
   { href: "/como-funciona", label: "Como funciona" },
   { href: "/ranking", label: "Ranking" },
+  { href: "/liga", label: "Liga" },
   { href: "/loja", label: "Loja" },
-  { href: "/legal", label: "Legal" },
 ];
 
 export default function Header() {

@@ -196,3 +196,59 @@ export const marketBoosts = mysqlTable("market_boosts", {
 ]);
 
 export type MarketBoost = typeof marketBoosts.$inferSelect;
+
+/** Catálogo de conquistas (badges). */
+export const badges = mysqlTable("badges", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 64 }).notNull().unique(),
+  name: varchar("name", { length: 128 }).notNull(),
+  description: text("description"),
+  icon: varchar("icon", { length: 64 }),
+  tier: mysqlEnum("tier", ["bronze", "prata", "ouro"]).default("bronze").notNull(),
+  // Qs creditados ao conquistar
+  qReward: int("qReward").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Badge = typeof badges.$inferSelect;
+
+export const userBadges = mysqlTable("user_badges", {
+  id: int("id").autoincrement().primaryKey(),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  badgeId: int("badgeId").notNull(),
+  awardedAt: timestamp("awardedAt").defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex("uniq_user_badge").on(t.fingerprint, t.badgeId),
+  index("idx_user_badges_fp").on(t.fingerprint),
+]);
+
+export type UserBadge = typeof userBadges.$inferSelect;
+
+/**
+ * Liga semanal: uma temporada por semana (weekStart = segunda-feira em
+ * America/Sao_Paulo, formato YYYY-MM-DD).
+ */
+export const leagueSeasons = mysqlTable("league_seasons", {
+  id: int("id").autoincrement().primaryKey(),
+  weekStart: varchar("weekStart", { length: 10 }).notNull().unique(),
+  status: mysqlEnum("status", ["active", "closed"]).default("active").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type LeagueSeason = typeof leagueSeasons.$inferSelect;
+
+export const leagueMembers = mysqlTable("league_members", {
+  id: int("id").autoincrement().primaryKey(),
+  seasonId: int("seasonId").notNull(),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  division: mysqlEnum("division", ["bronze", "prata", "ouro", "diamante"]).default("bronze").notNull(),
+  // Preenchidos no fechamento da temporada
+  finalRank: int("finalRank"),
+  finalQs: int("finalQs"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex("uniq_league_member").on(t.seasonId, t.fingerprint),
+  index("idx_league_members").on(t.seasonId, t.division),
+]);
+
+export type LeagueMember = typeof leagueMembers.$inferSelect;

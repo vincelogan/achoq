@@ -57,6 +57,13 @@
       "when": 1784171513161,
       "tag": "0007_nebulous_xavin",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1784172429758,
+      "tag": "0008_spotty_maria_hill",
+      "breakpoints": true
     }
   ]
 }

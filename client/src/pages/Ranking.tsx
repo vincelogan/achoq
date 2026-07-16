@@ -31,19 +31,30 @@ function AccuracyBar({ accuracy }: { accuracy: number }) {
 }
 
 // ─── Card do usuário no ranking ───────────────────────────────────────────────
+// Molduras compradas na loja de Qs (aplicadas ao redor do card)
+const FRAME_CLASSES: Record<string, string> = {
+  "frame-bronze": "border-amber-600/60 border-2",
+  "frame-prata": "border-slate-400/70 border-2",
+  "frame-ouro": "border-qs border-2 shadow-[0_0_12px_rgba(217,119,6,0.25)]",
+  "frame-fogo": "border-orange-500/80 border-2 shadow-[0_0_12px_rgba(249,115,22,0.3)]",
+};
+
 function RankingCard({
   entry,
   isMe,
 }: {
-  entry: { rank: number; displayName: string; totalVotes: number; correctVotes: number; accuracy: number; points: number; streak: number; maxStreak: number };
+  entry: { rank: number; displayName: string; totalVotes: number; correctVotes: number; accuracy: number; points: number; streak: number; maxStreak: number; equippedFrame?: string | null; equippedTitle?: string | null };
   isMe: boolean;
 }) {
+  const frameClass = entry.equippedFrame ? FRAME_CLASSES[entry.equippedFrame] : null;
   return (
     <div className={`flex items-center gap-4 px-5 py-4 rounded-xl border transition-all ${
-      isMe
+      frameClass
+        ? `${frameClass} bg-card`
+        : isMe
         ? "border-vote-b bg-vote-b/10 shadow-sm"
         : entry.rank <= 3
-        ? "border-yellow-200 bg-yellow-50/30"
+        ? "border-yellow-500/40 bg-yellow-500/5"
         : "border-border bg-card hover:border-muted-foreground/40"
     }`}>
       <div className="w-8 flex justify-center shrink-0">
@@ -52,6 +63,11 @@ function RankingCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-foreground truncate">{entry.displayName}</span>
+          {entry.equippedTitle && (
+            <span className="text-[10px] font-bold text-qs bg-qs/10 border border-qs/30 px-1.5 py-0.5 rounded-full shrink-0">
+              {entry.equippedTitle}
+            </span>
+          )}
           {isMe && (
             <span className="text-[10px] font-bold bg-vote-b text-white px-1.5 py-0.5 rounded-full shrink-0">
               VOCÊ

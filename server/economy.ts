@@ -25,8 +25,13 @@ export class InsufficientBalanceError extends Error {
   }
 }
 
-function isDuplicateEntry(e: any): boolean {
-  return e?.code === "ER_DUP_ENTRY" || e?.errno === 1062 || e?.cause?.code === "ER_DUP_ENTRY";
+export function isDuplicateEntry(e: any): boolean {
+  return (
+    e?.code === "ER_DUP_ENTRY" ||
+    e?.errno === 1062 ||
+    e?.cause?.code === "ER_DUP_ENTRY" ||
+    e?.cause?.errno === 1062
+  );
 }
 
 /**
