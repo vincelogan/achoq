@@ -10,60 +10,19 @@ const __dirnameCompat = typeof __dirname !== "undefined"
 // Carregar .env do mesmo diretório do index.js (necessário no Lambda do Amplify)
 dotenv.config({ path: path.resolve(__dirnameCompat, ".env") });
 
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response } from "express";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { SignJWT, jwtVerify } from "jose";
 import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { getDb } from "../db";
+import { ADMIN_COOKIE, signAdminToken, verifyAdminToken } from "./adminAuth";
+import { isScheduledRequestAuthorized } from "./scheduledAuth";
 
-// ─── Admin Auth Helpers ────────────────────────────────────────────────────────
-
-const ADMIN_COOKIE = "admin_session";
-
-function getAdminSecret(): Uint8Array {
-  const secret = process.env.JWT_SECRET || "fallback-admin-secret-change-me";
-  return new TextEncoder().encode(secret);
-}
-
-async function signAdminToken(): Promise<string> {
-  return new SignJWT({ role: "admin" })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("24h")
-    .sign(getAdminSecret());
-}
-
-async function verifyAdminToken(token: string): Promise<boolean> {
-  try {
-    const { payload } = await jwtVerify(token, getAdminSecret());
-    return payload.role === "admin";
-  } catch {
-    return false;
-  }
-}
-
-export async function isAdminAuthenticated(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
-  const token = req.cookies?.[ADMIN_COOKIE];
-  if (!token) {
-    res.status(401).json({ error: "Não autenticado" });
-    return;
-  }
-  const valid = await verifyAdminToken(token);
-  if (!valid) {
-    res.status(401).json({ error: "Sessão inválida ou expirada" });
-    return;
-  }
-  next();
-}
+export { isAdminAuthenticated } from "./adminAuth";
 
 // ─── Port Helpers ──────────────────────────────────────────────────────────────
 
@@ -102,6 +61,13 @@ async function startServer() {
 
   // ── Admin Login ──────────────────────────────────────────────────────────────
   app.post("/api/admin/login", async (req: Request, res: Response) => {
+    try {
+      const { checkRateLimit, getClientIp, RATE_LIMITS } = await import("../rateLimit");
+      checkRateLimit(`adminLogin:${getClientIp(req)}`, RATE_LIMITS.adminLogin.max, RATE_LIMITS.adminLogin.windowMs);
+    } catch {
+      res.status(429).json({ error: "Muitas tentativas de login. Aguarde 15 minutos." });
+      return;
+    }
     const { password } = req.body as { password?: string };
     const adminPassword = process.env.ADMIN_PASSWORD;
 
@@ -111,7 +77,11 @@ async function startServer() {
     }
 
     const trimmedEnvPassword = adminPassword.trim();
-    if (!password || password !== trimmedEnvPassword) {
+    const { timingSafeEqual } = await import("crypto");
+    const provided = Buffer.from(password ?? "");
+    const expected = Buffer.from(trimmedEnvPassword);
+    const matches = provided.length === expected.length && timingSafeEqual(provided, expected);
+    if (!matches) {
       res.status(401).json({ error: "Senha incorreta" });
       return;
     }
@@ -231,42 +201,8 @@ async function startServer() {
 
   // ── Scheduled: Resolução automática de enquetes ────────────────────────────────
   // Endpoint chamado pelo agente agendado para resolver enquetes e calcular pontos
-  // Aceita role "user" (cookie de scheduled task) ou admin cookie
   app.post("/api/scheduled/resolve-markets", async (req: Request, res: Response) => {
-    // Verificar autenticação: admin cookie OU bearer token de scheduled task OU cron cookie
-    const adminToken = req.cookies?.[ADMIN_COOKIE];
-    const bearerToken = req.headers.authorization?.replace("Bearer ", "");
-    const scheduledSecret = process.env.SCHEDULED_SECRET || process.env.JWT_SECRET;
-    const sessionCookie = req.cookies?.["app_session_id"];
-
-    let authorized = false;
-    if (adminToken) {
-      authorized = await verifyAdminToken(adminToken);
-    } else if (bearerToken && scheduledSecret) {
-      try {
-        const { jwtVerify } = await import("jose");
-        const secret = new TextEncoder().encode(scheduledSecret);
-        await jwtVerify(bearerToken, secret);
-        authorized = true;
-      } catch {
-        authorized = false;
-      }
-    } else if (sessionCookie) {
-      // Verificar se é um cron cookie (openId começa com "cron_")
-      try {
-        const parts = sessionCookie.split(".");
-        if (parts.length === 3) {
-          const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf-8"));
-          if (payload.openId && payload.openId.startsWith("cron_")) {
-            authorized = true;
-          }
-        }
-      } catch {
-        authorized = false;
-      }
-    }
-
-    if (!authorized) {
+    if (!(await isScheduledRequestAuthorized(req))) {
       res.status(401).json({ error: "Não autorizado" });
       return;
     }
@@ -280,14 +216,19 @@ async function startServer() {
         res.status(400).json({ error: "resolutions deve ser um array não vazio" });
         return;
       }
+      for (const r of resolutions) {
+        if (typeof r?.marketId !== "number" || (r?.resolvedChoice !== "A" && r?.resolvedChoice !== "B")) {
+          res.status(400).json({ error: "cada resolução exige marketId numérico e resolvedChoice 'A' ou 'B'" });
+          return;
+        }
+      }
 
-      const { updateMarket, recalcScoresForMarket } = await import("../db");
+      const { resolveMarket } = await import("../resolution");
       const results: Array<{ marketId: number; success: boolean; error?: string }> = [];
 
       for (const r of resolutions) {
         try {
-          await updateMarket(r.marketId, { resolvedChoice: r.resolvedChoice, isActive: false });
-          await recalcScoresForMarket(r.marketId);
+          await resolveMarket(r.marketId, r.resolvedChoice);
           results.push({ marketId: r.marketId, success: true });
         } catch (e: any) {
           results.push({ marketId: r.marketId, success: false, error: e.message });

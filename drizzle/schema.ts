@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean } from "drizzle-orm/mysql-core";
+import { index, int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar, boolean } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -39,7 +39,9 @@ export const markets = mysqlTable("markets", {
   endsAt: timestamp("endsAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (t) => [
+  index("idx_markets_category").on(t.category, t.isActive),
+]);
 
 export type Market = typeof markets.$inferSelect;
 export type InsertMarket = typeof markets.$inferInsert;
@@ -61,7 +63,11 @@ export const votes = mysqlTable("votes", {
   country: varchar("country", { length: 64 }),
   region: varchar("region", { length: 64 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (t) => [
+  // Um voto por fingerprint por enquete — dedup garantida no banco
+  uniqueIndex("uniq_vote_market_fp").on(t.marketId, t.fingerprint),
+  index("idx_votes_fingerprint").on(t.fingerprint),
+]);
 
 export type Vote = typeof votes.$inferSelect;
 export type InsertVote = typeof votes.$inferInsert;

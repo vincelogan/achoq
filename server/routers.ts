@@ -25,8 +25,9 @@ import {
   getTopRanking,
   getMyRankingPosition,
   setNickname,
-  recalcScoresForMarket,
 } from "./db";
+import { resolveMarket } from "./resolution";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "./rateLimit";
 
 // Seed mercados na inicialização
 seedMarketsIfEmpty().catch(console.error);
@@ -92,8 +93,11 @@ export const appRouter = router({
         region: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`vote:${getClientIp(ctx.req)}`, RATE_LIMITS.vote.max, RATE_LIMITS.vote.windowMs);
         const alreadyVoted = await hasVoted(input.marketId, input.fingerprint);
         if (alreadyVoted) throw new Error("Você já opinou nesta enquete.");
+        // Corrida entre o check acima e o INSERT é coberta pelo índice único
+        // (marketId, fingerprint): castVote lança DuplicateVoteError.
         await castVote({
           marketId: input.marketId,
           choice: input.choice,
@@ -192,7 +196,8 @@ export const appRouter = router({
         fingerprint: z.string().min(8).max(128),
         nickname: z.string().min(2).max(32).regex(/^[a-zA-Z0-9À-ÿ _-]+$/, "Apelido inválido"),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`nickname:${getClientIp(ctx.req)}`, RATE_LIMITS.nickname.max, RATE_LIMITS.nickname.windowMs);
         return setNickname(input.fingerprint, input.nickname);
       }),
   }),
@@ -277,9 +282,7 @@ export const appRouter = router({
         resolvedChoice: z.enum(["A", "B"]),
       }))
       .mutation(async ({ input }) => {
-        await updateMarket(input.id, { resolvedChoice: input.resolvedChoice, isActive: false });
-        // Recalcular pontos de todos que votaram nessa enquete
-        await recalcScoresForMarket(input.id);
+        await resolveMarket(input.id, input.resolvedChoice);
         return { success: true };
       }),
   }),

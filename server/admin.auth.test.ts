@@ -8,33 +8,10 @@ import request from "supertest";
 process.env.ADMIN_PASSWORD = "test-admin-password";
 process.env.JWT_SECRET = "test-jwt-secret-for-vitest-only";
 
-// We test the admin auth logic directly by recreating the same handlers
-// (avoids spinning up the full server with DB dependencies)
-import { SignJWT, jwtVerify } from "jose";
-
-const ADMIN_COOKIE = "admin_session";
-
-function getAdminSecret(): Uint8Array {
-  const secret = process.env.JWT_SECRET || "fallback-admin-secret-change-me";
-  return new TextEncoder().encode(secret);
-}
-
-async function signAdminToken(): Promise<string> {
-  return new SignJWT({ role: "admin" })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("24h")
-    .sign(getAdminSecret());
-}
-
-async function verifyAdminToken(token: string): Promise<boolean> {
-  try {
-    const { payload } = await jwtVerify(token, getAdminSecret());
-    return payload.role === "admin";
-  } catch {
-    return false;
-  }
-}
+// JWT helpers reais (extraídos de _core/adminAuth) — o app Express abaixo
+// recria apenas as rotas, que ainda vivem inline em _core/index.ts.
+import { SignJWT } from "jose";
+import { ADMIN_COOKIE, signAdminToken, verifyAdminToken } from "./_core/adminAuth";
 
 // Build a minimal Express app with the same admin routes
 function buildTestApp() {

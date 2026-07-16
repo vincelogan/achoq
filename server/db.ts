@@ -1,4 +1,4 @@
-import { eq, sql, and, desc } from "drizzle-orm";
+import { eq, sql, and, desc, ne } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import { InsertUser, users, markets, votes, marketNews, userScores, InsertMarket, InsertVote, InsertMarketNews } from "../drizzle/schema";
@@ -210,17 +210,32 @@ export async function hasVoted(marketId: number, fingerprint: string) {
   const db = await getDb();
   if (!db) return false;
   const result = await db
-    .select()
+    .select({ id: votes.id })
     .from(votes)
-    .where(eq(votes.marketId, marketId))
-    .limit(500);
-  return result.some((v: any) => v.fingerprint === fingerprint);
+    .where(and(eq(votes.marketId, marketId), eq(votes.fingerprint, fingerprint)))
+    .limit(1);
+  return result.length > 0;
+}
+
+export class DuplicateVoteError extends Error {
+  constructor() {
+    super("Você já opinou nesta enquete.");
+    this.name = "DuplicateVoteError";
+  }
 }
 
 export async function castVote(data: InsertVote) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.insert(votes).values(data);
+  try {
+    await db.insert(votes).values(data);
+  } catch (e: any) {
+    // Índice único (marketId, fingerprint) garante 1 voto por pessoa por enquete
+    if (e?.code === "ER_DUP_ENTRY" || e?.errno === 1062 || e?.cause?.code === "ER_DUP_ENTRY") {
+      throw new DuplicateVoteError();
+    }
+    throw e;
+  }
 }
 
 // ─── Admin ───────────────────────────────────────────────────────────────────
@@ -287,13 +302,20 @@ export async function getVoteHistory(marketId: number) {
 export async function getRelatedMarkets(marketId: number, category: string) {
   const db = await getDb();
   if (!db) return [];
-  const result = await db
+  // Prioriza enquetes da mesma categoria; completa com outras se faltar
+  const sameCategory = await db
     .select()
     .from(markets)
-    .where(eq(markets.isActive, true))
-    .limit(10);
-  // Filter out current market and return up to 4
-  return result.filter((m: any) => m.id !== marketId).slice(0, 4);
+    .where(and(eq(markets.isActive, true), eq(markets.category, category), ne(markets.id, marketId)))
+    .limit(4);
+  if (sameCategory.length >= 4) return sameCategory;
+
+  const others = await db
+    .select()
+    .from(markets)
+    .where(and(eq(markets.isActive, true), ne(markets.id, marketId), ne(markets.category, category)))
+    .limit(4 - sameCategory.length);
+  return [...sameCategory, ...others];
 }
 
 export async function getDemographics(marketId: number) {
