@@ -97,6 +97,25 @@ async function startServer() {
     res.json({ success: true });
   });
 
+  // ── Admin: rodar migrations pendentes do banco ───────────────────────────────
+  // O banco de produção não é acessível fora do Lambda; este endpoint permite
+  // ao dono aplicar migrations com um clique no painel /admin.
+  app.post("/api/admin/run-migrations", async (req: Request, res: Response) => {
+    const token = req.cookies?.[ADMIN_COOKIE];
+    if (!token || !(await verifyAdminToken(token))) {
+      res.status(401).json({ error: "Não autorizado" });
+      return;
+    }
+    try {
+      const { runPendingMigrations } = await import("./migrations");
+      const result = await runPendingMigrations();
+      res.json({ success: true, ...result });
+    } catch (e: any) {
+      console.error("[run-migrations] Error:", e);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   // ── Admin Logout ─────────────────────────────────────────────────────────────
   app.post("/api/admin/logout", (_req: Request, res: Response) => {
     res.clearCookie(ADMIN_COOKIE, { path: "/" });

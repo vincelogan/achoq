@@ -16,6 +16,7 @@ import {
   XCircle,
   Lock,
   LogOut,
+  Database,
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -340,6 +341,26 @@ export default function Admin() {
     onError: (err) => toast.error(err.message),
   });
 
+  const [migrating, setMigrating] = useState(false);
+  const handleRunMigrations = async () => {
+    if (!window.confirm("Aplicar as migrations pendentes no banco de dados? A operação é segura e re-executável.")) return;
+    setMigrating(true);
+    try {
+      const res = await fetch("/api/admin/run-migrations", { method: "POST", credentials: "include" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Falha ao rodar migrations");
+      if (data.applied > 0) {
+        toast.success(`Banco atualizado! ${data.applied} migration(s) aplicada(s)${data.backfilled ? " (journal reconstruído)" : ""}.`);
+      } else {
+        toast.info("Banco já está atualizado — nenhuma migration pendente.");
+      }
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setMigrating(false);
+    }
+  };
+
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST", credentials: "include" });
     setAdminAuth(false);
@@ -376,6 +397,17 @@ export default function Admin() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRunMigrations}
+              disabled={migrating}
+              title="Aplicar migrations pendentes no banco de dados"
+              className="text-emerald-600 hover:text-emerald-700 hover:border-emerald-400"
+            >
+              {migrating ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Database className="w-3.5 h-3.5 mr-1" />}
+              Atualizar banco
+            </Button>
             <Link href="/">
               <Button variant="outline" size="sm">
                 <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Site

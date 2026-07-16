@@ -191,9 +191,15 @@ export async function boostMarket(fingerprint: string, marketId: number) {
 export async function getActiveBoostMarketIds(): Promise<Set<number>> {
   const db = await getDb();
   if (!db) return new Set();
-  const rows = await db
-    .selectDistinct({ marketId: marketBoosts.marketId })
-    .from(marketBoosts)
-    .where(gt(marketBoosts.endsAt, new Date()));
-  return new Set(rows.map((r: any) => r.marketId));
+  try {
+    const rows = await db
+      .selectDistinct({ marketId: marketBoosts.marketId })
+      .from(marketBoosts)
+      .where(gt(marketBoosts.endsAt, new Date()));
+    return new Set(rows.map((r: any) => r.marketId));
+  } catch (e) {
+    // Janela pré-migration: tabela ainda não existe — a home não pode quebrar
+    console.error("[getActiveBoostMarketIds] Error:", e);
+    return new Set();
+  }
 }
