@@ -95,6 +95,21 @@ if (fs.existsSync(envRuntimePath)) {
   console.warn("   ⚠️  .env.runtime não encontrado — variáveis de ambiente podem não estar disponíveis no runtime");
 }
 
+// 4a-extra2. Copiar migrations do drizzle para o compute (endpoint /api/admin/run-migrations)
+const drizzleSrc = path.join(ROOT, "drizzle");
+const drizzleDest = path.join(computeDir, "drizzle");
+fs.mkdirSync(path.join(drizzleDest, "meta"), { recursive: true });
+for (const entry of fs.readdirSync(drizzleSrc)) {
+  if (entry.endsWith(".sql")) {
+    fs.copyFileSync(path.join(drizzleSrc, entry), path.join(drizzleDest, entry));
+  }
+}
+fs.copyFileSync(
+  path.join(drizzleSrc, "meta", "_journal.json"),
+  path.join(drizzleDest, "meta", "_journal.json")
+);
+console.log("   ✅ drizzle/ (migrations + journal) copiado para compute/default/drizzle");
+
 // 4b. Copiar estáticos do Vite para AMBOS os lugares:
 //     - static/ → CloudFront serve diretamente
 //     - compute/default/public/ → Express serve SPA fallback

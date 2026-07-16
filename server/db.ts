@@ -1,4 +1,4 @@
-import { eq, sql, and, desc } from "drizzle-orm";
+import { eq, sql, and, desc, ne, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import { InsertUser, users, markets, votes, marketNews, userScores, InsertMarket, InsertVote, InsertMarketNews } from "../drizzle/schema";
@@ -123,16 +123,45 @@ export async function getUserByOpenId(openId: string) {
 
 // ─── Markets ─────────────────────────────────────────────────────────────────
 
-export async function getAllMarkets() {
+export async function getAllMarkets(filters?: { category?: string; search?: string }) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(markets).where(eq(markets.isActive, true));
+  const conditions = [eq(markets.isActive, true)];
+  if (filters?.category) {
+    conditions.push(eq(markets.category, filters.category));
+  }
+  if (filters?.search) {
+    const term = `%${filters.search}%`;
+    conditions.push(sql`(${markets.title} LIKE ${term} OR ${markets.description} LIKE ${term})`);
+  }
+  return db.select().from(markets).where(and(...conditions));
+}
+
+/**
+ * Retorna, em uma única query, os IDs de enquetes em que o fingerprint já
+ * votou (evita N chamadas de checkVote na home).
+ */
+export async function getVotedMarketIds(fingerprint: string, marketIds: number[]): Promise<number[]> {
+  const db = await getDb();
+  if (!db || marketIds.length === 0) return [];
+  const rows = await db
+    .select({ marketId: votes.marketId })
+    .from(votes)
+    .where(and(eq(votes.fingerprint, fingerprint), inArray(votes.marketId, marketIds)));
+  return rows.map((r: any) => r.marketId);
 }
 
 export async function getMarketBySlug(slug: string) {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(markets).where(eq(markets.slug, slug)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getMarketById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(markets).where(eq(markets.id, id)).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -210,17 +239,32 @@ export async function hasVoted(marketId: number, fingerprint: string) {
   const db = await getDb();
   if (!db) return false;
   const result = await db
-    .select()
+    .select({ id: votes.id })
     .from(votes)
-    .where(eq(votes.marketId, marketId))
-    .limit(500);
-  return result.some((v: any) => v.fingerprint === fingerprint);
+    .where(and(eq(votes.marketId, marketId), eq(votes.fingerprint, fingerprint)))
+    .limit(1);
+  return result.length > 0;
+}
+
+export class DuplicateVoteError extends Error {
+  constructor() {
+    super("Você já opinou nesta enquete.");
+    this.name = "DuplicateVoteError";
+  }
 }
 
 export async function castVote(data: InsertVote) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.insert(votes).values(data);
+  try {
+    await db.insert(votes).values(data);
+  } catch (e: any) {
+    // Índice único (marketId, fingerprint) garante 1 voto por pessoa por enquete
+    if (e?.code === "ER_DUP_ENTRY" || e?.errno === 1062 || e?.cause?.code === "ER_DUP_ENTRY") {
+      throw new DuplicateVoteError();
+    }
+    throw e;
+  }
 }
 
 // ─── Admin ───────────────────────────────────────────────────────────────────
@@ -287,13 +331,20 @@ export async function getVoteHistory(marketId: number) {
 export async function getRelatedMarkets(marketId: number, category: string) {
   const db = await getDb();
   if (!db) return [];
-  const result = await db
+  // Prioriza enquetes da mesma categoria; completa com outras se faltar
+  const sameCategory = await db
     .select()
     .from(markets)
-    .where(eq(markets.isActive, true))
-    .limit(10);
-  // Filter out current market and return up to 4
-  return result.filter((m: any) => m.id !== marketId).slice(0, 4);
+    .where(and(eq(markets.isActive, true), eq(markets.category, category), ne(markets.id, marketId)))
+    .limit(4);
+  if (sameCategory.length >= 4) return sameCategory;
+
+  const others = await db
+    .select()
+    .from(markets)
+    .where(and(eq(markets.isActive, true), ne(markets.id, marketId), ne(markets.category, category)))
+    .limit(4 - sameCategory.length);
+  return [...sameCategory, ...others];
 }
 
 export async function getDemographics(marketId: number) {
@@ -496,6 +547,29 @@ export async function getTopRanking(limit = 50) {
       .orderBy(desc(userScores.points))
       .limit(limit);
 
+    // Itens equipados (moldura/título comprados na loja) dos rankeados
+    const fingerprints = rows.map((r: any) => r.fingerprint);
+    const equippedByFp = new Map<string, { frame?: string; title?: string }>();
+    if (fingerprints.length > 0) {
+      try {
+        const equipped = await db.execute(
+          sql`SELECT ui.fingerprint, si.kind, si.code, si.name
+              FROM user_items ui
+              INNER JOIN shop_items si ON ui.itemId = si.id
+              WHERE ui.isEquipped = 1 AND ui.fingerprint IN (${sql.join(fingerprints.map((f: string) => sql`${f}`), sql`, `)})`
+        );
+        const equippedRows: any[] = Array.isArray(equipped[0]) ? equipped[0] : (equipped as any).rows ?? [];
+        for (const item of equippedRows) {
+          const entry = equippedByFp.get(item.fingerprint) ?? {};
+          if (item.kind === "frame") entry.frame = item.code;
+          if (item.kind === "title") entry.title = String(item.name).replace(/^Título: /, "");
+          equippedByFp.set(item.fingerprint, entry);
+        }
+      } catch (e) {
+        console.error('[getTopRanking] equipped items:', e);
+      }
+    }
+
     return rows.map((r: any, index: number) => ({
       rank: index + 1,
       // Exibir nickname ou fingerprint truncado anonimizado
@@ -506,6 +580,8 @@ export async function getTopRanking(limit = 50) {
       points: r.points,
       streak: r.streak,
       maxStreak: r.maxStreak,
+      equippedFrame: equippedByFp.get(r.fingerprint)?.frame ?? null,
+      equippedTitle: equippedByFp.get(r.fingerprint)?.title ?? null,
     }));
   } catch (e) {
     console.error('[getTopRanking] Error:', e);

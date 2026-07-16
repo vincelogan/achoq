@@ -8,6 +8,21 @@ AchoQ é uma plataforma digital onde qualquer pessoa pode indicar o que acredita
 
 ---
 
+## Economia fictícia de Qs
+
+O engajamento é gamificado com a moeda fictícia **Q** (sem valor monetário, não comprável e não conversível):
+
+- **Ganhar Qs**: opinar (+5, até 10/dia), opinar cedo (+5 nas primeiras 48h), check-in diário (+10 a +25 conforme a sequência), acertar previsões (+20, +10 de bônus em sequência) e desbloquear conquistas (+10 a +100).
+- **Gastar Qs**: impulsionar uma enquete para o destaque da home (24h), molduras e títulos de perfil no ranking, proteção de streak.
+- **Liga semanal**: divisões Bronze → Prata → Ouro → Diamante; a pontuação são os Qs ganhos na semana; os primeiros sobem e os últimos descem toda segunda-feira.
+- **Conquistas**: 12 badges por marcos de participação, acerto e assiduidade.
+
+O saldo vive em um ledger append-only (`q_transactions`) com concessões idempotentes — a estatística de acurácia (pontos/streak do ranking) continua recomputável e separada da moeda.
+
+Contexto de mercado e priorização: ver [docs/pesquisa-de-mercado.md](./docs/pesquisa-de-mercado.md).
+
+---
+
 ## Stack
 
 | Camada | Tecnologia |
@@ -85,13 +100,28 @@ Resumo:
 
 | Rota | Descrição |
 |---|---|
-| `/` | Home com mercados de opinião ativos |
+| `/` | Home com enquetes ativas (impulsionadas primeiro) e navegação por categoria |
+| `/mercado/:slug` | Detalhe da enquete: votação, evolução, notícias e comentários |
+| `/busca` | Busca de enquetes (`?q=`) |
+| `/categoria/:categoria` | Enquetes por categoria |
+| `/ranking` | Ranking de acertadores (com molduras/títulos equipados) |
+| `/liga` | Liga semanal com divisões e promoção/rebaixamento |
+| `/loja` | Loja de Qs (molduras, títulos, proteção de streak) |
+| `/carteira` | Saldo de Qs, extrato, streak diário e conquistas |
 | `/como-funciona` | Explicação da plataforma |
-| `/ranking` | Ranking de participação |
 | `/metodologia` | Como os dados são calculados |
 | `/legal` | Informações legais |
 | `/termos` | Termos de Uso |
 | `/privacidade` | Política de Privacidade (LGPD) |
+| `/admin` | Painel admin: CRUD de enquetes, resolução (✓A/✓B) e moderação de comentários |
+
+### Endpoints agendados
+
+Chamados por um agente externo (autenticação verificada: bearer JWT, header `x-scheduled-secret` ou cookie de sessão `cron_*` assinado):
+
+- `GET /api/scheduled/pending-markets` — enquetes vencidas aguardando resolução
+- `POST /api/scheduled/resolve-markets` — resolve em lote (recalcula pontos e credita Qs, idempotente)
+- `POST /api/scheduled/close-league` — fecha a semana da liga (promoção/rebaixamento, idempotente)
 
 ---
 

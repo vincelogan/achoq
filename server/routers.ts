@@ -5,7 +5,9 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, adminProcedure } from "./_core/trpc";
 import {
   getAllMarkets,
+  getVotedMarketIds,
   getMarketBySlug,
+  getMarketById,
   getVoteStats,
   hasVoted,
   castVote,
@@ -25,8 +27,31 @@ import {
   getTopRanking,
   getMyRankingPosition,
   setNickname,
-  recalcScoresForMarket,
 } from "./db";
+import { resolveMarket } from "./resolution";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "./rateLimit";
+import { getWallet, getTransactions } from "./economy";
+import {
+  processVoteRewards,
+  getAllBadges,
+  getMyBadges,
+  getCurrentSeason,
+  ensureEnrolled,
+  getLeagueStandings,
+  currentWeekStart,
+  DIVISIONS,
+  type Division,
+} from "./gamification";
+import {
+  listShopItems,
+  getMyItems,
+  buyItem,
+  equipItem,
+  unequipItem,
+  boostMarket,
+  getActiveBoostMarketIds,
+} from "./shop";
+import { addComment, listComments, listReportedComments, moderateComment, reportComment } from "./comments";
 
 // Seed mercados na inicialização
 seedMarketsIfEmpty().catch(console.error);
@@ -46,20 +71,41 @@ export const appRouter = router({
   }),
 
   markets: router({
-    // Listar todos os mercados ativos com estatísticas reais
-    list: publicProcedure.query(async () => {
-      const allMarkets = await getAllMarkets();
-      const marketsWithStats = await Promise.all(
-        allMarkets.map(async (market: any) => {
-          const stats = await getVoteStats(market.id);
-          const total = stats.total;
-          const pctA = total > 0 ? Math.round((stats.countA / total) * 100) : 50;
-          const pctB = total > 0 ? Math.round((stats.countB / total) * 100) : 50;
-          return { ...market, stats: { countA: stats.countA, countB: stats.countB, total, pctA, pctB } };
-        })
-      );
-      return marketsWithStats;
-    }),
+    // Listar mercados ativos com estatísticas reais.
+    // Filtros opcionais por categoria e busca textual; com fingerprint,
+    // devolve viewerHasVoted por enquete (evita N chamadas de checkVote).
+    list: publicProcedure
+      .input(
+        z.object({
+          category: z.string().min(1).max(64).optional(),
+          search: z.string().min(1).max(128).optional(),
+          fingerprint: z.string().min(8).max(128).optional(),
+        }).optional()
+      )
+      .query(async ({ input }) => {
+        const allMarkets = await getAllMarkets({ category: input?.category, search: input?.search });
+        const votedIds = input?.fingerprint
+          ? new Set(await getVotedMarketIds(input.fingerprint, allMarkets.map((m: any) => m.id)))
+          : null;
+        const boostedIds = await getActiveBoostMarketIds();
+        const marketsWithStats = await Promise.all(
+          allMarkets.map(async (market: any) => {
+            const stats = await getVoteStats(market.id);
+            const total = stats.total;
+            const pctA = total > 0 ? Math.round((stats.countA / total) * 100) : 50;
+            const pctB = total > 0 ? Math.round((stats.countB / total) * 100) : 50;
+            return {
+              ...market,
+              stats: { countA: stats.countA, countB: stats.countB, total, pctA, pctB },
+              viewerHasVoted: votedIds ? votedIds.has(market.id) : undefined,
+              boosted: boostedIds.has(market.id),
+            };
+          })
+        );
+        // Enquetes impulsionadas primeiro (destaque comprado com Qs)
+        marketsWithStats.sort((a: any, b: any) => Number(b.boosted) - Number(a.boosted));
+        return marketsWithStats;
+      }),
 
     // Buscar mercado pelo slug
     bySlug: publicProcedure
@@ -92,8 +138,11 @@ export const appRouter = router({
         region: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`vote:${getClientIp(ctx.req)}`, RATE_LIMITS.vote.max, RATE_LIMITS.vote.windowMs);
         const alreadyVoted = await hasVoted(input.marketId, input.fingerprint);
         if (alreadyVoted) throw new Error("Você já opinou nesta enquete.");
+        // Corrida entre o check acima e o INSERT é coberta pelo índice único
+        // (marketId, fingerprint): castVote lança DuplicateVoteError.
         await castVote({
           marketId: input.marketId,
           choice: input.choice,
@@ -102,11 +151,31 @@ export const appRouter = router({
           country: input.country ?? null,
           region: input.region ?? null,
         });
+
+        // Recompensas de Qs em best-effort: falha aqui nunca derruba o voto
+        let qsEarned = 0;
+        let dailyStreak = 0;
+        try {
+          const market = await getMarketById(input.marketId);
+          if (market) {
+            const rewards = await processVoteRewards(input.fingerprint, market);
+            qsEarned = rewards.qsEarned;
+            dailyStreak = rewards.dailyStreak;
+          }
+        } catch (e) {
+          console.error("[vote] Falha ao processar recompensas de Qs:", e);
+        }
+
         const stats = await getVoteStats(input.marketId);
         const total = stats.total;
         const pctA = total > 0 ? Math.round((stats.countA / total) * 100) : 50;
         const pctB = total > 0 ? Math.round((stats.countB / total) * 100) : 50;
-        return { success: true, stats: { countA: stats.countA, countB: stats.countB, total, pctA, pctB } };
+        return {
+          success: true,
+          stats: { countA: stats.countA, countB: stats.countB, total, pctA, pctB },
+          qsEarned,
+          dailyStreak,
+        };
       }),
 
     // Dados demográficos
@@ -172,6 +241,157 @@ export const appRouter = router({
       }),
   }),
 
+  // ─── Carteira de Qs ───────────────────────────────────────────────────────────
+  wallet: router({
+    // Saldo, streak diário e proteções (migra pontos herdados na 1ª leitura)
+    get: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .query(async ({ input }) => {
+        return getWallet(input.fingerprint);
+      }),
+
+    // Extrato de transações (mais recentes primeiro)
+    history: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128), limit: z.number().int().min(1).max(200).optional() }))
+      .query(async ({ input }) => {
+        return getTransactions(input.fingerprint, input.limit ?? 50);
+      }),
+  }),
+
+  // ─── Loja fictícia ────────────────────────────────────────────────────────────
+  shop: router({
+    list: publicProcedure.query(async () => {
+      return listShopItems();
+    }),
+
+    myItems: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .query(async ({ input }) => {
+        return getMyItems(input.fingerprint);
+      }),
+
+    buy: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128), itemCode: z.string().min(1).max(64) }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`shop:${getClientIp(ctx.req)}`, RATE_LIMITS.shop.max, RATE_LIMITS.shop.windowMs);
+        return buyItem(input.fingerprint, input.itemCode);
+      }),
+
+    equip: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128), itemId: z.number().int() }))
+      .mutation(async ({ input }) => {
+        return equipItem(input.fingerprint, input.itemId);
+      }),
+
+    unequip: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128), itemId: z.number().int() }))
+      .mutation(async ({ input }) => {
+        return unequipItem(input.fingerprint, input.itemId);
+      }),
+
+    // Impulsionar enquete: destaque na home por 24h
+    boost: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128), marketId: z.number().int() }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`shop:${getClientIp(ctx.req)}`, RATE_LIMITS.shop.max, RATE_LIMITS.shop.windowMs);
+        return boostMarket(input.fingerprint, input.marketId);
+      }),
+  }),
+
+  // ─── Comentários ──────────────────────────────────────────────────────────────
+  comments: router({
+    list: publicProcedure
+      .input(z.object({
+        marketId: z.number().int(),
+        cursor: z.number().int().optional(),
+        limit: z.number().int().min(1).max(50).optional(),
+      }))
+      .query(async ({ input }) => {
+        return listComments(input.marketId, { cursor: input.cursor, limit: input.limit });
+      }),
+
+    add: publicProcedure
+      .input(z.object({
+        marketId: z.number().int(),
+        fingerprint: z.string().min(8).max(128),
+        content: z.string().min(2).max(500),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`comments:${getClientIp(ctx.req)}`, RATE_LIMITS.comments.max, RATE_LIMITS.comments.windowMs);
+        return addComment(input.marketId, input.fingerprint, input.content);
+      }),
+
+    report: publicProcedure
+      .input(z.object({
+        commentId: z.number().int(),
+        fingerprint: z.string().min(8).max(128),
+        reason: z.string().max(200).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`comments:${getClientIp(ctx.req)}`, RATE_LIMITS.comments.max, RATE_LIMITS.comments.windowMs);
+        return reportComment(input.commentId, input.fingerprint, input.reason);
+      }),
+  }),
+
+  // ─── Liga Semanal ─────────────────────────────────────────────────────────────
+  league: router({
+    /**
+     * Estado da liga da semana: temporada, minha divisão (inscreve lazy se
+     * houver fingerprint) e classificação da divisão exibida.
+     */
+    current: publicProcedure
+      .input(
+        z.object({
+          fingerprint: z.string().min(8).max(128).optional(),
+          division: z.enum(["bronze", "prata", "ouro", "diamante"]).optional(),
+        }).optional()
+      )
+      .query(async ({ input }) => {
+        const season = await getCurrentSeason();
+        if (!season) return null;
+
+        let myDivision: Division | null = null;
+        if (input?.fingerprint) {
+          const membership = await ensureEnrolled(input.fingerprint);
+          myDivision = (membership?.division as Division) ?? null;
+        }
+
+        const division = input?.division ?? myDivision ?? "bronze";
+        const standings = await getLeagueStandings(season.id, division);
+
+        // Fim da semana: próxima segunda 00:00 em SP (SP = UTC-3)
+        const weekStart = currentWeekStart();
+        const endsAt = new Date(new Date(`${weekStart}T03:00:00.000Z`).getTime() + 7 * 24 * 60 * 60 * 1000);
+
+        return {
+          season: { id: season.id, weekStart: season.weekStart },
+          divisions: DIVISIONS,
+          myDivision,
+          division,
+          standings: standings.map((s: any) => ({
+            rank: s.rank,
+            displayName: s.displayName,
+            weeklyQs: s.weeklyQs,
+            isMe: input?.fingerprint ? s.fingerprint === input.fingerprint : false,
+          })),
+          endsAt: endsAt.toISOString(),
+        };
+      }),
+  }),
+
+  // ─── Conquistas ───────────────────────────────────────────────────────────────
+  badges: router({
+    all: publicProcedure.query(async () => {
+      return getAllBadges();
+    }),
+
+    mine: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .query(async ({ input }) => {
+        return getMyBadges(input.fingerprint);
+      }),
+  }),
+
   // ─── Ranking Público ──────────────────────────────────────────────────────────
   ranking: router({
     // Top 50 usuários por pontos
@@ -192,7 +412,8 @@ export const appRouter = router({
         fingerprint: z.string().min(8).max(128),
         nickname: z.string().min(2).max(32).regex(/^[a-zA-Z0-9À-ÿ _-]+$/, "Apelido inválido"),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`nickname:${getClientIp(ctx.req)}`, RATE_LIMITS.nickname.max, RATE_LIMITS.nickname.windowMs);
         return setNickname(input.fingerprint, input.nickname);
       }),
   }),
@@ -270,6 +491,21 @@ export const appRouter = router({
         return updateMarket(input.id, { isActive: true });
       }),
 
+    // Comentários denunciados (fila de moderação)
+    commentsReported: adminProcedure.query(async () => {
+      return listReportedComments();
+    }),
+
+    // Moderar comentário: ocultar, excluir ou restaurar
+    moderateComment: adminProcedure
+      .input(z.object({
+        id: z.number().int(),
+        action: z.enum(["hide", "delete", "restore"]),
+      }))
+      .mutation(async ({ input }) => {
+        return moderateComment(input.id, input.action);
+      }),
+
     // Resolver enquete e recalcular pontos de todos os votantes
     resolve: adminProcedure
       .input(z.object({
@@ -277,9 +513,7 @@ export const appRouter = router({
         resolvedChoice: z.enum(["A", "B"]),
       }))
       .mutation(async ({ input }) => {
-        await updateMarket(input.id, { resolvedChoice: input.resolvedChoice, isActive: false });
-        // Recalcular pontos de todos que votaram nessa enquete
-        await recalcScoresForMarket(input.id);
+        await resolveMarket(input.id, input.resolvedChoice);
         return { success: true };
       }),
   }),

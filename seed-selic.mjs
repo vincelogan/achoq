@@ -57,9 +57,8 @@ const simPct = 0.28 + Math.random() * 0.12; // 28-40% SIM (maioria acha que não
 const simVotes = Math.round(totalVotes * simPct);
 const naoVotes = totalVotes - simVotes;
 
-const states = ['SP', 'RJ', 'MG', 'RS', 'PR', 'SC', 'BA', 'GO', 'DF', 'PE'];
-const ageGroups = ['18-24', '25-34', '35-44', '45-54', '55+'];
-const genders = ['M', 'F'];
+// Colunas reais da tabela votes: country e region (não state/ageGroup/gender)
+const regions = ['Sudeste', 'Sul', 'Nordeste', 'Centro-Oeste', 'Norte'];
 
 const votesToInsert = [];
 for (let i = 0; i < simVotes; i++) {
@@ -67,11 +66,9 @@ for (let i = 0; i < simVotes; i++) {
     70001,
     `anon-selic-sim-${Date.now()}-${i}`,
     'A',
-    states[Math.floor(Math.random() * states.length)],
-    ageGroups[Math.floor(Math.random() * ageGroups.length)],
-    genders[Math.floor(Math.random() * genders.length)],
+    'BR',
+    regions[Math.floor(Math.random() * regions.length)],
     new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-    new Date()
   ]);
 }
 for (let i = 0; i < naoVotes; i++) {
@@ -79,17 +76,15 @@ for (let i = 0; i < naoVotes; i++) {
     70001,
     `anon-selic-nao-${Date.now()}-${i}`,
     'B',
-    states[Math.floor(Math.random() * states.length)],
-    ageGroups[Math.floor(Math.random() * ageGroups.length)],
-    genders[Math.floor(Math.random() * genders.length)],
+    'BR',
+    regions[Math.floor(Math.random() * regions.length)],
     new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-    new Date()
   ]);
 }
 
 for (const vote of votesToInsert) {
   await conn.execute(
-    `INSERT INTO votes (marketId, fingerprint, choice, state, ageGroup, gender, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO votes (marketId, fingerprint, choice, country, region, createdAt) VALUES (?, ?, ?, ?, ?, ?)`,
     vote
   );
 }

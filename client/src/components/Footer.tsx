@@ -13,7 +13,7 @@ function XIcon({ className }: { className?: string }) {
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-white border-t border-gray-200 py-12">
+    <footer className="w-full bg-card border-t border-border py-12">
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
           {/* Brand */}
@@ -21,14 +21,14 @@ export default function Footer() {
             <Link href="/" className="flex items-center gap-2.5 mb-4 w-fit">
               <img src={LOGO_URL} alt="AchoQ" className="h-11 w-11 object-contain" />
               <div className="flex flex-col leading-none">
-                <span className="font-sans text-xl font-black tracking-tight text-[#1a4971]">AchoQ</span>
-                <span className="font-sans text-[9px] text-gray-400 tracking-wide">Expectativa Coletiva</span>
+                <span className="font-sans text-xl font-black tracking-tight text-brand">AchoQ</span>
+                <span className="font-sans text-[9px] text-muted-foreground tracking-wide">Expectativa Coletiva</span>
               </div>
             </Link>
-            <p className="text-sm text-gray-500 max-w-xs leading-relaxed">
+            <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
               A primeira plataforma de expectativa coletiva do Brasil. Veja o que o Brasil acha agora!
             </p>
-            <p className="text-xs text-gray-400 mt-3 max-w-xs leading-relaxed">
+            <p className="text-xs text-muted-foreground mt-3 max-w-xs leading-relaxed">
               Não é pesquisa eleitoral. Não constitui plataforma de apostas.
               Os resultados refletem a opinião/expectativa dos usuários participantes.
             </p>
@@ -36,20 +36,20 @@ export default function Footer() {
 
           {/* Plataforma */}
           <div>
-            <h4 className="font-bold text-xs uppercase tracking-wider text-gray-900 mb-4">Plataforma</h4>
+            <h4 className="font-bold text-xs uppercase tracking-wider text-foreground mb-4">Plataforma</h4>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/como-funciona" className="text-gray-500 hover:text-[#1a4971] transition-colors">
+                <Link href="/como-funciona" className="text-muted-foreground hover:text-brand transition-colors">
                   Como funciona
                 </Link>
               </li>
               <li>
-                <Link href="/ranking" className="text-gray-500 hover:text-[#1a4971] transition-colors">
+                <Link href="/ranking" className="text-muted-foreground hover:text-brand transition-colors">
                   Ranking
                 </Link>
               </li>
               <li>
-                <Link href="/metodologia" className="text-gray-500 hover:text-[#1a4971] transition-colors">
+                <Link href="/metodologia" className="text-muted-foreground hover:text-brand transition-colors">
                   Metodologia
                 </Link>
               </li>
@@ -58,20 +58,20 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="font-bold text-xs uppercase tracking-wider text-gray-900 mb-4">Legal</h4>
+            <h4 className="font-bold text-xs uppercase tracking-wider text-foreground mb-4">Legal</h4>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/legal" className="text-gray-500 hover:text-[#1a4971] transition-colors">
+                <Link href="/legal" className="text-muted-foreground hover:text-brand transition-colors">
                   Informações Legais
                 </Link>
               </li>
               <li>
-                <Link href="/termos" className="text-gray-500 hover:text-[#1a4971] transition-colors">
+                <Link href="/termos" className="text-muted-foreground hover:text-brand transition-colors">
                   Termos de Uso
                 </Link>
               </li>
               <li>
-                <Link href="/privacidade" className="text-gray-500 hover:text-[#1a4971] transition-colors">
+                <Link href="/privacidade" className="text-muted-foreground hover:text-brand transition-colors">
                   Privacidade (LGPD)
                 </Link>
               </li>
@@ -80,9 +80,9 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="border-t border-border/50 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-muted-foreground">
               © 2026 AchoQ — Uma empresa Nexar. Todos os direitos reservados.
             </p>
           </div>
@@ -91,7 +91,7 @@ export default function Footer() {
               href="https://x.com/achoq"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-[#1a4971] transition-colors"
+              className="text-muted-foreground hover:text-brand transition-colors"
               aria-label="X"
             >
               <XIcon className="h-4 w-4" />
@@ -100,7 +100,7 @@ export default function Footer() {
               href="https://instagram.com/AchoQ.com.br"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-[#1a4971] transition-colors"
+              className="text-muted-foreground hover:text-brand transition-colors"
               aria-label="Instagram"
             >
               <Instagram className="h-4 w-4" />
@@ -109,7 +109,7 @@ export default function Footer() {
               href="https://linkedin.com/company/achoq"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-[#1a4971] transition-colors"
+              className="text-muted-foreground hover:text-brand transition-colors"
               aria-label="LinkedIn"
             >
               <Linkedin className="h-4 w-4" />

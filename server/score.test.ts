@@ -71,7 +71,8 @@ describe("score.history", () => {
   });
 });
 
-describe("markets.list", () => {
+// Depende de banco com enquetes seedadas — pulado sem DATABASE_URL
+describe.skipIf(!process.env.DATABASE_URL)("markets.list", () => {
   it("returns markets with stats", async () => {
     const ctx = createPublicContext();
     const caller = appRouter.createCaller(ctx);
