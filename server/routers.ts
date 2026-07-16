@@ -51,6 +51,7 @@ import {
   boostMarket,
   getActiveBoostMarketIds,
 } from "./shop";
+import { addComment, listComments, listReportedComments, moderateComment, reportComment } from "./comments";
 
 // Seed mercados na inicialização
 seedMarketsIfEmpty().catch(console.error);
@@ -297,6 +298,41 @@ export const appRouter = router({
       }),
   }),
 
+  // ─── Comentários ──────────────────────────────────────────────────────────────
+  comments: router({
+    list: publicProcedure
+      .input(z.object({
+        marketId: z.number().int(),
+        cursor: z.number().int().optional(),
+        limit: z.number().int().min(1).max(50).optional(),
+      }))
+      .query(async ({ input }) => {
+        return listComments(input.marketId, { cursor: input.cursor, limit: input.limit });
+      }),
+
+    add: publicProcedure
+      .input(z.object({
+        marketId: z.number().int(),
+        fingerprint: z.string().min(8).max(128),
+        content: z.string().min(2).max(500),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`comments:${getClientIp(ctx.req)}`, RATE_LIMITS.comments.max, RATE_LIMITS.comments.windowMs);
+        return addComment(input.marketId, input.fingerprint, input.content);
+      }),
+
+    report: publicProcedure
+      .input(z.object({
+        commentId: z.number().int(),
+        fingerprint: z.string().min(8).max(128),
+        reason: z.string().max(200).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`comments:${getClientIp(ctx.req)}`, RATE_LIMITS.comments.max, RATE_LIMITS.comments.windowMs);
+        return reportComment(input.commentId, input.fingerprint, input.reason);
+      }),
+  }),
+
   // ─── Liga Semanal ─────────────────────────────────────────────────────────────
   league: router({
     /**
@@ -453,6 +489,21 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return updateMarket(input.id, { isActive: true });
+      }),
+
+    // Comentários denunciados (fila de moderação)
+    commentsReported: adminProcedure.query(async () => {
+      return listReportedComments();
+    }),
+
+    // Moderar comentário: ocultar, excluir ou restaurar
+    moderateComment: adminProcedure
+      .input(z.object({
+        id: z.number().int(),
+        action: z.enum(["hide", "delete", "restore"]),
+      }))
+      .mutation(async ({ input }) => {
+        return moderateComment(input.id, input.action);
       }),
 
     // Resolver enquete e recalcular pontos de todos os votantes

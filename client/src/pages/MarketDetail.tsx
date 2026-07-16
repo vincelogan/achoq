@@ -21,6 +21,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useVote } from "@/hooks/useVote";
 import { SharePopup, PostVoteShareModal } from "@/components/SharePopup";
+import CommentsSection from "@/components/CommentsSection";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -367,6 +368,9 @@ export default function MarketDetail() {
                   </div>
                 );
               })()}
+
+              {/* Comentários */}
+              <CommentsSection marketId={market.id} />
 
               {/* Mercados relacionados */}
               {relatedMarkets && relatedMarkets.length > 0 && (

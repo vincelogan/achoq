@@ -252,3 +252,34 @@ export const leagueMembers = mysqlTable("league_members", {
 ]);
 
 export type LeagueMember = typeof leagueMembers.$inferSelect;
+
+/**
+ * Comentários por enquete. Autor identificado pelo apelido do ranking
+ * (exigido para comentar). Auto-ocultado com 3 reports; moderação no admin.
+ */
+export const comments = mysqlTable("comments", {
+  id: int("id").autoincrement().primaryKey(),
+  marketId: int("marketId").notNull(),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  content: varchar("content", { length: 500 }).notNull(),
+  status: mysqlEnum("status", ["visible", "hidden", "deleted"]).default("visible").notNull(),
+  reportCount: int("reportCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("idx_comments_market").on(t.marketId, t.status, t.createdAt),
+  index("idx_comments_fp").on(t.fingerprint),
+]);
+
+export type Comment = typeof comments.$inferSelect;
+
+export const commentReports = mysqlTable("comment_reports", {
+  id: int("id").autoincrement().primaryKey(),
+  commentId: int("commentId").notNull(),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  reason: varchar("reason", { length: 200 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex("uniq_comment_report").on(t.commentId, t.fingerprint),
+]);
+
+export type CommentReport = typeof commentReports.$inferSelect;

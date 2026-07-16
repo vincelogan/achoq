@@ -314,6 +314,32 @@ export default function Admin() {
     onError: (err) => toast.error(err.message),
   });
 
+  const resolveMutation = trpc.admin.resolve.useMutation({
+    onSuccess: () => {
+      toast.success("Enquete resolvida! Pontos e Qs dos acertadores creditados.");
+      utils.admin.listAll.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const handleResolve = (marketId: number, title: string, choice: "A" | "B", label: string) => {
+    if (window.confirm(`Resolver "${title}" com resultado "${label}"? Isso desativa a enquete e credita os acertadores.`)) {
+      resolveMutation.mutate({ id: marketId, resolvedChoice: choice });
+    }
+  };
+
+  const { data: reportedComments } = trpc.admin.commentsReported.useQuery(undefined, {
+    enabled: adminAuth === true,
+  });
+
+  const moderateMutation = trpc.admin.moderateComment.useMutation({
+    onSuccess: () => {
+      toast.success("Comentário moderado.");
+      utils.admin.commentsReported.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST", credentials: "include" });
     setAdminAuth(false);
@@ -475,6 +501,28 @@ export default function Admin() {
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
+                          {market.isActive && !market.resolvedChoice && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleResolve(market.id, market.title, "A", market.optionA)}
+                                title={`Resolver: ${market.optionA}`}
+                                className="text-vote-a hover:border-vote-a/50 text-xs font-bold"
+                              >
+                                ✓A
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleResolve(market.id, market.title, "B", market.optionB)}
+                                title={`Resolver: ${market.optionB}`}
+                                className="text-vote-b hover:border-vote-b/50 text-xs font-bold"
+                              >
+                                ✓B
+                              </Button>
+                            </>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
@@ -513,6 +561,83 @@ export default function Admin() {
             ))}
           </div>
         )}
+
+        {/* Moderação de comentários */}
+        <div className="mt-12">
+          <h2 className="text-lg font-bold text-foreground mb-4">
+            Moderação de comentários
+            {reportedComments && reportedComments.length > 0 && (
+              <span className="ml-2 text-xs bg-vote-a text-white px-2 py-0.5 rounded-full align-middle">
+                {reportedComments.length}
+              </span>
+            )}
+          </h2>
+          {!reportedComments || reportedComments.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-sm text-muted-foreground">
+                Nenhum comentário denunciado. Tudo em ordem por aqui.
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {reportedComments.map((comment: any) => (
+                <Card key={comment.id} className={comment.status === "hidden" ? "border-amber-500/40" : ""}>
+                  <CardContent className="py-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mb-1.5">
+                          <span className="font-semibold text-foreground">{comment.nickname ?? "Anônimo"}</span>
+                          <span className="bg-vote-a/10 text-vote-a px-2 py-0.5 rounded-full font-semibold">
+                            {comment.reportCount} denúncia{comment.reportCount > 1 ? "s" : ""}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full font-semibold ${
+                            comment.status === "hidden" ? "bg-amber-500/10 text-amber-600" : "bg-emerald-500/10 text-emerald-600"
+                          }`}>
+                            {comment.status === "hidden" ? "Oculto" : "Visível"}
+                          </span>
+                          <span>enquete #{comment.marketId}</span>
+                        </div>
+                        <p className="text-sm text-foreground/80 leading-relaxed break-words">{comment.content}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {comment.status !== "hidden" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => moderateMutation.mutate({ id: comment.id, action: "hide" })}
+                            className="text-amber-600 hover:border-amber-400 text-xs"
+                          >
+                            Ocultar
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => moderateMutation.mutate({ id: comment.id, action: "restore" })}
+                          className="text-emerald-600 hover:border-emerald-400 text-xs"
+                        >
+                          Restaurar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (window.confirm("Excluir este comentário definitivamente?")) {
+                              moderateMutation.mutate({ id: comment.id, action: "delete" });
+                            }
+                          }}
+                          className="text-vote-a hover:border-vote-a/50 text-xs"
+                        >
+                          Excluir
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
