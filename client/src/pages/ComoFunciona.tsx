@@ -47,7 +47,7 @@ export default function ComoFunciona() {
     >
       {/* Intro */}
       <div className="prose prose-gray max-w-none mb-12">
-        <p className="text-lg text-gray-600 leading-relaxed">
+        <p className="text-lg text-muted-foreground leading-relaxed">
           O AchoQ é uma plataforma digital de <strong>expectativa coletiva em tempo real</strong>.
           Qualquer pessoa pode indicar o que acredita que vai acontecer em relação a temas
           relevantes — como política, economia, esportes e acontecimentos do cotidiano.
@@ -56,7 +56,7 @@ export default function ComoFunciona() {
 
       {/* Como participar */}
       <div className="mb-12">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Como participar</h2>
+        <h2 className="text-xl font-bold text-foreground mb-6">Como participar</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {[
             {
@@ -78,24 +78,24 @@ export default function ComoFunciona() {
               desc: "Siga a evolução da expectativa conforme novos fatos surgem e mais pessoas participam.",
             },
           ].map(({ icon: Icon, step, title, desc }) => (
-            <div key={step} className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <div key={step} className="bg-card border border-border rounded-xl p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-xs font-mono font-bold text-gray-400">{step}</span>
-                <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Icon className="w-4 h-4 text-gray-600" />
+                <span className="text-xs font-mono font-bold text-muted-foreground">{step}</span>
+                <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+                  <Icon className="w-4 h-4 text-muted-foreground" />
                 </div>
               </div>
-              <h3 className="font-bold text-gray-900 mb-2">{title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+              <h3 className="font-bold text-foreground mb-2">{title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* O que os números representam */}
-      <div className="mb-12 bg-blue-50 border border-blue-100 rounded-xl p-6 md:p-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-3">O que os números representam</h2>
-        <p className="text-gray-600 mb-4 leading-relaxed">
+      <div className="mb-12 bg-brand/5 border border-brand/15 rounded-xl p-6 md:p-8">
+        <h2 className="text-xl font-bold text-foreground mb-3">O que os números representam</h2>
+        <p className="text-muted-foreground mb-4 leading-relaxed">
           Os percentuais exibidos refletem <strong>exclusivamente a distribuição das escolhas
           feitas pelos participantes</strong> da plataforma. Eles não constituem:
         </p>
@@ -106,7 +106,7 @@ export default function ComoFunciona() {
             "Recomendação de qualquer natureza",
             "Pesquisa eleitoral regulamentada pelo TSE",
           ].map((item) => (
-            <li key={item} className="flex items-start gap-2 text-sm text-gray-600">
+            <li key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
               <ShieldOff className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
               {item}
             </li>
@@ -116,8 +116,8 @@ export default function ComoFunciona() {
 
       {/* Atualização */}
       <div className="mb-12">
-        <h2 className="text-xl font-bold text-gray-900 mb-3">Atualização em tempo real</h2>
-        <p className="text-gray-600 leading-relaxed">
+        <h2 className="text-xl font-bold text-foreground mb-3">Atualização em tempo real</h2>
+        <p className="text-muted-foreground leading-relaxed">
           Os dados são atualizados continuamente conforme novas participações ocorrem.
           Cada opinião registrada é imediatamente refletida nos percentuais exibidos,
           garantindo que você veja sempre a opinião mais recente da comunidade.
@@ -126,15 +126,15 @@ export default function ComoFunciona() {
 
       {/* Perguntas Frequentes */}
       <div className="mb-12">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Perguntas Frequentes</h2>
+        <h2 className="text-xl font-bold text-foreground mb-6">Perguntas Frequentes</h2>
         <div className="space-y-4">
           {faqData.map(({ question, answer }, idx) => (
-            <details key={idx} className="group bg-white border border-gray-200 rounded-xl overflow-hidden">
-              <summary className="flex items-center justify-between cursor-pointer px-6 py-4 text-gray-900 font-semibold text-sm hover:bg-gray-50 transition-colors">
+            <details key={idx} className="group bg-card border border-border rounded-xl overflow-hidden">
+              <summary className="flex items-center justify-between cursor-pointer px-6 py-4 text-foreground font-semibold text-sm hover:bg-muted transition-colors">
                 {question}
-                <svg className="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                <svg className="w-5 h-5 text-muted-foreground group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </summary>
-              <div className="px-6 pb-4 text-sm text-gray-600 leading-relaxed">{answer}</div>
+              <div className="px-6 pb-4 text-sm text-muted-foreground leading-relaxed">{answer}</div>
             </details>
           ))}
         </div>
@@ -161,8 +161,8 @@ export default function ComoFunciona() {
 
       {/* Natureza da plataforma */}
       <div className="mb-4">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Natureza da plataforma</h2>
-        <p className="text-gray-600 mb-6 leading-relaxed">
+        <h2 className="text-xl font-bold text-foreground mb-6">Natureza da plataforma</h2>
+        <p className="text-muted-foreground mb-6 leading-relaxed">
           O AchoQ é um ambiente de participação aberta e espontânea. A plataforma
           <strong> não possui</strong> nenhum dos seguintes elementos:
         </p>
@@ -173,11 +173,11 @@ export default function ComoFunciona() {
             { icon: Ban, label: "Jogos de azar ou similar" },
             { icon: Bot, label: "Negociação de ativos financeiros" },
           ].map(({ icon: Icon, label }) => (
-            <div key={label} className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
-              <div className="w-7 h-7 bg-red-50 rounded-md flex items-center justify-center shrink-0">
+            <div key={label} className="flex items-center gap-3 bg-muted border border-border rounded-lg px-4 py-3">
+              <div className="w-7 h-7 bg-vote-a/10 rounded-md flex items-center justify-center shrink-0">
                 <Icon className="w-3.5 h-3.5 text-red-500" />
               </div>
-              <span className="text-sm text-gray-600">{label}</span>
+              <span className="text-sm text-muted-foreground">{label}</span>
             </div>
           ))}
         </div>

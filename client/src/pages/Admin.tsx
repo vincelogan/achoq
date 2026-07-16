@@ -83,11 +83,11 @@ function MarketForm({
   };
 
   return (
-    <Card className="border-2 border-[#1a4971]/20">
+    <Card className="border-2 border-brand/20">
       <CardContent className="pt-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
-            <label className="text-sm font-medium text-gray-700 mb-1 block">Pergunta da enquete *</label>
+            <label className="text-sm font-medium text-foreground/80 mb-1 block">Pergunta da enquete *</label>
             <Input
               placeholder="Ex: Quem vai ganhar as eleições 2026?"
               value={form.title}
@@ -95,18 +95,18 @@ function MarketForm({
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">Slug (URL) *</label>
+            <label className="text-sm font-medium text-foreground/80 mb-1 block">Slug (URL) *</label>
             <Input
               placeholder="ex: eleicoes-2026"
               value={form.slug}
               onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
             />
-            <p className="text-xs text-gray-400 mt-1">Apenas letras minúsculas, números e hífens</p>
+            <p className="text-xs text-muted-foreground mt-1">Apenas letras minúsculas, números e hífens</p>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">Categoria</label>
+            <label className="text-sm font-medium text-foreground/80 mb-1 block">Categoria</label>
             <select
-              className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm"
               value={form.category}
               onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
             >
@@ -119,7 +119,7 @@ function MarketForm({
             </select>
           </div>
           <div className="md:col-span-2">
-            <label className="text-sm font-medium text-gray-700 mb-1 block">Descrição</label>
+            <label className="text-sm font-medium text-foreground/80 mb-1 block">Descrição</label>
             <Input
               placeholder="Descrição opcional da enquete"
               value={form.description}
@@ -128,10 +128,10 @@ function MarketForm({
           </div>
         </div>
 
-        <div className="border-t border-gray-100 pt-4">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Opções de resposta</p>
+        <div className="border-t border-border/50 pt-4">
+          <p className="text-sm font-semibold text-foreground/80 mb-3">Opções de resposta</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2 p-3 rounded-lg bg-red-50 border border-red-100">
+            <div className="space-y-2 p-3 rounded-lg bg-vote-a/5 border border-vote-a/15">
               <label className="text-sm font-medium text-red-700 block">Opção A (Vermelho) *</label>
               <Input
                 placeholder="Ex: Sim / Esquerda / Ana Paula"
@@ -145,14 +145,14 @@ function MarketForm({
                 onChange={(e) => setForm((f) => ({ ...f, labelA: e.target.value }))}
               />
             </div>
-            <div className="space-y-2 p-3 rounded-lg bg-blue-50 border border-blue-100">
-              <label className="text-sm font-medium text-[#002B5C] block">Opção B (Azul) *</label>
+            <div className="space-y-2 p-3 rounded-lg bg-brand/5 border border-brand/15">
+              <label className="text-sm font-medium text-vote-b block">Opção B (Azul) *</label>
               <Input
                 placeholder="Ex: Não / Direita / Outros"
                 value={form.optionB}
                 onChange={(e) => setForm((f) => ({ ...f, optionB: e.target.value }))}
               />
-              <label className="text-xs font-medium text-[#002B5C] block">Subtítulo da opção B</label>
+              <label className="text-xs font-medium text-vote-b block">Subtítulo da opção B</label>
               <Input
                 placeholder="Ex: Campo Conservador"
                 value={form.labelB}
@@ -166,7 +166,7 @@ function MarketForm({
           <Button
             onClick={() => onSubmit(form)}
             disabled={isLoading || !form.title || !form.slug || !form.optionA || !form.optionB || !form.labelA || !form.labelB}
-            className="bg-[#1a4971] hover:bg-[#0d3a5c] text-white"
+            className="bg-brand hover:bg-brand/90 text-white"
           >
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
             {submitLabel}
@@ -212,19 +212,19 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-muted">
       <Card className="max-w-sm w-full mx-4 shadow-lg">
         <CardHeader className="text-center pb-2">
           <img src={LOGO_URL} alt="AchoQ" className="h-16 w-16 rounded-xl mx-auto mb-3 object-cover" />
-          <CardTitle className="text-xl text-[#1a4971]">Painel Admin</CardTitle>
-          <p className="text-sm text-gray-500 mt-1">AchoQ — Plataforma de Expectativa Coletiva</p>
+          <CardTitle className="text-xl text-brand">Painel Admin</CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">AchoQ — Plataforma de Expectativa Coletiva</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Senha de administrador</label>
+              <label className="text-sm font-medium text-foreground/80 mb-1 block">Senha de administrador</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="password"
                   placeholder="Digite a senha"
@@ -236,12 +236,12 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
               </div>
             </div>
             {error && (
-              <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-md">{error}</p>
+              <p className="text-sm text-vote-a bg-vote-a/10 px-3 py-2 rounded-md">{error}</p>
             )}
             <Button
               type="submit"
               disabled={loading || !password}
-              className="w-full bg-[#1a4971] hover:bg-[#0d3a5c] text-white"
+              className="w-full bg-brand hover:bg-brand/90 text-white"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
               Entrar
@@ -249,7 +249,7 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
           </form>
           <div className="mt-4 text-center">
             <Link href="/">
-              <button className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 mx-auto">
+              <button className="text-xs text-muted-foreground hover:text-muted-foreground flex items-center gap-1 mx-auto">
                 <ArrowLeft className="w-3 h-3" /> Voltar ao site
               </button>
             </Link>
@@ -323,8 +323,8 @@ export default function Admin() {
   // Checking auth state
   if (adminAuth === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="w-8 h-8 animate-spin text-[#1a4971]" />
+      <div className="min-h-screen flex items-center justify-center bg-muted">
+        <Loader2 className="w-8 h-8 animate-spin text-brand" />
       </div>
     );
   }
@@ -336,17 +336,17 @@ export default function Admin() {
 
   // Authenticated → show admin panel
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       {/* Admin Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-card border-b border-border sticky top-0 z-50">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/">
               <img src={LOGO_URL} alt="AchoQ" className="h-8 w-8 rounded-md object-cover" />
             </Link>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-[#1a4971]">Admin</span>
-              <span className="text-xs bg-[#1a4971] text-white px-2 py-0.5 rounded-full">Painel</span>
+              <span className="font-bold text-brand">Admin</span>
+              <span className="text-xs bg-brand text-white px-2 py-0.5 rounded-full">Painel</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -372,37 +372,37 @@ export default function Admin() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardContent className="pt-4 pb-4 text-center">
-              <p className="text-2xl font-bold text-[#1a4971]">{markets?.length ?? 0}</p>
-              <p className="text-xs text-gray-500">Total de enquetes</p>
+              <p className="text-2xl font-bold text-brand">{markets?.length ?? 0}</p>
+              <p className="text-xs text-muted-foreground">Total de enquetes</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4 pb-4 text-center">
               <p className="text-2xl font-bold text-green-600">{markets?.filter(m => m.isActive).length ?? 0}</p>
-              <p className="text-xs text-gray-500">Ativas</p>
+              <p className="text-xs text-muted-foreground">Ativas</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4 pb-4 text-center">
-              <p className="text-2xl font-bold text-gray-400">{markets?.filter(m => !m.isActive).length ?? 0}</p>
-              <p className="text-xs text-gray-500">Inativas</p>
+              <p className="text-2xl font-bold text-muted-foreground">{markets?.filter(m => !m.isActive).length ?? 0}</p>
+              <p className="text-xs text-muted-foreground">Inativas</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4 pb-4 text-center">
               <p className="text-2xl font-bold text-orange-500">{markets?.reduce((sum, m) => sum + (m.voteCount ?? 0), 0) ?? 0}</p>
-              <p className="text-xs text-gray-500">Total de opiniões</p>
+              <p className="text-xs text-muted-foreground">Total de opiniões</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Create button */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-bold text-gray-800">Enquetes</h2>
+          <h2 className="text-lg font-bold text-foreground">Enquetes</h2>
           {!showCreate && (
             <Button
               onClick={() => setShowCreate(true)}
-              className="bg-[#1a4971] hover:bg-[#0d3a5c] text-white"
+              className="bg-brand hover:bg-brand/90 text-white"
             >
               <Plus className="w-4 h-4 mr-2" /> Nova Enquete
             </Button>
@@ -412,7 +412,7 @@ export default function Admin() {
         {/* Create form */}
         {showCreate && (
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-3">Criar nova enquete</h3>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3">Criar nova enquete</h3>
             <MarketForm
               initial={emptyForm}
               onSubmit={(data) => createMutation.mutate(data)}
@@ -426,7 +426,7 @@ export default function Admin() {
         {/* Markets list */}
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="w-6 h-6 animate-spin text-[#1a4971]" />
+            <Loader2 className="w-6 h-6 animate-spin text-brand" />
           </div>
         ) : (
           <div className="space-y-3">
@@ -458,12 +458,12 @@ export default function Admin() {
                             {market.isActive ? (
                               <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
                             ) : (
-                              <XCircle className="w-4 h-4 text-gray-400 shrink-0" />
+                              <XCircle className="w-4 h-4 text-muted-foreground shrink-0" />
                             )}
-                            <h3 className="font-semibold text-gray-800 truncate">{market.title}</h3>
+                            <h3 className="font-semibold text-foreground truncate">{market.title}</h3>
                           </div>
-                          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-1">
-                            <span className="bg-gray-100 px-2 py-0.5 rounded">{market.category}</span>
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
+                            <span className="bg-muted px-2 py-0.5 rounded">{market.category}</span>
                             <span>/{market.slug}</span>
                             <span className="flex items-center gap-1">
                               <BarChart3 className="w-3 h-3" /> {market.voteCount} opiniões
@@ -471,7 +471,7 @@ export default function Admin() {
                           </div>
                           <div className="flex gap-3 mt-2 text-xs">
                             <span className="text-red-600 font-medium">A: {market.optionA} ({market.stats.countA})</span>
-                            <span className="text-[#002B5C] font-medium">B: {market.optionB} ({market.stats.countB})</span>
+                            <span className="text-vote-b font-medium">B: {market.optionB} ({market.stats.countB})</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">

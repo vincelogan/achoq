@@ -47,63 +47,95 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  /* Tokens de identidade AchoQ → utilitários bg-brand, text-vote-a, etc. */
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-vote-a: var(--vote-a);
+  --color-vote-a-foreground: var(--vote-a-foreground);
+  --color-vote-b: var(--vote-b);
+  --color-vote-b-foreground: var(--vote-b-foreground);
+  --color-qs: var(--qs);
+  --color-qs-foreground: var(--qs-foreground);
 }
 
 :root {
-  /* ACHOQ Identity Palette */
-  --color-achoq-red: #D60000;
-  --color-achoq-blue: #0047FF;
+  /*
+   * Identidade AchoQ (paleta de produção, unificada):
+   *  brand  — azul-marinho institucional (header, links, destaques)
+   *  vote-a — vermelho da opção A
+   *  vote-b — azul-marinho escuro da opção B
+   *  qs     — âmbar da moeda fictícia Q
+   */
+  --brand: #1a4971;
+  --brand-foreground: #ffffff;
+  --vote-a: #b91c1c;
+  --vote-a-foreground: #ffffff;
+  --vote-b: #002b5c;
+  --vote-b-foreground: #ffffff;
+  --qs: #d97706;
+  --qs-foreground: #ffffff;
+
   --color-achoq-black: #111111;
   --color-achoq-white: #FFFFFF;
   --color-achoq-gray: #F5F5F5;
 
-  --primary: var(--color-achoq-blue);
-  --primary-foreground: var(--color-achoq-white);
-  
-  --destructive: var(--color-achoq-red);
-  --destructive-foreground: var(--color-achoq-white);
-  
-  --chart-1: var(--color-achoq-blue);
-  --chart-2: var(--color-achoq-red);
-  --chart-3: var(--color-achoq-black);
-  
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+
+  --destructive: var(--vote-a);
+  --destructive-foreground: var(--vote-a-foreground);
+
+  --chart-1: var(--vote-a);
+  --chart-2: var(--vote-b);
+  --chart-3: var(--brand);
+
   --radius: 0.75rem; /* Kalshi-style radius */
-  
+
   --background: var(--color-achoq-white);
   --foreground: var(--color-achoq-black);
-  
+
   --card: var(--color-achoq-white);
   --card-foreground: var(--color-achoq-black);
-  
+
   --popover: var(--color-achoq-white);
   --popover-foreground: var(--color-achoq-black);
-  
+
   --secondary: var(--color-achoq-gray);
   --secondary-foreground: var(--color-achoq-black);
-  
+
   --muted: var(--color-achoq-gray);
   --muted-foreground: #666666;
-  
+
   --accent: var(--color-achoq-gray);
   --accent-foreground: var(--color-achoq-black);
-  
+
   --border: #E5E5E5;
   --input: #E5E5E5;
-  --ring: var(--color-achoq-blue);
-  
+  --ring: var(--brand);
+
   --sidebar: var(--color-achoq-white);
   --sidebar-foreground: var(--color-achoq-black);
   --sidebar-accent: var(--color-achoq-gray);
   --sidebar-accent-foreground: var(--color-achoq-black);
   --sidebar-border: #E5E5E5;
-  --sidebar-ring: var(--color-achoq-blue);
+  --sidebar-ring: var(--brand);
 }
 
 .dark {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-500);
-  --sidebar-primary-foreground: var(--color-blue-50);
+  /* Variantes mais claras para contraste sobre fundo escuro */
+  --brand: #6b9fd0;
+  --brand-foreground: #0b1929;
+  --vote-a: #dc2626;
+  --vote-a-foreground: #ffffff;
+  --vote-b: #2d5c94;
+  --vote-b-foreground: #ffffff;
+  --qs: #f59e0b;
+  --qs-foreground: #1c1206;
+
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: var(--brand-foreground);
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.85 0.005 65);
   --card: oklch(0.21 0.006 285.885);
@@ -116,14 +148,14 @@
   --muted-foreground: oklch(0.705 0.015 286.067);
   --accent: oklch(0.274 0.006 286.033);
   --accent-foreground:  oklch(0.92 0.005 65);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
+  --destructive: var(--vote-a);
+  --destructive-foreground: var(--vote-a-foreground);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.488 0.243 264.376);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
+  --ring: var(--brand);
+  --chart-1: var(--vote-a);
+  --chart-2: var(--vote-b);
+  --chart-3: var(--brand);
   --chart-4: var(--color-blue-700);
   --chart-5: var(--color-blue-800);
   --sidebar: oklch(0.21 0.006 285.885);
@@ -139,22 +171,10 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-mono;
+    @apply bg-background text-foreground font-sans;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-sans font-semibold tracking-tight text-gray-900;
-  }
-  .achoq-shadow {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  }
-  .achoq-card {
-    @apply border border-gray-200 rounded-xl bg-white shadow-sm transition-all duration-200 hover:shadow-md;
-  }
-  .achoq-btn-red {
-    @apply bg-[#D60000] text-white hover:bg-[#B00000] transition-colors font-semibold;
-  }
-  .achoq-btn-blue {
-    @apply bg-[#0047FF] text-white hover:bg-[#0033CC] transition-colors font-semibold;
+    @apply font-sans font-semibold tracking-tight text-foreground;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),

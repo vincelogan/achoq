@@ -36,25 +36,25 @@ export default function Home() {
   const otherMarkets = markets?.slice(1) ?? [];
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-black font-sans selection:bg-[#0047FF] selection:text-white">
+    <div className="min-h-screen flex flex-col bg-background text-foreground font-sans selection:bg-brand selection:text-white">
       <Header />
       <main className="flex-1">
 
         {/* Hero Section */}
-        <section className="relative w-full py-8 md:py-16 bg-gray-50/50">
+        <section className="relative w-full py-8 md:py-16 bg-muted/50">
           <div className="container max-w-4xl mx-auto">
 
             {/* Título da seção */}
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-100 px-3 py-1 rounded-full">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-muted px-3 py-1 rounded-full">
                   Enquete em Destaque
                 </span>
               </div>
               {isLoading ? (
-                <div className="h-10 bg-gray-100 rounded-lg animate-pulse w-3/4" />
+                <div className="h-10 bg-muted rounded-lg animate-pulse w-3/4" />
               ) : (
-                <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900">
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
                   {featuredMarket?.title ?? "Carregando mercados..."}
                 </h1>
               )}
@@ -62,14 +62,14 @@ export default function Home() {
 
             {/* Card principal */}
             {isLoading ? (
-              <div className="bg-white border border-gray-200 rounded-xl p-8 flex items-center justify-center min-h-[200px]">
-                <div className="flex flex-col items-center gap-3 text-gray-400">
+              <div className="bg-card border border-border rounded-xl p-8 flex items-center justify-center min-h-[200px]">
+                <div className="flex flex-col items-center gap-3 text-muted-foreground">
                   <Loader2 className="w-8 h-8 animate-spin" />
                   <span className="text-sm">Carregando dados reais...</span>
                 </div>
               </div>
             ) : error ? (
-              <div className="bg-white border border-red-200 rounded-xl p-8 text-center text-red-600">
+              <div className="bg-card border border-red-200 rounded-xl p-8 text-center text-red-600">
                 <p className="font-semibold">Erro ao carregar mercados</p>
                 <p className="text-sm mt-1 text-red-400">{error.message}</p>
               </div>
@@ -95,11 +95,11 @@ export default function Home() {
 
         {/* Outros Mercados */}
         {otherMarkets.length > 0 && (
-          <section className="w-full py-8 md:py-12 bg-white border-t border-gray-100">
+          <section className="w-full py-8 md:py-12 bg-card border-t border-border/50">
             <div className="container max-w-4xl mx-auto">
               <div className="mb-6 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-gray-500" />
-                <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+                <BarChart3 className="w-5 h-5 text-muted-foreground" />
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">
                   Outras Enquetes em Destaque
                 </h2>
               </div>
