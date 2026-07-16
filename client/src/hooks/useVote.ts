@@ -37,10 +37,13 @@ export function useVote({
   const [alreadyVoted, setAlreadyVoted] = useState(initialVoted === true);
   const [myChoice, setMyChoice] = useState<Choice | null>(null);
 
-  const enabled = !!marketId && !!fingerprint && initialVoted === undefined;
+  const canVote = !!marketId && !!fingerprint;
+  // A query individual de checkVote só roda quando o chamador não informou
+  // initialVoted (ex.: MarketDetail); na home o markets.list já respondeu.
+  const checkEnabled = canVote && initialVoted === undefined;
   const { data: checkData } = trpc.markets.checkVote.useQuery(
     { marketId: marketId ?? 0, fingerprint },
-    { enabled, refetchOnWindowFocus: false }
+    { enabled: checkEnabled, refetchOnWindowFocus: false }
   );
 
   useEffect(() => {
@@ -51,11 +54,24 @@ export function useVote({
     }
   }, [checkData, initialVoted, marketId]);
 
+  const utils = trpc.useUtils();
   const voteMutation = trpc.markets.vote.useMutation({
     onSuccess: (data, variables) => {
       if (marketId) localStorage.setItem(`achoq_vote_${marketId}`, variables.choice);
       setJustVoted(variables.choice);
       setMyChoice(variables.choice);
+      // Recompensa em Qs (economia fictícia)
+      const earned = (data as any).qsEarned as number | undefined;
+      if (earned && earned > 0) {
+        const streak = (data as any).dailyStreak as number | undefined;
+        toast.success(`+${earned} Qs!`, {
+          description:
+            streak && streak > 1
+              ? `Check-in de ${streak} dias seguidos. Veja seu saldo na carteira.`
+              : "Obrigado por opinar. Veja seu saldo na carteira.",
+        });
+        utils.wallet.get.invalidate();
+      }
       onVoted?.(variables.choice, data.stats);
     },
     onError: (err) => {
@@ -73,7 +89,7 @@ export function useVote({
   });
 
   const vote = (choice: Choice) => {
-    if (!enabled || alreadyVoted || justVoted || voteMutation.isPending) return;
+    if (!canVote || alreadyVoted || justVoted || voteMutation.isPending) return;
     setVotingChoice(choice);
     setMyChoice(choice);
     voteMutation.mutate({ marketId: marketId!, choice, fingerprint });

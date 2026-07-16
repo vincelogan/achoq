@@ -158,6 +158,13 @@ export async function getMarketBySlug(slug: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getMarketById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(markets).where(eq(markets.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
 export async function seedMarketsIfEmpty() {
   const db = await getDb();
   if (!db) return;

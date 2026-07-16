@@ -10,6 +10,8 @@ import Home from "./pages/Home";
 // Code-splitting por rota: apenas a Home entra no bundle inicial
 const Busca = lazy(() => import("./pages/Busca"));
 const Categoria = lazy(() => import("./pages/Categoria"));
+const Loja = lazy(() => import("./pages/Loja"));
+const Carteira = lazy(() => import("./pages/Carteira"));
 const ComoFunciona = lazy(() => import("./pages/ComoFunciona"));
 const Ranking = lazy(() => import("./pages/Ranking"));
 const Metodologia = lazy(() => import("./pages/Metodologia"));
@@ -35,6 +37,8 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/busca" component={Busca} />
         <Route path="/categoria/:categoria" component={Categoria} />
+        <Route path="/loja" component={Loja} />
+        <Route path="/carteira" component={Carteira} />
         <Route path="/como-funciona" component={ComoFunciona} />
         <Route path="/ranking" component={Ranking} />
         <Route path="/metodologia" component={Metodologia} />

@@ -51,6 +51,7 @@ export default function MarketGrid({ markets }: { markets: MarketListItem[] }) {
           imageUrl={market.imageUrl}
           tickerItems={newsByMarketId.get(market.id) ?? null}
           initialVoted={market.viewerHasVoted}
+          boosted={(market as any).boosted}
         />
       ))}
     </div>

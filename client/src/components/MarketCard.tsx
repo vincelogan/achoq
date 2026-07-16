@@ -28,6 +28,8 @@ type MarketCardProps = {
   tickerItems?: Array<{ tickerText: string; sourceName: string }> | null;
   /** Se o chamador já sabe (via markets.list) se o usuário votou */
   initialVoted?: boolean;
+  /** Enquete com impulso ativo (comprado com Qs) */
+  boosted?: boolean;
 };
 
 /** Mini confetti burst — lightweight CSS-only particles */
@@ -83,6 +85,7 @@ export default function MarketCard({
   imageUrl,
   tickerItems,
   initialVoted,
+  boosted = false,
 }: MarketCardProps) {
   const [localStats, setLocalStats] = useState(initialStats);
   const [shareOpen, setShareOpen] = useState(false);
@@ -137,6 +140,11 @@ export default function MarketCard({
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{category}</span>
+          {boosted && (
+            <span className="flex items-center gap-1 text-[10px] font-bold text-qs bg-qs/10 border border-qs/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+              ⚡ Impulsionada
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-3">
           {endsAt && (

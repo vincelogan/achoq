@@ -14,9 +14,11 @@ import {
   PartyPopper,
   Clock,
   ChevronRight,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 import { useVote } from "@/hooks/useVote";
 import { SharePopup, PostVoteShareModal } from "@/components/SharePopup";
 import Header from "@/components/Header";
@@ -110,6 +112,15 @@ export default function MarketDetail() {
   const handleVote = (choice: "A" | "B") => vote(choice);
   const votingFor = votingChoice;
   const justVotedChoice = justVoted;
+
+  const boostMutation = trpc.shop.boost.useMutation({
+    onSuccess: () => {
+      toast.success("Enquete impulsionada por 24h! ⚡");
+      utils.wallet.get.invalidate();
+      utils.markets.list.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   const stats = market?.stats;
 
@@ -434,6 +445,27 @@ export default function MarketDetail() {
                   <p className="text-sm text-muted-foreground mb-4">Convide amigos para participar desta enquete</p>
                   <Button onClick={() => setShareOpen(true)} variant="outline" className="w-full gap-2"><Share2 className="w-4 h-4" />Compartilhar enquete</Button>
                 </div>
+
+                {market.isActive && (
+                  <div className="bg-card rounded-2xl border border-qs/30 p-6">
+                    <h3 className="font-bold text-foreground mb-2 flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-qs" />
+                      Impulsionar
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Coloque esta enquete em destaque na home por 24h usando seus Qs.
+                    </p>
+                    <Button
+                      onClick={() => boostMutation.mutate({ fingerprint, marketId: market.id })}
+                      disabled={!fingerprint || boostMutation.isPending}
+                      variant="outline"
+                      className="w-full gap-2 border-qs/40 text-qs hover:bg-qs/10 hover:text-qs"
+                    >
+                      {boostMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                      Impulsionar por 200 Qs
+                    </Button>
+                  </div>
+                )}
 
                 <div className="bg-card rounded-2xl border border-border p-6">
                   <h3 className="font-bold text-foreground mb-3">Sobre esta enquete</h3>

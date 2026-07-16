@@ -109,6 +109,17 @@ export const userScores = mysqlTable("user_scores", {
   // Sequência de acertos consecutivos
   streak: int("streak").default(0).notNull(),
   maxStreak: int("maxStreak").default(0).notNull(),
+  // ─── Economia de Qs ───
+  // Saldo cacheado da moeda Q (fonte da verdade é o ledger q_transactions;
+  // atualizado na mesma transação de cada lançamento — NUNCA pelo recompute
+  // de acurácia)
+  qBalance: int("qBalance").default(0).notNull(),
+  // Streak diário de check-in ("opinei hoje"), em dias corridos
+  dailyStreak: int("dailyStreak").default(0).notNull(),
+  // Data (YYYY-MM-DD, America/Sao_Paulo) do último check-in diário
+  lastCheckinDate: varchar("lastCheckinDate", { length: 10 }),
+  // Proteções de streak compradas na loja (consumidas ao pular 1 dia)
+  streakShields: int("streakShields").default(0).notNull(),
   // Timestamps
   lastVoteAt: timestamp("lastVoteAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -117,3 +128,71 @@ export const userScores = mysqlTable("user_scores", {
 
 export type UserScore = typeof userScores.$inferSelect;
 export type InsertUserScore = typeof userScores.$inferInsert;
+
+/**
+ * Ledger append-only da moeda fictícia Q.
+ * Todo ganho/gasto é um lançamento; idempotencyKey única garante que eventos
+ * re-executados (ex.: re-resolução de enquete) não dupliquem concessões.
+ */
+export const qTransactions = mysqlTable("q_transactions", {
+  id: int("id").autoincrement().primaryKey(),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  // Positivo = ganho; negativo = gasto
+  amount: int("amount").notNull(),
+  // 'vote' | 'early_bird' | 'daily_checkin' | 'correct' | 'streak_bonus'
+  // | 'badge_reward' | 'migration' | 'shop_purchase' | 'boost_purchase'
+  // | 'reversal' | 'admin_adjust'
+  type: varchar("type", { length: 32 }).notNull(),
+  refType: varchar("refType", { length: 16 }),
+  refId: int("refId"),
+  idempotencyKey: varchar("idempotencyKey", { length: 160 }).notNull().unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("idx_qtx_fingerprint").on(t.fingerprint, t.createdAt),
+]);
+
+export type QTransaction = typeof qTransactions.$inferSelect;
+export type InsertQTransaction = typeof qTransactions.$inferInsert;
+
+/** Catálogo da loja fictícia (molduras, títulos, proteção de streak, boost). */
+export const shopItems = mysqlTable("shop_items", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 64 }).notNull().unique(),
+  name: varchar("name", { length: 128 }).notNull(),
+  description: text("description"),
+  kind: mysqlEnum("kind", ["frame", "title", "streak_shield", "boost"]).notNull(),
+  price: int("price").notNull(),
+  imageUrl: text("imageUrl"),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ShopItem = typeof shopItems.$inferSelect;
+
+/** Inventário: itens adquiridos por fingerprint; 1 equipado por kind. */
+export const userItems = mysqlTable("user_items", {
+  id: int("id").autoincrement().primaryKey(),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  itemId: int("itemId").notNull(),
+  isEquipped: boolean("isEquipped").default(false).notNull(),
+  acquiredAt: timestamp("acquiredAt").defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex("uniq_user_item").on(t.fingerprint, t.itemId),
+  index("idx_user_items_fp").on(t.fingerprint),
+]);
+
+export type UserItem = typeof userItems.$inferSelect;
+
+/** Impulsos de enquete comprados com Qs (destaque na home por 24h). */
+export const marketBoosts = mysqlTable("market_boosts", {
+  id: int("id").autoincrement().primaryKey(),
+  marketId: int("marketId").notNull(),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  startsAt: timestamp("startsAt").defaultNow().notNull(),
+  endsAt: timestamp("endsAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("idx_boosts_endsAt").on(t.endsAt),
+]);
+
+export type MarketBoost = typeof marketBoosts.$inferSelect;

@@ -7,6 +7,7 @@ import {
   getAllMarkets,
   getVotedMarketIds,
   getMarketBySlug,
+  getMarketById,
   getVoteStats,
   hasVoted,
   castVote,
@@ -29,6 +30,17 @@ import {
 } from "./db";
 import { resolveMarket } from "./resolution";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "./rateLimit";
+import { getWallet, getTransactions } from "./economy";
+import { processVoteRewards } from "./gamification";
+import {
+  listShopItems,
+  getMyItems,
+  buyItem,
+  equipItem,
+  unequipItem,
+  boostMarket,
+  getActiveBoostMarketIds,
+} from "./shop";
 
 // Seed mercados na inicialização
 seedMarketsIfEmpty().catch(console.error);
@@ -64,6 +76,7 @@ export const appRouter = router({
         const votedIds = input?.fingerprint
           ? new Set(await getVotedMarketIds(input.fingerprint, allMarkets.map((m: any) => m.id)))
           : null;
+        const boostedIds = await getActiveBoostMarketIds();
         const marketsWithStats = await Promise.all(
           allMarkets.map(async (market: any) => {
             const stats = await getVoteStats(market.id);
@@ -74,9 +87,12 @@ export const appRouter = router({
               ...market,
               stats: { countA: stats.countA, countB: stats.countB, total, pctA, pctB },
               viewerHasVoted: votedIds ? votedIds.has(market.id) : undefined,
+              boosted: boostedIds.has(market.id),
             };
           })
         );
+        // Enquetes impulsionadas primeiro (destaque comprado com Qs)
+        marketsWithStats.sort((a: any, b: any) => Number(b.boosted) - Number(a.boosted));
         return marketsWithStats;
       }),
 
@@ -124,11 +140,31 @@ export const appRouter = router({
           country: input.country ?? null,
           region: input.region ?? null,
         });
+
+        // Recompensas de Qs em best-effort: falha aqui nunca derruba o voto
+        let qsEarned = 0;
+        let dailyStreak = 0;
+        try {
+          const market = await getMarketById(input.marketId);
+          if (market) {
+            const rewards = await processVoteRewards(input.fingerprint, market);
+            qsEarned = rewards.qsEarned;
+            dailyStreak = rewards.dailyStreak;
+          }
+        } catch (e) {
+          console.error("[vote] Falha ao processar recompensas de Qs:", e);
+        }
+
         const stats = await getVoteStats(input.marketId);
         const total = stats.total;
         const pctA = total > 0 ? Math.round((stats.countA / total) * 100) : 50;
         const pctB = total > 0 ? Math.round((stats.countB / total) * 100) : 50;
-        return { success: true, stats: { countA: stats.countA, countB: stats.countB, total, pctA, pctB } };
+        return {
+          success: true,
+          stats: { countA: stats.countA, countB: stats.countB, total, pctA, pctB },
+          qsEarned,
+          dailyStreak,
+        };
       }),
 
     // Dados demográficos
@@ -191,6 +227,63 @@ export const appRouter = router({
       .input(z.object({ fingerprint: z.string().min(8).max(128) }))
       .query(async ({ input }) => {
         return getUserVotesWithResults(input.fingerprint);
+      }),
+  }),
+
+  // ─── Carteira de Qs ───────────────────────────────────────────────────────────
+  wallet: router({
+    // Saldo, streak diário e proteções (migra pontos herdados na 1ª leitura)
+    get: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .query(async ({ input }) => {
+        return getWallet(input.fingerprint);
+      }),
+
+    // Extrato de transações (mais recentes primeiro)
+    history: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128), limit: z.number().int().min(1).max(200).optional() }))
+      .query(async ({ input }) => {
+        return getTransactions(input.fingerprint, input.limit ?? 50);
+      }),
+  }),
+
+  // ─── Loja fictícia ────────────────────────────────────────────────────────────
+  shop: router({
+    list: publicProcedure.query(async () => {
+      return listShopItems();
+    }),
+
+    myItems: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .query(async ({ input }) => {
+        return getMyItems(input.fingerprint);
+      }),
+
+    buy: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128), itemCode: z.string().min(1).max(64) }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`shop:${getClientIp(ctx.req)}`, RATE_LIMITS.shop.max, RATE_LIMITS.shop.windowMs);
+        return buyItem(input.fingerprint, input.itemCode);
+      }),
+
+    equip: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128), itemId: z.number().int() }))
+      .mutation(async ({ input }) => {
+        return equipItem(input.fingerprint, input.itemId);
+      }),
+
+    unequip: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128), itemId: z.number().int() }))
+      .mutation(async ({ input }) => {
+        return unequipItem(input.fingerprint, input.itemId);
+      }),
+
+    // Impulsionar enquete: destaque na home por 24h
+    boost: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128), marketId: z.number().int() }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`shop:${getClientIp(ctx.req)}`, RATE_LIMITS.shop.max, RATE_LIMITS.shop.windowMs);
+        return boostMarket(input.fingerprint, input.marketId);
       }),
   }),
 

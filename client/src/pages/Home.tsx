@@ -99,6 +99,7 @@ export default function Home() {
                 imageUrl={featuredMarket.imageUrl}
                 tickerItems={newsByMarketId.get(featuredMarket.id) ?? null}
                 initialVoted={featuredMarket.viewerHasVoted}
+                boosted={(featuredMarket as any).boosted}
                 hero
               />
             ) : null}
@@ -133,6 +134,7 @@ export default function Home() {
                     imageUrl={market.imageUrl}
                     tickerItems={newsByMarketId.get(market.id) ?? null}
                     initialVoted={market.viewerHasVoted}
+                    boosted={(market as any).boosted}
                   />
                 ))}
               </div>
