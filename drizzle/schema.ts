@@ -283,3 +283,31 @@ export const commentReports = mysqlTable("comment_reports", {
 ]);
 
 export type CommentReport = typeof commentReports.$inferSelect;
+
+/**
+ * Sugestões de enquete enviadas por usuários (custam Qs; estornados se
+ * rejeitada). Fila de aprovação no admin — controle editorial preservado.
+ */
+export const marketSuggestions = mysqlTable("market_suggestions", {
+  id: int("id").autoincrement().primaryKey(),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 64 }).notNull().default("geral"),
+  optionA: varchar("optionA", { length: 128 }).notNull(),
+  optionB: varchar("optionB", { length: 128 }).notNull(),
+  labelA: varchar("labelA", { length: 64 }).notNull(),
+  labelB: varchar("labelB", { length: 64 }).notNull(),
+  endsAt: timestamp("endsAt"),
+  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
+  // Nota do moderador (exibida ao autor quando rejeitada)
+  reviewNote: varchar("reviewNote", { length: 300 }),
+  // Enquete criada a partir desta sugestão (quando aprovada)
+  marketId: int("marketId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("idx_suggestions_status").on(t.status, t.createdAt),
+  index("idx_suggestions_fp").on(t.fingerprint),
+]);
+
+export type MarketSuggestion = typeof marketSuggestions.$inferSelect;

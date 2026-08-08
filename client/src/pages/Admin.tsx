@@ -329,6 +329,24 @@ export default function Admin() {
     }
   };
 
+  const { data: pendingSuggestions } = trpc.admin.suggestionsPending.useQuery(undefined, {
+    enabled: adminAuth === true,
+  });
+
+  const reviewSuggestionMutation = trpc.admin.reviewSuggestion.useMutation({
+    onSuccess: (_data, variables) => {
+      toast.success(variables.action === "approve" ? "Sugestão aprovada — enquete no ar!" : "Sugestão recusada; Qs devolvidos ao autor.");
+      utils.admin.suggestionsPending.invalidate();
+      utils.admin.listAll.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const handleRejectSuggestion = (id: number) => {
+    const note = window.prompt("Motivo da recusa (mostrado ao autor, opcional):") ?? undefined;
+    reviewSuggestionMutation.mutate({ id, action: "reject", note: note || undefined });
+  };
+
   const { data: reportedComments } = trpc.admin.commentsReported.useQuery(undefined, {
     enabled: adminAuth === true,
   });
@@ -593,6 +611,71 @@ export default function Admin() {
             ))}
           </div>
         )}
+
+        {/* Sugestões de enquete da comunidade */}
+        <div className="mt-12">
+          <h2 className="text-lg font-bold text-foreground mb-4">
+            Sugestões da comunidade
+            {pendingSuggestions && pendingSuggestions.length > 0 && (
+              <span className="ml-2 text-xs bg-qs text-white px-2 py-0.5 rounded-full align-middle">
+                {pendingSuggestions.length}
+              </span>
+            )}
+          </h2>
+          {!pendingSuggestions || pendingSuggestions.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-sm text-muted-foreground">
+                Nenhuma sugestão aguardando revisão.
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {pendingSuggestions.map((s: any) => (
+                <Card key={s.id}>
+                  <CardContent className="py-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground leading-snug">{s.title}</h3>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1.5">
+                          <span className="bg-muted px-2 py-0.5 rounded">{s.category}</span>
+                          <span>por <strong className="text-foreground">{s.nickname ?? "Anônimo"}</strong></span>
+                          <span>{s.createdAt ? new Date(s.createdAt).toLocaleDateString("pt-BR") : ""}</span>
+                        </div>
+                        <div className="flex gap-3 mt-2 text-xs">
+                          <span className="text-vote-a font-medium">A: {s.optionA} ({s.labelA})</span>
+                          <span className="text-vote-b font-medium">B: {s.optionB} ({s.labelB})</span>
+                        </div>
+                        {s.description && (
+                          <p className="text-xs text-muted-foreground mt-2 leading-relaxed line-clamp-3">{s.description}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => reviewSuggestionMutation.mutate({ id: s.id, action: "approve" })}
+                          disabled={reviewSuggestionMutation.isPending}
+                          className="text-emerald-600 hover:border-emerald-400 text-xs"
+                        >
+                          Aprovar e publicar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleRejectSuggestion(s.id)}
+                          disabled={reviewSuggestionMutation.isPending}
+                          className="text-vote-a hover:border-vote-a/50 text-xs"
+                        >
+                          Recusar
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Moderação de comentários */}
         <div className="mt-12">

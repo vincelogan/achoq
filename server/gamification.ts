@@ -204,6 +204,17 @@ export async function checkAndAwardBadges(fingerprint: string): Promise<number> 
     // Tabela de comentários pode ainda não existir
   }
 
+  let approvedSuggestions = 0;
+  try {
+    const suggestionRows = await db.execute(
+      sql`SELECT COUNT(*) as count FROM market_suggestions WHERE fingerprint = ${fingerprint} AND status = 'approved'`
+    );
+    const rows: any[] = Array.isArray(suggestionRows[0]) ? suggestionRows[0] : (suggestionRows as any).rows ?? [];
+    approvedSuggestions = Number(rows[0]?.count ?? 0);
+  } catch {
+    // Tabela de sugestões pode ainda não existir
+  }
+
   const meets = (code: string): boolean => {
     switch (code) {
       case "primeira-opiniao": return voteCount >= 1;
@@ -218,6 +229,7 @@ export async function checkAndAwardBadges(fingerprint: string): Promise<number> 
       case "assiduo-30": return Number(score.dailyStreak) >= 30;
       case "madrugador": return earlyCount >= 10;
       case "comentarista": return commentCount >= 10;
+      case "ideia-aprovada": return approvedSuggestions >= 1;
       default: return false;
     }
   };

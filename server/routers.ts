@@ -52,6 +52,13 @@ import {
   getActiveBoostMarketIds,
 } from "./shop";
 import { addComment, listComments, listReportedComments, moderateComment, reportComment } from "./comments";
+import {
+  createSuggestion,
+  listMySuggestions,
+  listPendingSuggestions,
+  reviewSuggestion,
+  SUGGESTION_COST,
+} from "./suggestions";
 
 // Seed mercados na inicialização
 seedMarketsIfEmpty().catch(console.error);
@@ -298,6 +305,35 @@ export const appRouter = router({
       }),
   }),
 
+  // ─── Sugestões de enquete (UGC com moderação) ─────────────────────────────────
+  suggestions: router({
+    // Custo em Qs para exibir no formulário
+    cost: publicProcedure.query(() => ({ cost: SUGGESTION_COST })),
+
+    create: publicProcedure
+      .input(z.object({
+        fingerprint: z.string().min(8).max(128),
+        title: z.string().min(10).max(200),
+        category: z.string().min(1).max(64),
+        optionA: z.string().min(1).max(128),
+        optionB: z.string().min(1).max(128),
+        labelA: z.string().min(1).max(64),
+        labelB: z.string().min(1).max(64),
+        description: z.string().max(1000).optional(),
+        endsAt: z.coerce.date().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`suggest:${getClientIp(ctx.req)}`, RATE_LIMITS.suggestions.max, RATE_LIMITS.suggestions.windowMs);
+        return createSuggestion(input);
+      }),
+
+    mine: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .query(async ({ input }) => {
+        return listMySuggestions(input.fingerprint);
+      }),
+  }),
+
   // ─── Comentários ──────────────────────────────────────────────────────────────
   comments: router({
     list: publicProcedure
@@ -489,6 +525,22 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return updateMarket(input.id, { isActive: true });
+      }),
+
+    // Sugestões de enquete aguardando revisão
+    suggestionsPending: adminProcedure.query(async () => {
+      return listPendingSuggestions();
+    }),
+
+    // Aprovar (publica a enquete) ou rejeitar (estorna os Qs) uma sugestão
+    reviewSuggestion: adminProcedure
+      .input(z.object({
+        id: z.number().int(),
+        action: z.enum(["approve", "reject"]),
+        note: z.string().max(300).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return reviewSuggestion(input.id, input.action, input.note);
       }),
 
     // Comentários denunciados (fila de moderação)

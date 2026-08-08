@@ -71,6 +71,13 @@
       "when": 1784173072522,
       "tag": "0009_kind_tusk",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1786160640086,
+      "tag": "0010_long_moonstone",
+      "breakpoints": true
     }
   ]
 }
