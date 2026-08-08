@@ -84,20 +84,21 @@ describe.skipIf(!hasDatabase)("Economia de Qs (integração)", () => {
     });
   });
 
-  describe("migração lazy de pontos herdados", () => {
-    it("primeira leitura da carteira credita os points existentes uma única vez", async () => {
+  describe("migração lazy de pontos herdados + boas-vindas", () => {
+    it("primeira leitura credita points migrados + bônus de boas-vindas, uma única vez", async () => {
       const db = await getDb();
       await db.execute(
         sql`INSERT INTO user_scores (fingerprint, points) VALUES (${FP_MIG}, 120)
             ON DUPLICATE KEY UPDATE points = 120`
       );
+      // 120 migrados + 100 de boas-vindas
       const w1 = await getWallet(FP_MIG);
-      expect(w1.qBalance).toBe(120);
+      expect(w1.qBalance).toBe(220);
       const w2 = await getWallet(FP_MIG);
-      expect(w2.qBalance).toBe(120);
+      expect(w2.qBalance).toBe(220);
       const txs = await getTransactions(FP_MIG);
-      const migrations = txs.filter((t: any) => t.type === "migration");
-      expect(migrations.length).toBe(1);
+      expect(txs.filter((t: any) => t.type === "migration").length).toBe(1);
+      expect(txs.filter((t: any) => t.type === "welcome").length).toBe(1);
     });
   });
 
