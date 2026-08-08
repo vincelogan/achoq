@@ -2,6 +2,32 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useFingerprint } from "@/hooks/useFingerprint";
+import { useAuth } from "@/hooks/useAuth";
+
+const PENDING_VOTE_KEY = "achoq_pending_vote";
+
+type PendingVote = { marketId: number; choice: Choice };
+
+function readPendingVote(): PendingVote | null {
+  try {
+    const raw = sessionStorage.getItem(PENDING_VOTE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (typeof parsed?.marketId === "number" && (parsed.choice === "A" || parsed.choice === "B")) return parsed;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function writePendingVote(vote: PendingVote | null) {
+  try {
+    if (vote) sessionStorage.setItem(PENDING_VOTE_KEY, JSON.stringify(vote));
+    else sessionStorage.removeItem(PENDING_VOTE_KEY);
+  } catch {
+    /* sessionStorage indisponível */
+  }
+}
 
 type Choice = "A" | "B";
 
@@ -32,12 +58,14 @@ export function useVote({
   initialVoted?: boolean;
 }) {
   const fingerprint = useFingerprint();
+  const { isAuthenticated } = useAuth();
   const [votingChoice, setVotingChoice] = useState<Choice | null>(null);
   const [justVoted, setJustVoted] = useState<Choice | null>(null);
   const [alreadyVoted, setAlreadyVoted] = useState(initialVoted === true);
   const [myChoice, setMyChoice] = useState<Choice | null>(null);
+  const [needsAuth, setNeedsAuth] = useState(false);
 
-  const canVote = !!marketId && !!fingerprint;
+  const canVote = !!marketId && !!fingerprint && isAuthenticated;
   // A query individual de checkVote só roda quando o chamador não informou
   // initialVoted (ex.: MarketDetail); na home o markets.list já respondeu.
   const checkEnabled = canVote && initialVoted === undefined;
@@ -89,15 +117,38 @@ export function useVote({
   });
 
   const vote = (choice: Choice) => {
-    if (!canVote || alreadyVoted || justVoted || voteMutation.isPending) return;
+    if (!marketId || alreadyVoted || justVoted || voteMutation.isPending) return;
+    if (!isAuthenticated) {
+      // Guarda a intenção e leva para o login; ao voltar autenticado, o
+      // effect abaixo completa este mesmo voto automaticamente.
+      writePendingVote({ marketId, choice });
+      setNeedsAuth(true);
+      return;
+    }
     setVotingChoice(choice);
     setMyChoice(choice);
-    voteMutation.mutate({ marketId: marketId!, choice, fingerprint });
+    voteMutation.mutate({ marketId, choice });
   };
+
+  // Retoma um voto pendente (guardado antes de mandar para o login) assim
+  // que a sessão autenticada estiver confirmada.
+  useEffect(() => {
+    if (!isAuthenticated || !marketId || alreadyVoted || justVoted || voteMutation.isPending) return;
+    const pending = readPendingVote();
+    if (!pending || pending.marketId !== marketId) return;
+    writePendingVote(null);
+    setVotingChoice(pending.choice);
+    setMyChoice(pending.choice);
+    voteMutation.mutate({ marketId, choice: pending.choice });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, marketId, alreadyVoted, justVoted]);
 
   return {
     fingerprint,
     vote,
+    /** true quando o clique em votar precisa de login — abre o modal de entrada */
+    needsAuth,
+    dismissAuthPrompt: () => setNeedsAuth(false),
     /** true se o usuário já tinha votado OU acabou de votar */
     hasVoted: alreadyVoted || justVoted !== null,
     /** escolha do usuário (persistida em localStorage) */

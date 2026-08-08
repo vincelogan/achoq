@@ -1,10 +1,15 @@
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { LogOut, Menu, User, X } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import SearchBar from "./SearchBar";
 import QsBalance from "./QsBalance";
 import NotificationBell from "./NotificationBell";
+import { Button } from "./ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
+import { clearFingerprint } from "@/hooks/useFingerprint";
 
 const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/logowhite_07ee886e.png";
 
@@ -14,6 +19,53 @@ const navLinks = [
   { href: "/liga", label: "Liga" },
   { href: "/loja", label: "Loja" },
 ];
+
+function AccountMenu() {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const utils = trpc.useUtils();
+  const logoutMutation = trpc.auth.logout.useMutation({
+    onSuccess: () => {
+      // Volta a agir como visitante anônimo (não com a identidade da conta
+      // que acabou de sair) e recarrega — mesmo motivo do login: o
+      // fingerprint em memória dos componentes já montados não muda sozinho.
+      clearFingerprint();
+      utils.auth.me.invalidate();
+      window.location.assign("/");
+    },
+  });
+
+  if (isLoading) return null;
+
+  if (!isAuthenticated) {
+    return (
+      <Link href="/entrar">
+        <Button size="sm" variant="outline" className="text-sm font-medium">
+          Entrar
+        </Button>
+      </Link>
+    );
+  }
+
+  const label = user?.name || user?.email || "Conta";
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center gap-1.5 p-1.5 rounded-full hover:bg-muted transition-colors" aria-label="Menu da conta">
+          <span className="w-7 h-7 rounded-full bg-brand/10 text-brand flex items-center justify-center">
+            <User className="w-4 h-4" />
+          </span>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <div className="px-2 py-1.5 text-xs text-muted-foreground truncate max-w-[200px]">{label}</div>
+        <DropdownMenuItem onClick={() => logoutMutation.mutate()} className="text-red-500 focus:text-red-600">
+          <LogOut className="w-3.5 h-3.5 mr-2" /> Sair
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 export default function Header() {
   const [location] = useLocation();
@@ -54,13 +106,15 @@ export default function Header() {
           <QsBalance />
           <NotificationBell />
           <ThemeToggle />
+          <AccountMenu />
         </nav>
 
-        {/* Mobile: saldo + sino + toggle de tema + menu */}
+        {/* Mobile: saldo + sino + toggle de tema + conta + menu */}
         <div className="flex items-center gap-1 md:hidden">
           <QsBalance />
           <NotificationBell />
           <ThemeToggle />
+          <AccountMenu />
           <button
             className="p-2 rounded-lg hover:bg-muted transition-colors"
             onClick={() => setMobileOpen(!mobileOpen)}

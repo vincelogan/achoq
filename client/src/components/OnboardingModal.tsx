@@ -67,17 +67,28 @@ export default function OnboardingModal() {
             </div>
 
             <ul className="text-xs text-muted-foreground space-y-1.5">
-              <li>🗳️ <strong className="text-foreground/80">Opine</strong> — cada voto vale Qs (e sua opinião é anônima)</li>
+              <li>🗳️ <strong className="text-foreground/80">Opine</strong> — cada voto vale Qs</li>
               <li>🔥 <strong className="text-foreground/80">Volte amanhã</strong> — check-in diário paga cada vez mais</li>
               <li>🏆 <strong className="text-foreground/80">Suba na liga</strong> — ou crie um <Link href="/boloes" className="underline" onClick={dismiss}>bolão com amigos</Link></li>
             </ul>
 
-            <button
+            <Link
+              href="/cadastro"
               onClick={dismiss}
-              className="w-full py-3 rounded-xl bg-brand text-brand-foreground font-bold text-sm hover:bg-brand/90 transition-colors"
+              className="block w-full text-center py-3 rounded-xl bg-brand text-brand-foreground font-bold text-sm hover:bg-brand/90 transition-colors"
             >
-              Começar a opinar
-            </button>
+              Criar conta e começar a opinar
+            </Link>
+            <p className="text-center text-xs text-muted-foreground">
+              Já tem conta?{" "}
+              <Link href="/entrar" onClick={dismiss} className="text-brand font-medium underline">
+                Entrar
+              </Link>
+              {" · "}
+              <button onClick={dismiss} className="underline">
+                Só olhar por enquanto
+              </button>
+            </p>
           </div>
         </div>
       </div>

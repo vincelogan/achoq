@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useVote } from "@/hooks/useVote";
+import { LoginGateModal } from "@/components/LoginGateModal";
 import { SharePopup, PostVoteShareModal } from "@/components/SharePopup";
 import CommentsSection from "@/components/CommentsSection";
 import EmbedModal from "@/components/EmbedModal";
@@ -126,7 +127,7 @@ export default function MarketDetail() {
   const { data: newsItems } = trpc.news.byMarket.useQuery({ marketId: market?.id ?? 0 }, { enabled: !!market });
 
   const utils = trpc.useUtils();
-  const { fingerprint, vote, hasVoted, myChoice, votingChoice, justVoted } = useVote({
+  const { fingerprint, vote, needsAuth, dismissAuthPrompt, hasVoted, myChoice, votingChoice, justVoted } = useVote({
     marketId: market?.id,
     onVoted: () => {
       setShowConfirmation(true);
@@ -587,6 +588,7 @@ export default function MarketDetail() {
           choice={justVotedChoice}
         />
       </AnimatePresence>
+      <LoginGateModal open={needsAuth} onClose={dismissAuthPrompt} />
     </div>
   );
 }

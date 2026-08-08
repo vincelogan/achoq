@@ -1,8 +1,10 @@
 import { z } from "zod";
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router, adminProcedure } from "./_core/trpc";
+import { publicProcedure, router, adminProcedure, protectedProcedure } from "./_core/trpc";
+import { hashPassword, verifyPassword, validateEmail, validatePassword } from "./_core/passwordAuth";
+import { createUserSessionToken } from "./_core/userSession";
 import {
   getAllMarkets,
   getVotedMarketIds,
@@ -27,6 +29,10 @@ import {
   getTopRanking,
   getMyRankingPosition,
   setNickname,
+  toPublicUser,
+  getUserByEmail,
+  createUserWithPassword,
+  claimOrMintFingerprint,
 } from "./db";
 import { resolveMarket } from "./resolution";
 import { applyAugust2026ContentUpdate } from "./_core/contentUpdate";
@@ -77,7 +83,7 @@ export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query(opts => toPublicUser(opts.ctx.user)),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
@@ -85,6 +91,65 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+
+    // Cadastro por e-mail/senha. O `fingerprint` (opcional) é o anônimo que o
+    // navegador já tinha — se ainda estiver livre, vira o fingerprint
+    // permanente da conta, preservando Qs/badges/streak de quem já opinava.
+    register: publicProcedure
+      .input(z.object({
+        email: z.string().min(3).max(320),
+        password: z.string().min(1).max(128),
+        fingerprint: z.string().min(8).max(128).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`authSignup:${getClientIp(ctx.req)}`, RATE_LIMITS.authSignup.max, RATE_LIMITS.authSignup.windowMs);
+
+        const emailError = validateEmail(input.email);
+        if (emailError) throw new Error(emailError);
+        const passwordError = validatePassword(input.password);
+        if (passwordError) throw new Error(passwordError);
+
+        const email = input.email.trim().toLowerCase();
+        const existing = await getUserByEmail(email);
+        if (existing) throw new Error("Este e-mail já está cadastrado. Tente entrar.");
+
+        const passwordHash = await hashPassword(input.password);
+        const fingerprint = await claimOrMintFingerprint(input.fingerprint);
+        const user = await createUserWithPassword({ email, passwordHash, fingerprint });
+
+        const sessionToken = await createUserSessionToken(user.id);
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+
+        return toPublicUser(user);
+      }),
+
+    // Login por e-mail/senha. Mensagem de erro genérica de propósito (não
+    // revela se o e-mail existe) para não virar oráculo de enumeração.
+    login: publicProcedure
+      .input(z.object({
+        email: z.string().min(3).max(320),
+        password: z.string().min(1).max(128),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const ip = getClientIp(ctx.req);
+        const email = input.email.trim().toLowerCase();
+        checkRateLimit(`authLogin:${ip}`, RATE_LIMITS.authLogin.max, RATE_LIMITS.authLogin.windowMs);
+        checkRateLimit(`authLogin:email:${email}`, RATE_LIMITS.authLogin.max, RATE_LIMITS.authLogin.windowMs);
+
+        const GENERIC_ERR = "E-mail ou senha incorretos.";
+        const user = await getUserByEmail(email);
+        if (!user || !user.passwordHash) throw new Error(GENERIC_ERR);
+
+        const valid = await verifyPassword(input.password, user.passwordHash);
+        if (!valid) throw new Error(GENERIC_ERR);
+
+        const sessionToken = await createUserSessionToken(user.id);
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+
+        return toPublicUser(user);
+      }),
   }),
 
   markets: router({
@@ -145,18 +210,23 @@ export const appRouter = router({
         return { voted };
       }),
 
-    // Registrar um voto real
-    vote: publicProcedure
+    // Registrar um voto real — exige conta (protectedProcedure). O fingerprint
+    // usado é SEMPRE o da conta autenticada (ctx.user.fingerprint), nunca o que
+    // o cliente eventualmente mande — fecha o buraco de spoofing de identidade
+    // que existia quando qualquer request podia carregar qualquer fingerprint.
+    vote: protectedProcedure
       .input(z.object({
         marketId: z.number(),
         choice: z.enum(["A", "B"]),
-        fingerprint: z.string().min(8).max(128),
         country: z.string().optional(),
         region: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         checkRateLimit(`vote:${getClientIp(ctx.req)}`, RATE_LIMITS.vote.max, RATE_LIMITS.vote.windowMs);
-        const alreadyVoted = await hasVoted(input.marketId, input.fingerprint);
+        const fingerprint = ctx.user.fingerprint;
+        if (!fingerprint) throw new Error("Conta sem identidade associada. Tente entrar novamente.");
+
+        const alreadyVoted = await hasVoted(input.marketId, fingerprint);
         if (alreadyVoted) throw new Error("Você já opinou nesta enquete.");
 
         // Enquete precisa existir, estar ativa, não resolvida e dentro do prazo.
@@ -174,8 +244,8 @@ export const appRouter = router({
         await castVote({
           marketId: input.marketId,
           choice: input.choice,
-          fingerprint: input.fingerprint,
-          userId: ctx.user?.id ?? null,
+          fingerprint,
+          userId: ctx.user.id,
           country: input.country ?? null,
           region: input.region ?? null,
         });
@@ -185,7 +255,7 @@ export const appRouter = router({
         let dailyStreak = 0;
         try {
           if (votedMarket) {
-            const rewards = await processVoteRewards(input.fingerprint, votedMarket);
+            const rewards = await processVoteRewards(fingerprint, votedMarket);
             qsEarned = rewards.qsEarned;
             dailyStreak = rewards.dailyStreak;
           }
@@ -202,7 +272,7 @@ export const appRouter = router({
               countA: stats.countA - (input.choice === "A" ? 1 : 0),
               countB: stats.countB - (input.choice === "B" ? 1 : 0),
             };
-            await detectAndNotifyMajorityFlip(votedMarket, before, stats, input.fingerprint);
+            await detectAndNotifyMajorityFlip(votedMarket, before, stats, fingerprint);
           }
         } catch (e) {
           console.error("[vote] Falha ao detectar virada de maioria:", e);

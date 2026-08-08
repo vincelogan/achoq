@@ -5,22 +5,21 @@ import { httpBatchLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
-import { getLoginUrl } from "./const";
 import "./index.css";
 
 const queryClient = new QueryClient();
 
+// Rede de segurança: se alguma chamada protegida falhar por sessão ausente/
+// expirada em qualquer lugar do app, manda para a página interna de login
+// (não mais um portal externo — ver server/_core/userSession.ts).
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
+  if (error.message !== UNAUTHED_ERR_MSG) return;
+  if (window.location.pathname === "/entrar") return;
 
-  const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
-
-  if (!isUnauthorized) return;
-
-  const loginUrl = getLoginUrl();
-  if (loginUrl === "#login-unavailable") return;
-  window.location.href = loginUrl;
+  const returnPath = window.location.pathname + window.location.search;
+  window.location.href = `/entrar?returnPath=${encodeURIComponent(returnPath)}`;
 };
 
 queryClient.getQueryCache().subscribe(event => {

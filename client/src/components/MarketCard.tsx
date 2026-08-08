@@ -4,6 +4,7 @@ import { Share2, TrendingUp, CheckCircle2, Loader2, Calendar } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { useVote } from "@/hooks/useVote";
 import { SharePopup } from "@/components/SharePopup";
+import { LoginGateModal } from "@/components/LoginGateModal";
 import { Link } from "wouter";
 
 type MarketCardProps = {
@@ -94,7 +95,7 @@ export default function MarketCard({
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  const { fingerprint, vote, hasVoted, myChoice, votingChoice, isPending } = useVote({
+  const { fingerprint, vote, needsAuth, dismissAuthPrompt, hasVoted, myChoice, votingChoice, isPending } = useVote({
     marketId,
     initialVoted,
     onVoted: (_choice, stats) => {
@@ -390,7 +391,7 @@ export default function MarketCard({
               {/* Botão Opção A */}
               <button
                 onClick={() => handleVote("A")}
-                disabled={isPending || !fingerprint}
+                disabled={isPending}
                 className={`group w-full border-2 border-vote-a transition-all duration-200 rounded-lg px-3 py-2.5 sm:p-4 flex justify-between items-center disabled:cursor-not-allowed ${
                   votingChoice === "A"
                     ? "bg-vote-a/20 scale-[0.98]"
@@ -420,7 +421,7 @@ export default function MarketCard({
               {/* Botão Opção B */}
               <button
                 onClick={() => handleVote("B")}
-                disabled={isPending || !fingerprint}
+                disabled={isPending}
                 className={`group w-full border-2 border-vote-b transition-all duration-200 rounded-lg px-3 py-2.5 sm:p-4 flex justify-between items-center disabled:cursor-not-allowed ${
                   votingChoice === "B"
                     ? "bg-vote-b/20 scale-[0.98]"
@@ -475,6 +476,8 @@ export default function MarketCard({
           />
         )}
       </AnimatePresence>
+
+      <LoginGateModal open={needsAuth} onClose={dismissAuthPrompt} />
     </div>
   );
 }

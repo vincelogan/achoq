@@ -13,6 +13,7 @@ const Categoria = lazy(() => import("./pages/Categoria"));
 const Loja = lazy(() => import("./pages/Loja"));
 const Carteira = lazy(() => import("./pages/Carteira"));
 const Liga = lazy(() => import("./pages/Liga"));
+const Entrar = lazy(() => import("./pages/Entrar"));
 const Sugerir = lazy(() => import("./pages/Sugerir"));
 const Boloes = lazy(() => import("./pages/Boloes"));
 const BolaoDetalhe = lazy(() => import("./pages/BolaoDetalhe"));
@@ -42,6 +43,8 @@ function Router() {
         <Route path="/busca" component={Busca} />
         <Route path="/categoria/:categoria" component={Categoria} />
         <Route path="/loja" component={Loja} />
+        <Route path="/entrar" component={Entrar} />
+        <Route path="/cadastro" component={Entrar} />
         <Route path="/carteira" component={Carteira} />
         <Route path="/liga" component={Liga} />
         <Route path="/sugerir" component={Sugerir} />

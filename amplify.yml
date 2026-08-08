@@ -12,11 +12,8 @@ frontend:
         - echo "JWT_SECRET=$JWT_SECRET" >> .env.runtime
         - echo "NODE_ENV=$NODE_ENV" >> .env.runtime
         - echo "VITE_APP_TITLE=$VITE_APP_TITLE" >> .env.runtime
-        - echo "VITE_APP_ID=$VITE_APP_ID" >> .env.runtime
-        - echo "OAUTH_SERVER_URL=$OAUTH_SERVER_URL" >> .env.runtime
-        - echo "VITE_OAUTH_PORTAL_URL=$VITE_OAUTH_PORTAL_URL" >> .env.runtime
-        - echo "OWNER_OPEN_ID=$OWNER_OPEN_ID" >> .env.runtime
-        - echo "OWNER_NAME=$OWNER_NAME" >> .env.runtime
+        - echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> .env.runtime
+        - echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> .env.runtime
         - echo "BUILT_IN_FORGE_API_URL=$BUILT_IN_FORGE_API_URL" >> .env.runtime
         - echo "BUILT_IN_FORGE_API_KEY=$BUILT_IN_FORGE_API_KEY" >> .env.runtime
         - echo "VITE_FRONTEND_FORGE_API_KEY=$VITE_FRONTEND_FORGE_API_KEY" >> .env.runtime

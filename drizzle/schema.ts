@@ -2,10 +2,20 @@ import { index, int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varcha
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
-  openId: varchar("openId", { length: 64 }).notNull().unique(),
+  // Legado do scaffold Manus OAuth (nunca usado por visitante real) — coluna
+  // mantida por compatibilidade, mas nula para contas novas (senha/Google).
+  openId: varchar("openId", { length: 64 }).unique(),
   name: text("name"),
-  email: varchar("email", { length: 320 }),
+  email: varchar("email", { length: 320 }).unique(),
   loginMethod: varchar("loginMethod", { length: 64 }),
+  // Hash bcrypt da senha — nulo para contas só-Google.
+  passwordHash: varchar("passwordHash", { length: 255 }),
+  // Claim "sub" do Google — nulo para contas só-senha.
+  googleSub: varchar("googleSub", { length: 64 }).unique(),
+  // Fingerprint canônico da conta: no cadastro, adota o fingerprint anônimo
+  // que o visitante já tinha (preserva Qs/badges/streak); devolvido em todo
+  // login para o cliente sincronizar o localStorage entre dispositivos.
+  fingerprint: varchar("fingerprint", { length: 128 }).unique(),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

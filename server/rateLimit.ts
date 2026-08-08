@@ -73,6 +73,8 @@ export const RATE_LIMITS = {
   shop: { max: 30, windowMs: 60 * 60 * 1000 },
   suggestions: { max: 5, windowMs: 60 * 60 * 1000 },
   groups: { max: 10, windowMs: 60 * 60 * 1000 },
+  authSignup: { max: 10, windowMs: 60 * 60 * 1000 },
+  authLogin: { max: 8, windowMs: 15 * 60 * 1000 },
 } as const;
 
 /** Apenas para testes: limpa todos os contadores. */
