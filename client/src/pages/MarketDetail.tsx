@@ -17,6 +17,7 @@ import {
   Zap,
   Bell,
   BellOff,
+  Code2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -24,6 +25,7 @@ import { toast } from "sonner";
 import { useVote } from "@/hooks/useVote";
 import { SharePopup, PostVoteShareModal } from "@/components/SharePopup";
 import CommentsSection from "@/components/CommentsSection";
+import EmbedModal from "@/components/EmbedModal";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -84,6 +86,7 @@ export default function MarketDetail() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug || "";
   const [shareOpen, setShareOpen] = useState(false);
+  const [embedOpen, setEmbedOpen] = useState(false);
   const [postVoteShareOpen, setPostVoteShareOpen] = useState(false);
   // Detectar se o usuário chegou via link de desafio
   const isChallenge = useMemo(() => {
@@ -471,6 +474,9 @@ export default function MarketDetail() {
                     {watchStatus?.watching ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
                     {watchStatus?.watching ? "Deixar de seguir" : "Seguir enquete"}
                   </Button>
+                  <Button onClick={() => setEmbedOpen(true)} variant="outline" className="w-full gap-2 mt-2">
+                    <Code2 className="w-4 h-4" />Incorporar no seu site
+                  </Button>
                 </div>
 
                 {market.isActive && (
@@ -516,6 +522,7 @@ export default function MarketDetail() {
         </div>
       </main>
       <Footer />
+      <EmbedModal open={embedOpen} onClose={() => setEmbedOpen(false)} slug={market.slug} title={market.title} />
       <AnimatePresence>
         <SharePopup
           open={shareOpen}
