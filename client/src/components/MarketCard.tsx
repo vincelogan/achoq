@@ -24,6 +24,7 @@ type MarketCardProps = {
   };
   hero?: boolean;
   endsAt?: string | Date | null;
+  resolvedChoice?: "A" | "B" | null;
   imageUrl?: string | null;
   tickerItems?: Array<{ tickerText: string; sourceName: string }> | null;
   /** Se o chamador já sabe (via markets.list) se o usuário votou */
@@ -82,6 +83,7 @@ export default function MarketCard({
   initialStats,
   hero = false,
   endsAt,
+  resolvedChoice,
   imageUrl,
   tickerItems,
   initialVoted,
@@ -106,6 +108,10 @@ export default function MarketCard({
   });
 
   const handleVote = (choice: "A" | "B") => vote(choice);
+
+  const isPastDeadline = endsAt ? new Date(endsAt).getTime() < Date.now() : false;
+  const isClosed = isPastDeadline || !!resolvedChoice;
+  const resolvedLabel = resolvedChoice === "A" ? optionA : resolvedChoice === "B" ? optionB : null;
 
   const shareText = `No AchoQ: "${title}" — ${localStats.pctA}% acham ${optionA} vs ${localStats.pctB}% acham ${optionB}. E você?`;
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/mercado/${slug}` : "";
@@ -145,9 +151,18 @@ export default function MarketCard({
               ⚡ Impulsionada
             </span>
           )}
+          {resolvedLabel ? (
+            <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+              🏁 Resultado: {resolvedLabel}
+            </span>
+          ) : isPastDeadline ? (
+            <span className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground bg-muted border border-border px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+              ⏳ Aguardando resultado
+            </span>
+          ) : null}
         </div>
         <div className="flex items-center gap-3">
-          {endsAt && (
+          {endsAt && !isClosed && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Calendar className="w-3 h-3" />
               <span>Encerra {new Date(endsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}</span>
@@ -286,7 +301,7 @@ export default function MarketCard({
               </div>
             </motion.div>
 
-          ) : hasVoted ? (            <motion.div
+          ) : hasVoted || isClosed ? (            <motion.div
               key="results"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}

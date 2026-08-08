@@ -45,6 +45,8 @@ interface MarketFormData {
   optionB: string;
   labelA: string;
   labelB: string;
+  endsAt: string;
+  imageUrl: string;
 }
 
 const emptyForm: MarketFormData = {
@@ -56,6 +58,8 @@ const emptyForm: MarketFormData = {
   optionB: "",
   labelA: "",
   labelB: "",
+  endsAt: "",
+  imageUrl: "",
 };
 
 // ─── Market Form ──────────────────────────────────────────────────────────────
@@ -125,6 +129,23 @@ function MarketForm({
               placeholder="Descrição opcional da enquete"
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-foreground/80 mb-1 block">Prazo de encerramento</label>
+            <Input
+              type="date"
+              value={form.endsAt}
+              onChange={(e) => setForm((f) => ({ ...f, endsAt: e.target.value }))}
+            />
+            <p className="text-xs text-muted-foreground mt-1">Sem isso a enquete nunca aparece como vencida</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-foreground/80 mb-1 block">URL da imagem (banner)</label>
+            <Input
+              placeholder="/banners/exemplo.png ou https://..."
+              value={form.imageUrl}
+              onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))}
             />
           </div>
         </div>
@@ -329,6 +350,14 @@ export default function Admin() {
     }
   };
 
+  // Detecção automática de enquetes vencidas (prazo passou, ainda sem resolução) —
+  // mesmo critério do endpoint /api/scheduled/pending-markets, calculado no cliente
+  // a partir da lista que o admin já carrega. Elimina a necessidade de caçar datas
+  // manualmente na lista completa.
+  const overdueMarkets = (markets ?? [])
+    .filter((m) => m.isActive && !m.resolvedChoice && m.endsAt && new Date(m.endsAt).getTime() < Date.now())
+    .sort((a, b) => new Date(a.endsAt!).getTime() - new Date(b.endsAt!).getTime());
+
   const { data: pendingSuggestions } = trpc.admin.suggestionsPending.useQuery(undefined, {
     enabled: adminAuth === true,
   });
@@ -379,6 +408,24 @@ export default function Admin() {
     }
   };
 
+  const applyContentUpdateMutation = trpc.admin.applyContentUpdate.useMutation({
+    onSuccess: (data) => {
+      const parts: string[] = [];
+      if (data.datesFixed.length) parts.push(`${data.datesFixed.length} prazo(s) corrigido(s)`);
+      if (data.resolved.length) parts.push(`${data.resolved.length} enquete(s) resolvida(s)`);
+      if (data.inserted.length) parts.push(`${data.inserted.length} enquete(s) nova(s) publicada(s)`);
+      toast.success(parts.length ? `Atualização aplicada: ${parts.join(", ")}.` : "Nada pendente — já estava tudo em dia.");
+      utils.admin.listAll.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const handleApplyContentUpdate = () => {
+    if (window.confirm("Aplicar atualização de agosto/2026? Corrige prazos, resolve Copa/Neymar/BBB com o resultado real e publica 3 enquetes novas.")) {
+      applyContentUpdateMutation.mutate();
+    }
+  };
+
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST", credentials: "include" });
     setAdminAuth(false);
@@ -426,6 +473,17 @@ export default function Admin() {
               {migrating ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Database className="w-3.5 h-3.5 mr-1" />}
               Atualizar banco
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleApplyContentUpdate}
+              disabled={applyContentUpdateMutation.isPending}
+              title="Corrigir prazos, resolver enquetes vencidas conhecidas e publicar 3 enquetes novas"
+              className="text-amber-600 hover:text-amber-700 hover:border-amber-400"
+            >
+              {applyContentUpdateMutation.isPending ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : "🎯"}
+              {" "}Atualização ago/26
+            </Button>
             <Link href="/">
               <Button variant="outline" size="sm">
                 <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Site
@@ -472,6 +530,64 @@ export default function Admin() {
           </Card>
         </div>
 
+        {/* Enquetes vencidas — detecção automática (auto conclusão) */}
+        {overdueMarkets.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-lg font-bold text-amber-700 dark:text-amber-400 mb-1 flex items-center gap-2">
+              ⏰ Enquetes vencidas aguardando resolução
+              <span className="text-xs bg-amber-500 text-white px-2 py-0.5 rounded-full align-middle">
+                {overdueMarkets.length}
+              </span>
+            </h2>
+            <p className="text-xs text-muted-foreground mb-3">
+              O prazo (endsAt) já passou e ainda não têm resultado — a votação nelas já está bloqueada para o público. Resolva com ✓A/✓B abaixo.
+            </p>
+            <div className="space-y-2">
+              {overdueMarkets.map((market) => {
+                const daysOverdue = Math.floor((Date.now() - new Date(market.endsAt!).getTime()) / (1000 * 60 * 60 * 24));
+                return (
+                  <Card key={market.id} className="border-amber-400/50 bg-amber-500/5">
+                    <CardContent className="py-3">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-foreground truncate">{market.title}</h3>
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
+                            <span className="bg-muted px-2 py-0.5 rounded">{market.category}</span>
+                            <span className="text-amber-700 dark:text-amber-400 font-medium">
+                              vencida há {daysOverdue} {daysOverdue === 1 ? "dia" : "dias"}
+                            </span>
+                            <span>{market.voteCount} opiniões</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleResolve(market.id, market.title, "A", market.optionA)}
+                            title={`Resolver: ${market.optionA}`}
+                            className="text-vote-a hover:border-vote-a/50 text-xs font-bold"
+                          >
+                            ✓ {market.optionA}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleResolve(market.id, market.title, "B", market.optionB)}
+                            title={`Resolver: ${market.optionB}`}
+                            className="text-vote-b hover:border-vote-b/50 text-xs font-bold"
+                          >
+                            ✓ {market.optionB}
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Create button */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-bold text-foreground">Enquetes</h2>
@@ -491,7 +607,13 @@ export default function Admin() {
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">Criar nova enquete</h3>
             <MarketForm
               initial={emptyForm}
-              onSubmit={(data) => createMutation.mutate(data)}
+              onSubmit={(data) =>
+                createMutation.mutate({
+                  ...data,
+                  endsAt: data.endsAt ? new Date(`${data.endsAt}T23:59:59`) : undefined,
+                  imageUrl: data.imageUrl || undefined,
+                })
+              }
               onCancel={() => setShowCreate(false)}
               isLoading={createMutation.isPending}
               submitLabel="Criar Enquete"
@@ -519,8 +641,17 @@ export default function Admin() {
                       optionB: market.optionB,
                       labelA: market.labelA,
                       labelB: market.labelB,
+                      endsAt: market.endsAt ? new Date(market.endsAt).toISOString().slice(0, 10) : "",
+                      imageUrl: market.imageUrl ?? "",
                     }}
-                    onSubmit={(data) => updateMutation.mutate({ id: market.id, ...data })}
+                    onSubmit={(data) =>
+                      updateMutation.mutate({
+                        id: market.id,
+                        ...data,
+                        endsAt: data.endsAt ? new Date(`${data.endsAt}T23:59:59`) : undefined,
+                        imageUrl: data.imageUrl || undefined,
+                      })
+                    }
                     onCancel={() => setEditingId(null)}
                     isLoading={updateMutation.isPending}
                     submitLabel="Salvar Alterações"

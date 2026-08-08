@@ -29,6 +29,7 @@ import {
   setNickname,
 } from "./db";
 import { resolveMarket } from "./resolution";
+import { applyAugust2026ContentUpdate } from "./_core/contentUpdate";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "./rateLimit";
 import { getWallet, getTransactions } from "./economy";
 import {
@@ -157,6 +158,17 @@ export const appRouter = router({
         checkRateLimit(`vote:${getClientIp(ctx.req)}`, RATE_LIMITS.vote.max, RATE_LIMITS.vote.windowMs);
         const alreadyVoted = await hasVoted(input.marketId, input.fingerprint);
         if (alreadyVoted) throw new Error("Você já opinou nesta enquete.");
+
+        // Enquete precisa existir, estar ativa, não resolvida e dentro do prazo.
+        const votedMarket = await getMarketById(input.marketId);
+        if (!votedMarket) throw new Error("Enquete não encontrada.");
+        if (!votedMarket.isActive || votedMarket.resolvedChoice) {
+          throw new Error("Esta enquete já foi encerrada.");
+        }
+        if (votedMarket.endsAt && new Date(votedMarket.endsAt) < new Date()) {
+          throw new Error("O prazo para opinar nesta enquete já encerrou.");
+        }
+
         // Corrida entre o check acima e o INSERT é coberta pelo índice único
         // (marketId, fingerprint): castVote lança DuplicateVoteError.
         await castVote({
@@ -171,9 +183,7 @@ export const appRouter = router({
         // Recompensas de Qs em best-effort: falha aqui nunca derruba o voto
         let qsEarned = 0;
         let dailyStreak = 0;
-        let votedMarket: any = null;
         try {
-          votedMarket = await getMarketById(input.marketId);
           if (votedMarket) {
             const rewards = await processVoteRewards(input.fingerprint, votedMarket);
             qsEarned = rewards.qsEarned;
@@ -589,6 +599,8 @@ export const appRouter = router({
         optionB: z.string().min(1),
         labelA: z.string().min(1),
         labelB: z.string().min(1),
+        endsAt: z.coerce.date().optional(),
+        imageUrl: z.string().max(500).optional(),
       }))
       .mutation(async ({ input }) => {
         return createMarket({
@@ -600,6 +612,8 @@ export const appRouter = router({
           optionB: input.optionB,
           labelA: input.labelA,
           labelB: input.labelB,
+          endsAt: input.endsAt ?? null,
+          imageUrl: input.imageUrl || null,
           isActive: true,
         });
       }),
@@ -617,6 +631,8 @@ export const appRouter = router({
         labelA: z.string().optional(),
         labelB: z.string().optional(),
         isActive: z.boolean().optional(),
+        endsAt: z.coerce.date().optional(),
+        imageUrl: z.string().max(500).optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;
@@ -678,6 +694,13 @@ export const appRouter = router({
         await resolveMarket(input.id, input.resolvedChoice);
         return { success: true };
       }),
+
+    // Atualização de conteúdo de agosto/2026: backfill de prazos, resolução das
+    // enquetes com resultado real já conhecido e publicação de 3 novas enquetes.
+    // Idempotente — seguro para clicar mais de uma vez.
+    applyContentUpdate: adminProcedure.mutation(async () => {
+      return applyAugust2026ContentUpdate();
+    }),
   }),
 });
 

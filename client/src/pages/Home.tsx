@@ -107,6 +107,7 @@ export default function Home() {
                 labelB={featuredMarket.labelB}
                 initialStats={featuredMarket.stats}
                 endsAt={featuredMarket.endsAt}
+                resolvedChoice={(featuredMarket as any).resolvedChoice}
                 imageUrl={featuredMarket.imageUrl}
                 tickerItems={newsByMarketId.get(featuredMarket.id) ?? null}
                 initialVoted={featuredMarket.viewerHasVoted}
@@ -142,6 +143,7 @@ export default function Home() {
                     labelB={market.labelB}
                     initialStats={market.stats}
                     endsAt={market.endsAt}
+                    resolvedChoice={(market as any).resolvedChoice}
                     imageUrl={market.imageUrl}
                     tickerItems={newsByMarketId.get(market.id) ?? null}
                     initialVoted={market.viewerHasVoted}

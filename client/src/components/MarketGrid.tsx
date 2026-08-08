@@ -13,6 +13,7 @@ type MarketListItem = {
   labelA: string;
   labelB: string;
   endsAt?: string | Date | null;
+  resolvedChoice?: "A" | "B" | null;
   imageUrl?: string | null;
   stats: { countA: number; countB: number; total: number; pctA: number; pctB: number };
   viewerHasVoted?: boolean;
@@ -48,6 +49,7 @@ export default function MarketGrid({ markets }: { markets: MarketListItem[] }) {
           labelB={market.labelB}
           initialStats={market.stats}
           endsAt={market.endsAt}
+          resolvedChoice={market.resolvedChoice}
           imageUrl={market.imageUrl}
           tickerItems={newsByMarketId.get(market.id) ?? null}
           initialVoted={market.viewerHasVoted}
