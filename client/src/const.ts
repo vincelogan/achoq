@@ -1,29 +1,16 @@
-export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+export { COOKIE_NAME, ONE_YEAR_MS, REQUIRE_ACCOUNT_TO_VOTE } from "@shared/const";
 
-// Generate login URL at runtime so redirect URI reflects the current origin.
-export const getLoginUrl = (returnPath?: string) => {
-  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
-  const appId = import.meta.env.VITE_APP_ID;
-
-  // Guard against missing env vars (e.g. custom domain without OAuth configured)
-  if (!oauthPortalUrl || !appId) {
-    console.warn("[Auth] VITE_OAUTH_PORTAL_URL or VITE_APP_ID not configured");
-    return "#login-unavailable";
-  }
-
-  const redirectUri = `${window.location.origin}/api/oauth/callback`;
-  const state = btoa(
-    JSON.stringify({
-      origin: window.location.origin,
-      returnPath: returnPath || "/",
-    })
-  );
-
-  const url = new URL(`${oauthPortalUrl}/app-auth`);
-  url.searchParams.set("appId", appId);
-  url.searchParams.set("redirectUri", redirectUri);
-  url.searchParams.set("state", state);
-  url.searchParams.set("type", "signIn");
-
-  return url.toString();
+/**
+ * URL do fluxo de login com Google (servidor troca o code e cria a sessão —
+ * ver server/_core/googleAuth.ts). `returnPath` é para onde o usuário volta
+ * depois de autenticar; `fingerprint` é o anônimo atual do navegador, para o
+ * servidor tentar adotá-lo como identidade permanente da conta no primeiro
+ * login (preserva Qs/badges de quem já opinava antes de criar conta).
+ */
+export const getGoogleAuthStartUrl = (returnPath?: string, fingerprint?: string) => {
+  const params = new URLSearchParams();
+  if (returnPath) params.set("returnPath", returnPath);
+  if (fingerprint) params.set("fp", fingerprint);
+  const query = params.toString();
+  return `/api/auth/google/start${query ? `?${query}` : ""}`;
 };

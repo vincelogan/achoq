@@ -27,3 +27,26 @@ export function useFingerprint(): string {
   const [fingerprint] = useState(readOrCreateFingerprint);
   return fingerprint;
 }
+
+/**
+ * Sobrescreve o fingerprint local com o fingerprint canônico de uma conta
+ * (chamado após login/cadastro — ver hooks/useAuth.ts). Só grava no
+ * localStorage; componentes já montados precisam de um reload completo para
+ * enxergar o novo valor (useFingerprint é um estado lazy de montagem única).
+ */
+export function setFingerprint(fingerprint: string): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, fingerprint);
+  } catch {
+    /* localStorage indisponível */
+  }
+}
+
+/** Limpa o fingerprint local (usado no logout, para não seguir agindo com a identidade da conta que saiu). */
+export function clearFingerprint(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* localStorage indisponível */
+  }
+}

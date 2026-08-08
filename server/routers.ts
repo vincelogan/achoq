@@ -1,8 +1,10 @@
 import { z } from "zod";
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS, REQUIRE_ACCOUNT_TO_VOTE } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, adminProcedure } from "./_core/trpc";
+import { hashPassword, verifyPassword, validateEmail, validatePassword } from "./_core/passwordAuth";
+import { createUserSessionToken } from "./_core/userSession";
 import {
   getAllMarkets,
   getVotedMarketIds,
@@ -27,8 +29,13 @@ import {
   getTopRanking,
   getMyRankingPosition,
   setNickname,
+  toPublicUser,
+  getUserByEmail,
+  createUserWithPassword,
+  claimOrMintFingerprint,
 } from "./db";
 import { resolveMarket } from "./resolution";
+import { applyAugust2026ContentUpdate } from "./_core/contentUpdate";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "./rateLimit";
 import { getWallet, getTransactions } from "./economy";
 import {
@@ -76,7 +83,7 @@ export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query(opts => toPublicUser(opts.ctx.user)),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
@@ -84,6 +91,65 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+
+    // Cadastro por e-mail/senha. O `fingerprint` (opcional) é o anônimo que o
+    // navegador já tinha — se ainda estiver livre, vira o fingerprint
+    // permanente da conta, preservando Qs/badges/streak de quem já opinava.
+    register: publicProcedure
+      .input(z.object({
+        email: z.string().min(3).max(320),
+        password: z.string().min(1).max(128),
+        fingerprint: z.string().min(8).max(128).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`authSignup:${getClientIp(ctx.req)}`, RATE_LIMITS.authSignup.max, RATE_LIMITS.authSignup.windowMs);
+
+        const emailError = validateEmail(input.email);
+        if (emailError) throw new Error(emailError);
+        const passwordError = validatePassword(input.password);
+        if (passwordError) throw new Error(passwordError);
+
+        const email = input.email.trim().toLowerCase();
+        const existing = await getUserByEmail(email);
+        if (existing) throw new Error("Este e-mail já está cadastrado. Tente entrar.");
+
+        const passwordHash = await hashPassword(input.password);
+        const fingerprint = await claimOrMintFingerprint(input.fingerprint);
+        const user = await createUserWithPassword({ email, passwordHash, fingerprint });
+
+        const sessionToken = await createUserSessionToken(user.id);
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+
+        return toPublicUser(user);
+      }),
+
+    // Login por e-mail/senha. Mensagem de erro genérica de propósito (não
+    // revela se o e-mail existe) para não virar oráculo de enumeração.
+    login: publicProcedure
+      .input(z.object({
+        email: z.string().min(3).max(320),
+        password: z.string().min(1).max(128),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const ip = getClientIp(ctx.req);
+        const email = input.email.trim().toLowerCase();
+        checkRateLimit(`authLogin:${ip}`, RATE_LIMITS.authLogin.max, RATE_LIMITS.authLogin.windowMs);
+        checkRateLimit(`authLogin:email:${email}`, RATE_LIMITS.authLogin.max, RATE_LIMITS.authLogin.windowMs);
+
+        const GENERIC_ERR = "E-mail ou senha incorretos.";
+        const user = await getUserByEmail(email);
+        if (!user || !user.passwordHash) throw new Error(GENERIC_ERR);
+
+        const valid = await verifyPassword(input.password, user.passwordHash);
+        if (!valid) throw new Error(GENERIC_ERR);
+
+        const sessionToken = await createUserSessionToken(user.id);
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+
+        return toPublicUser(user);
+      }),
   }),
 
   markets: router({
@@ -144,25 +210,50 @@ export const appRouter = router({
         return { voted };
       }),
 
-    // Registrar um voto real
+    // Registrar um voto real. A conta (login) fica pronta desde a rodada
+    // anterior mas NÃO é obrigatória por decisão do dono — REQUIRE_ACCOUNT_TO_VOTE
+    // é o único interruptor: virar para `true` volta a exigir sessão e a usar
+    // sempre ctx.user.fingerprint (fecha spoofing), sem tocar em mais nada.
+    // Enquanto desligado, aceita o fingerprint anônimo do cliente como antes,
+    // mas prioriza o da conta quando o usuário estiver logado (sincroniza
+    // carteira/badges entre dispositivos de quem já entrou).
     vote: publicProcedure
       .input(z.object({
         marketId: z.number(),
         choice: z.enum(["A", "B"]),
-        fingerprint: z.string().min(8).max(128),
+        fingerprint: z.string().optional(),
         country: z.string().optional(),
         region: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         checkRateLimit(`vote:${getClientIp(ctx.req)}`, RATE_LIMITS.vote.max, RATE_LIMITS.vote.windowMs);
-        const alreadyVoted = await hasVoted(input.marketId, input.fingerprint);
+
+        if (REQUIRE_ACCOUNT_TO_VOTE && !ctx.user) {
+          throw new Error("Entre na sua conta para opinar.");
+        }
+
+        const fingerprint = ctx.user?.fingerprint ?? input.fingerprint;
+        if (!fingerprint) throw new Error("Identidade do navegador indisponível. Recarregue a página e tente de novo.");
+
+        const alreadyVoted = await hasVoted(input.marketId, fingerprint);
         if (alreadyVoted) throw new Error("Você já opinou nesta enquete.");
+
+        // Enquete precisa existir, estar ativa, não resolvida e dentro do prazo.
+        const votedMarket = await getMarketById(input.marketId);
+        if (!votedMarket) throw new Error("Enquete não encontrada.");
+        if (!votedMarket.isActive || votedMarket.resolvedChoice) {
+          throw new Error("Esta enquete já foi encerrada.");
+        }
+        if (votedMarket.endsAt && new Date(votedMarket.endsAt) < new Date()) {
+          throw new Error("O prazo para opinar nesta enquete já encerrou.");
+        }
+
         // Corrida entre o check acima e o INSERT é coberta pelo índice único
         // (marketId, fingerprint): castVote lança DuplicateVoteError.
         await castVote({
           marketId: input.marketId,
           choice: input.choice,
-          fingerprint: input.fingerprint,
+          fingerprint,
           userId: ctx.user?.id ?? null,
           country: input.country ?? null,
           region: input.region ?? null,
@@ -171,11 +262,9 @@ export const appRouter = router({
         // Recompensas de Qs em best-effort: falha aqui nunca derruba o voto
         let qsEarned = 0;
         let dailyStreak = 0;
-        let votedMarket: any = null;
         try {
-          votedMarket = await getMarketById(input.marketId);
           if (votedMarket) {
-            const rewards = await processVoteRewards(input.fingerprint, votedMarket);
+            const rewards = await processVoteRewards(fingerprint, votedMarket);
             qsEarned = rewards.qsEarned;
             dailyStreak = rewards.dailyStreak;
           }
@@ -192,7 +281,7 @@ export const appRouter = router({
               countA: stats.countA - (input.choice === "A" ? 1 : 0),
               countB: stats.countB - (input.choice === "B" ? 1 : 0),
             };
-            await detectAndNotifyMajorityFlip(votedMarket, before, stats, input.fingerprint);
+            await detectAndNotifyMajorityFlip(votedMarket, before, stats, fingerprint);
           }
         } catch (e) {
           console.error("[vote] Falha ao detectar virada de maioria:", e);
@@ -589,6 +678,8 @@ export const appRouter = router({
         optionB: z.string().min(1),
         labelA: z.string().min(1),
         labelB: z.string().min(1),
+        endsAt: z.coerce.date().optional(),
+        imageUrl: z.string().max(500).optional(),
       }))
       .mutation(async ({ input }) => {
         return createMarket({
@@ -600,6 +691,8 @@ export const appRouter = router({
           optionB: input.optionB,
           labelA: input.labelA,
           labelB: input.labelB,
+          endsAt: input.endsAt ?? null,
+          imageUrl: input.imageUrl || null,
           isActive: true,
         });
       }),
@@ -617,6 +710,8 @@ export const appRouter = router({
         labelA: z.string().optional(),
         labelB: z.string().optional(),
         isActive: z.boolean().optional(),
+        endsAt: z.coerce.date().optional(),
+        imageUrl: z.string().max(500).optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;
@@ -678,6 +773,13 @@ export const appRouter = router({
         await resolveMarket(input.id, input.resolvedChoice);
         return { success: true };
       }),
+
+    // Atualização de conteúdo de agosto/2026: backfill de prazos, resolução das
+    // enquetes com resultado real já conhecido e publicação de 3 novas enquetes.
+    // Idempotente — seguro para clicar mais de uma vez.
+    applyContentUpdate: adminProcedure.mutation(async () => {
+      return applyAugust2026ContentUpdate();
+    }),
   }),
 });
 

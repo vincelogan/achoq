@@ -8,7 +8,7 @@ function isIpAddress(host: string) {
   return host.includes(":");
 }
 
-function isSecureRequest(req: Request) {
+export function isSecureRequest(req: Request) {
   if (req.protocol === "https") return true;
 
   const forwardedProto = req.headers["x-forwarded-proto"];
@@ -42,7 +42,12 @@ export function getSessionCookieOptions(
   return {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
+    // "lax" (não "none"): cookie de sessão do próprio site, não de iframe
+    // cross-site — precisa sobreviver ao redirect do login com Google (GET de
+    // topo, que cookies Lax acompanham) e, ao contrário de "none", não exige
+    // Secure para ser aceito pelo navegador (sameSite=none sem secure é
+    // rejeitado silenciosamente em HTTP local, o que quebrava login em dev).
+    sameSite: "lax",
     secure: isSecureRequest(req),
   };
 }

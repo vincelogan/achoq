@@ -30,7 +30,7 @@ export default function Methodology() {
               <h3 className="text-xl font-bold">O que não somos</h3>
             </div>
             <p className="text-muted-foreground">
-              Não somos uma pesquisa eleitoral registrada. Não constituimos plataforma de investimento ou mercado financeiro.
+              Não somos uma pesquisa eleitoral registrada. Não constituímos plataforma de investimento ou mercado financeiro.
             </p>
           </div>
         </div>

@@ -1,8 +1,8 @@
 import { eq, sql, and, desc, ne, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
-import { InsertUser, users, markets, votes, marketNews, userScores, InsertMarket, InsertVote, InsertMarketNews } from "../drizzle/schema";
-import { ENV } from './_core/env';
+import crypto from "crypto";
+import { InsertUser, User, users, markets, votes, marketNews, userScores, InsertMarket, InsertVote, InsertMarketNews } from "../drizzle/schema";
 
 let _db: any | null = null;
 
@@ -50,75 +50,147 @@ export async function getDb() {
   return _db;
 }
 
-export async function upsertUser(user: InsertUser): Promise<void> {
-  if (!user.openId) {
-    throw new Error("User openId is required for upsert");
-  }
+// ─── Contas de usuário (e-mail/senha + Google) ─────────────────────────────────
+//
+// Ponte com o sistema anônimo de fingerprint (economy/gamification/comments/
+// suggestions/groups/notifications continuam 100% chaveados por fingerprint,
+// sem nenhuma mudança): a conta guarda um `fingerprint` canônico, adotado a
+// partir do fingerprint anônimo que o visitante já tinha no cadastro (ver
+// `claimOrMintFingerprint`) — preserva de graça o histórico de Qs/badges de
+// quem já usava o site antes de criar conta.
 
+const FINGERPRINT_PATTERN = /^fp_[a-z0-9_]{6,120}$/i;
+
+function mintFingerprint(): string {
+  return `fp_${Date.now().toString(36)}_${crypto.randomBytes(6).toString("hex")}`;
+}
+
+/**
+ * Decide o fingerprint canônico de uma conta nova: reaproveita o candidato
+ * (fingerprint anônimo que o navegador já tinha) se for um valor plausível e
+ * ainda não pertencer a outra conta; caso contrário gera um novo.
+ */
+export async function claimOrMintFingerprint(candidate?: string | null): Promise<string> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
-    return;
+  if (db && candidate && FINGERPRINT_PATTERN.test(candidate)) {
+    const owned = await db.select({ id: users.id }).from(users).where(eq(users.fingerprint, candidate)).limit(1);
+    if (owned.length === 0) return candidate;
   }
+  return mintFingerprint();
+}
 
-  try {
-    const values: InsertUser = {
-      openId: user.openId,
-    };
-    const updateSet: Record<string, unknown> = {};
+/** Remove campos sensíveis antes de qualquer User cruzar a rede. */
+export function toPublicUser(user: User | null | undefined) {
+  if (!user) return null;
+  const { passwordHash, googleSub, openId, ...publicFields } = user as any;
+  return publicFields;
+}
 
-    const textFields = ["name", "email", "loginMethod"] as const;
-    type TextField = (typeof textFields)[number];
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result[0];
+}
 
-    const assignNullable = (field: TextField) => {
-      const value = user[field];
-      if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
-      updateSet[field] = normalized;
-    };
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.email, email.trim().toLowerCase())).limit(1);
+  return result[0];
+}
 
-    textFields.forEach(assignNullable);
+export async function getUserByGoogleSub(googleSub: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.googleSub, googleSub)).limit(1);
+  return result[0];
+}
 
-    if (user.lastSignedIn !== undefined) {
-      values.lastSignedIn = user.lastSignedIn;
-      updateSet.lastSignedIn = user.lastSignedIn;
-    }
-    if (user.role !== undefined) {
-      values.role = user.role;
-      updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
-    }
-
-    if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
-    }
-
-    if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
-    }
-
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
-  } catch (error) {
-    console.error("[Database] Failed to upsert user:", error);
-    throw error;
+export class DuplicateEmailError extends Error {
+  constructor() {
+    super("Este e-mail já está cadastrado.");
+    this.name = "DuplicateEmailError";
   }
 }
 
-export async function getUserByOpenId(openId: string) {
+export async function createUserWithPassword(data: {
+  email: string;
+  passwordHash: string;
+  fingerprint: string;
+  name?: string | null;
+}): Promise<User> {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
-    return undefined;
+  if (!db) throw new Error("Database not available");
+  const email = data.email.trim().toLowerCase();
+  try {
+    await db.insert(users).values({
+      email,
+      passwordHash: data.passwordHash,
+      fingerprint: data.fingerprint,
+      name: data.name ?? null,
+      loginMethod: "email",
+      lastSignedIn: new Date(),
+    });
+  } catch (e: any) {
+    if (isDuplicateEntryError(e)) throw new DuplicateEmailError();
+    throw e;
+  }
+  const created = await getUserByEmail(email);
+  if (!created) throw new Error("Falha ao criar conta.");
+  return created;
+}
+
+/**
+ * Cria (ou atualiza `lastSignedIn` de) uma conta Google. Deliberadamente NÃO
+ * vincula automaticamente a uma conta de senha pré-existente com o mesmo
+ * e-mail: como o e-mail de cadastro por senha não é verificado nesta versão,
+ * um vínculo automático por e-mail seria uma forma de sequestro de conta
+ * (alguém cadastra o e-mail da vítima por senha; a vítima entra com Google
+ * depois e cairia na conta do atacante). Cria uma conta Google separada.
+ */
+export async function upsertGoogleUser(data: {
+  googleSub: string;
+  email: string;
+  name?: string | null;
+  fingerprintCandidate?: string | null;
+}): Promise<User> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const existing = await getUserByGoogleSub(data.googleSub);
+  if (existing) {
+    await db.update(users).set({ lastSignedIn: new Date(), name: data.name ?? existing.name }).where(eq(users.id, existing.id));
+    return (await getUserById(existing.id))!;
   }
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  const fingerprint = await claimOrMintFingerprint(data.fingerprintCandidate);
+  try {
+    await db.insert(users).values({
+      googleSub: data.googleSub,
+      email: data.email.trim().toLowerCase(),
+      name: data.name ?? null,
+      fingerprint,
+      loginMethod: "google",
+      lastSignedIn: new Date(),
+    });
+  } catch (e: any) {
+    // Corrida rara: outro request criou a mesma conta Google entre o check e o insert.
+    if (isDuplicateEntryError(e)) {
+      const race = await getUserByGoogleSub(data.googleSub);
+      if (race) return race;
+    }
+    throw e;
+  }
+  const created = await getUserByGoogleSub(data.googleSub);
+  if (!created) throw new Error("Falha ao criar conta Google.");
+  return created;
+}
 
-  return result.length > 0 ? result[0] : undefined;
+function isDuplicateEntryError(e: any): boolean {
+  const code = e?.code ?? e?.cause?.code;
+  const errno = e?.errno ?? e?.cause?.errno;
+  return code === "ER_DUP_ENTRY" || errno === 1062;
 }
 
 // ─── Markets ─────────────────────────────────────────────────────────────────

@@ -4,6 +4,7 @@ import { Share2, TrendingUp, CheckCircle2, Loader2, Calendar } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { useVote } from "@/hooks/useVote";
 import { SharePopup } from "@/components/SharePopup";
+import { LoginGateModal } from "@/components/LoginGateModal";
 import { Link } from "wouter";
 
 type MarketCardProps = {
@@ -24,6 +25,7 @@ type MarketCardProps = {
   };
   hero?: boolean;
   endsAt?: string | Date | null;
+  resolvedChoice?: "A" | "B" | null;
   imageUrl?: string | null;
   tickerItems?: Array<{ tickerText: string; sourceName: string }> | null;
   /** Se o chamador já sabe (via markets.list) se o usuário votou */
@@ -82,6 +84,7 @@ export default function MarketCard({
   initialStats,
   hero = false,
   endsAt,
+  resolvedChoice,
   imageUrl,
   tickerItems,
   initialVoted,
@@ -92,7 +95,7 @@ export default function MarketCard({
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  const { fingerprint, vote, hasVoted, myChoice, votingChoice, isPending } = useVote({
+  const { fingerprint, vote, needsAuth, dismissAuthPrompt, hasVoted, myChoice, votingChoice, isPending } = useVote({
     marketId,
     initialVoted,
     onVoted: (_choice, stats) => {
@@ -106,6 +109,10 @@ export default function MarketCard({
   });
 
   const handleVote = (choice: "A" | "B") => vote(choice);
+
+  const isPastDeadline = endsAt ? new Date(endsAt).getTime() < Date.now() : false;
+  const isClosed = isPastDeadline || !!resolvedChoice;
+  const resolvedLabel = resolvedChoice === "A" ? optionA : resolvedChoice === "B" ? optionB : null;
 
   const shareText = `No AchoQ: "${title}" — ${localStats.pctA}% acham ${optionA} vs ${localStats.pctB}% acham ${optionB}. E você?`;
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/mercado/${slug}` : "";
@@ -145,9 +152,18 @@ export default function MarketCard({
               ⚡ Impulsionada
             </span>
           )}
+          {resolvedLabel ? (
+            <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+              🏁 Resultado: {resolvedLabel}
+            </span>
+          ) : isPastDeadline ? (
+            <span className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground bg-muted border border-border px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+              ⏳ Aguardando resultado
+            </span>
+          ) : null}
         </div>
         <div className="flex items-center gap-3">
-          {endsAt && (
+          {endsAt && !isClosed && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Calendar className="w-3 h-3" />
               <span>Encerra {new Date(endsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}</span>
@@ -286,7 +302,7 @@ export default function MarketCard({
               </div>
             </motion.div>
 
-          ) : hasVoted ? (            <motion.div
+          ) : hasVoted || isClosed ? (            <motion.div
               key="results"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -375,7 +391,7 @@ export default function MarketCard({
               {/* Botão Opção A */}
               <button
                 onClick={() => handleVote("A")}
-                disabled={isPending || !fingerprint}
+                disabled={isPending}
                 className={`group w-full border-2 border-vote-a transition-all duration-200 rounded-lg px-3 py-2.5 sm:p-4 flex justify-between items-center disabled:cursor-not-allowed ${
                   votingChoice === "A"
                     ? "bg-vote-a/20 scale-[0.98]"
@@ -405,7 +421,7 @@ export default function MarketCard({
               {/* Botão Opção B */}
               <button
                 onClick={() => handleVote("B")}
-                disabled={isPending || !fingerprint}
+                disabled={isPending}
                 className={`group w-full border-2 border-vote-b transition-all duration-200 rounded-lg px-3 py-2.5 sm:p-4 flex justify-between items-center disabled:cursor-not-allowed ${
                   votingChoice === "B"
                     ? "bg-vote-b/20 scale-[0.98]"
@@ -460,6 +476,8 @@ export default function MarketCard({
           />
         )}
       </AnimatePresence>
+
+      <LoginGateModal open={needsAuth} onClose={dismissAuthPrompt} />
     </div>
   );
 }

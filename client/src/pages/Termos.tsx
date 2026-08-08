@@ -93,7 +93,7 @@ const sections: Section[] = [
       <p className="text-muted-foreground leading-relaxed">
         O AchoQ se reserva o direito de remover conteúdos, suspender ou encerrar contas de
         usuários que violem estes Termos, sem necessidade de aviso prévio e sem que isso gere
-        qualquer direito de indenização. A plataforma também pode encerrar ou arquivar mercados
+        qualquer direito de indenização. A plataforma também pode encerrar ou arquivar enquetes
         a qualquer momento, a seu exclusivo critério.
       </p>
     ),

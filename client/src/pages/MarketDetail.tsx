@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useVote } from "@/hooks/useVote";
+import { LoginGateModal } from "@/components/LoginGateModal";
 import { SharePopup, PostVoteShareModal } from "@/components/SharePopup";
 import CommentsSection from "@/components/CommentsSection";
 import EmbedModal from "@/components/EmbedModal";
@@ -126,7 +127,7 @@ export default function MarketDetail() {
   const { data: newsItems } = trpc.news.byMarket.useQuery({ marketId: market?.id ?? 0 }, { enabled: !!market });
 
   const utils = trpc.useUtils();
-  const { fingerprint, vote, hasVoted, myChoice, votingChoice, justVoted } = useVote({
+  const { fingerprint, vote, needsAuth, dismissAuthPrompt, hasVoted, myChoice, votingChoice, justVoted } = useVote({
     marketId: market?.id,
     onVoted: () => {
       setShowConfirmation(true);
@@ -141,6 +142,10 @@ export default function MarketDetail() {
   });
 
   const handleVote = (choice: "A" | "B") => vote(choice);
+
+  const isPastDeadline = market?.endsAt ? new Date(market.endsAt).getTime() < Date.now() : false;
+  const isClosed = isPastDeadline || !!market?.resolvedChoice;
+  const resolvedLabel = market?.resolvedChoice === "A" ? market?.optionA : market?.resolvedChoice === "B" ? market?.optionB : null;
   const votingFor = votingChoice;
   const justVotedChoice = justVoted;
 
@@ -282,7 +287,7 @@ export default function MarketDetail() {
         <div className="bg-card border-b border-border/50">
           <div className="container py-3">
             <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Link href="/" className="hover:text-brand transition-colors">Mercados</Link>
+              <Link href="/" className="hover:text-brand transition-colors">Enquetes</Link>
               <ChevronRight className="w-3.5 h-3.5" />
               <Link href={`/categoria/${market.category}`} className={`px-2 py-0.5 rounded-full text-xs font-medium hover:opacity-80 transition-opacity ${categoryChipClasses(market.category)}`}>
                 {categoryLabel(market.category)}
@@ -329,11 +334,19 @@ export default function MarketDetail() {
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${categoryChipClasses(market.category)}`}>
                         {categoryLabel(market.category)}
                       </span>
-                      {market.isActive && (
+                      {resolvedLabel ? (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                          🏁 Resultado: {resolvedLabel}
+                        </span>
+                      ) : isPastDeadline ? (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground flex items-center gap-1">
+                          ⏳ Aguardando resultado
+                        </span>
+                      ) : market.isActive ? (
                         <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Ativo
                         </span>
-                      )}
+                      ) : null}
                     </div>
                     <h1 className="text-2xl md:text-3xl font-black text-foreground leading-tight">{market.title}</h1>
                   </div>
@@ -346,7 +359,13 @@ export default function MarketDetail() {
                   <div className="flex items-center gap-1.5 text-muted-foreground"><Users className="w-4 h-4" /><span className="font-semibold text-foreground">{stats?.total ?? 0}</span><span>opiniões</span></div>
                   <div className="flex items-center gap-1.5 text-muted-foreground"><Calendar className="w-4 h-4" /><span>Criado em {createdDate}</span></div>
                   {market.endsAt && (
-                    <div className="flex items-center gap-1.5 text-muted-foreground"><Clock className="w-4 h-4" /><span>Encerra em {new Date(market.endsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</span></div>
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      <span>
+                        {isPastDeadline ? "Encerrou em" : "Encerra em"}{" "}
+                        {new Date(market.endsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
+                      </span>
+                    </div>
                   )}
                 </div>
                 </div>
@@ -454,11 +473,13 @@ export default function MarketDetail() {
                         <p className="font-bold text-emerald-600 text-lg">Opinião registrada!</p>
                         <p className="text-sm text-muted-foreground">Obrigado por participar</p>
                       </motion.div>
-                    ) : hasVoted ? (
+                    ) : hasVoted || isClosed ? (
                       <motion.div key="voted" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
                         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 mb-4">
                           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                          <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Você já opinou nesta enquete</span>
+                          <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                            {hasVoted ? "Você já opinou nesta enquete" : "Votação encerrada"}
+                          </span>
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between"><span className="text-sm font-medium text-foreground/80">{market.optionA}</span><span className="text-sm font-bold text-vote-a">{stats?.pctA ?? 50}%</span></div>
@@ -528,7 +549,12 @@ export default function MarketDetail() {
                 <div className="bg-card rounded-2xl border border-border p-6">
                   <h3 className="font-bold text-foreground mb-3">Sobre esta enquete</h3>
                   <div className="space-y-3 text-sm">
-                    <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className="font-medium text-emerald-600 dark:text-emerald-400">Ativo</span></div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Status</span>
+                      <span className={`font-medium ${resolvedLabel || isPastDeadline ? "text-muted-foreground" : "text-emerald-600 dark:text-emerald-400"}`}>
+                        {resolvedLabel ? `Resolvida: ${resolvedLabel}` : isPastDeadline ? "Aguardando resultado" : market.isActive ? "Ativo" : "Inativo"}
+                      </span>
+                    </div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Categoria</span><span className="font-medium text-foreground">{categoryLabel(market.category)}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Criado em</span><span className="font-medium text-foreground">{createdDate}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Total de opiniões</span><span className="font-medium text-foreground">{stats?.total ?? 0}</span></div>
@@ -562,6 +588,7 @@ export default function MarketDetail() {
           choice={justVotedChoice}
         />
       </AnimatePresence>
+      <LoginGateModal open={needsAuth} onClose={dismissAuthPrompt} />
     </div>
   );
 }

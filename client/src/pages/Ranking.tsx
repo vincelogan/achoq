@@ -75,7 +75,7 @@ function RankingCard({
           )}
         </div>
         <div className="flex items-center gap-3 mt-0.5">
-          <span className="text-xs text-muted-foreground">{entry.totalVotes} votos</span>
+          <span className="text-xs text-muted-foreground">{entry.totalVotes} opiniões</span>
           {entry.streak > 1 && (
             <span className="text-xs text-orange-500 flex items-center gap-0.5">
               <Zap className="w-3 h-3" />{entry.streak} seguidos

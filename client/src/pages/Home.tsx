@@ -77,7 +77,7 @@ export default function Home() {
                 <div className="h-10 bg-muted rounded-lg animate-pulse w-3/4" />
               ) : (
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
-                  {featuredMarket?.title ?? "Carregando mercados..."}
+                  {featuredMarket?.title ?? "Carregando enquetes..."}
                 </h1>
               )}
             </div>
@@ -92,7 +92,7 @@ export default function Home() {
               </div>
             ) : error ? (
               <div className="bg-card border border-red-200 rounded-xl p-8 text-center text-red-600">
-                <p className="font-semibold">Erro ao carregar mercados</p>
+                <p className="font-semibold">Erro ao carregar enquetes</p>
                 <p className="text-sm mt-1 text-red-400">{error.message}</p>
               </div>
             ) : featuredMarket ? (
@@ -107,6 +107,7 @@ export default function Home() {
                 labelB={featuredMarket.labelB}
                 initialStats={featuredMarket.stats}
                 endsAt={featuredMarket.endsAt}
+                resolvedChoice={(featuredMarket as any).resolvedChoice}
                 imageUrl={featuredMarket.imageUrl}
                 tickerItems={newsByMarketId.get(featuredMarket.id) ?? null}
                 initialVoted={featuredMarket.viewerHasVoted}
@@ -142,6 +143,7 @@ export default function Home() {
                     labelB={market.labelB}
                     initialStats={market.stats}
                     endsAt={market.endsAt}
+                    resolvedChoice={(market as any).resolvedChoice}
                     imageUrl={market.imageUrl}
                     tickerItems={newsByMarketId.get(market.id) ?? null}
                     initialVoted={market.viewerHasVoted}
