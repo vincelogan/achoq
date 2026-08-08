@@ -2,6 +2,7 @@ import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { getDb } from "./db";
 import { badges, leagueMembers, leagueSeasons, qTransactions, userBadges, userScores, votes } from "../drizzle/schema";
 import { countTodayVoteGrants, ensureScoreRow, grantQs, isDuplicateEntry, spDate } from "./economy";
+import { notify } from "./notifications";
 
 /**
  * Recompensas de gamificação em Qs.
@@ -254,6 +255,16 @@ export async function checkAndAwardBadges(fingerprint: string): Promise<number> 
       });
       if (r.granted) totalQs += r.amount;
     }
+    await notify({
+      fingerprint,
+      type: "badge_earned",
+      title: `Conquista desbloqueada: ${badge.name} 🏅`,
+      body: badge.qReward > 0 ? `${badge.description ?? ""} +${badge.qReward} Qs`.trim() : badge.description ?? undefined,
+      linkUrl: "/carteira",
+      refType: "badge",
+      refId: badge.id,
+      idempotencyKey: `notif:badge:${badge.code}:${fingerprint}`,
+    });
   }
   return totalQs;
 }
@@ -448,6 +459,22 @@ export async function closeFinishedSeasons(): Promise<{ closed: number }> {
           } catch (e: any) {
             if (!isDuplicateEntry(e)) throw e;
           }
+        }
+
+        if (nextDivision !== division) {
+          const promoted = DIVISIONS.indexOf(nextDivision) > divIdx;
+          await notify({
+            fingerprint: entry.fingerprint,
+            type: "league_moved",
+            title: promoted ? `Você subiu para a divisão ${nextDivision}! 🏆` : `Você caiu para a divisão ${nextDivision}`,
+            body: promoted
+              ? `Terminou a semana em #${entry.rank} — continue assim!`
+              : `Terminou a semana em #${entry.rank}. Semana nova, chance nova.`,
+            linkUrl: "/liga",
+            refType: "season",
+            refId: season.id,
+            idempotencyKey: `notif:league:${season.id}:${entry.fingerprint}`,
+          });
         }
       }
     }

@@ -341,3 +341,40 @@ export const groupMembers = mysqlTable("group_members", {
 ]);
 
 export type GroupMember = typeof groupMembers.$inferSelect;
+
+/**
+ * Notificações in-app (sininho). Emissão idempotente por idempotencyKey —
+ * re-executar o evento (ex.: re-resolução) não duplica avisos.
+ */
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  // 'market_resolved' | 'majority_flip' | 'badge_earned'
+  // | 'suggestion_reviewed' | 'league_moved'
+  type: varchar("type", { length: 32 }).notNull(),
+  title: varchar("title", { length: 200 }).notNull(),
+  body: varchar("body", { length: 300 }),
+  linkUrl: varchar("linkUrl", { length: 200 }),
+  refType: varchar("refType", { length: 16 }),
+  refId: int("refId"),
+  idempotencyKey: varchar("idempotencyKey", { length: 160 }).notNull().unique(),
+  isRead: boolean("isRead").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("idx_notifications_fp").on(t.fingerprint, t.isRead, t.id),
+]);
+
+export type Notification = typeof notifications.$inferSelect;
+
+/** Enquetes seguidas (watchlist): recebem aviso de virada de maioria. */
+export const watchlist = mysqlTable("watchlist", {
+  id: int("id").autoincrement().primaryKey(),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  marketId: int("marketId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex("uniq_watch").on(t.fingerprint, t.marketId),
+  index("idx_watchlist_market").on(t.marketId),
+]);
+
+export type WatchlistEntry = typeof watchlist.$inferSelect;

@@ -3,6 +3,7 @@ import { getDb } from "./db";
 import { markets, marketSuggestions, userScores } from "../drizzle/schema";
 import { grantQs, spendQs } from "./economy";
 import { checkAndAwardBadges } from "./gamification";
+import { notify } from "./notifications";
 
 /**
  * Enquetes sugeridas por usuários (padrão Manifold adaptado):
@@ -167,11 +168,21 @@ export async function reviewSuggestion(id: number, action: "approve" | "reject",
       .set({ status: "approved", marketId, reviewNote: note ?? null })
       .where(eq(marketSuggestions.id, id));
 
-    // Badge "Pauteiro" (best-effort)
+    // Badge "Pauteiro" + notificação (best-effort)
     try {
       await checkAndAwardBadges(suggestion.fingerprint);
+      await notify({
+        fingerprint: suggestion.fingerprint,
+        type: "suggestion_reviewed",
+        title: "Sua enquete está no ar! 💡",
+        body: `"${suggestion.title}" foi aprovada e publicada.`,
+        linkUrl: `/mercado/${slug}`,
+        refType: "suggestion",
+        refId: id,
+        idempotencyKey: `notif:suggestion:${id}`,
+      });
     } catch {
-      /* nunca falhar a aprovação por causa da badge */
+      /* nunca falhar a aprovação por causa da badge/notificação */
     }
     return { success: true, marketId, slug };
   }
@@ -188,6 +199,16 @@ export async function reviewSuggestion(id: number, action: "approve" | "reject",
     idempotencyKey: `suggest-refund:${id}`,
     refType: "suggestion",
     refId: id,
+  });
+  await notify({
+    fingerprint: suggestion.fingerprint,
+    type: "suggestion_reviewed",
+    title: "Sugestão não aprovada — Qs devolvidos",
+    body: note ? `Motivo: ${note}` : `"${suggestion.title}" não foi aprovada desta vez. Seus ${SUGGESTION_COST} Qs voltaram.`,
+    linkUrl: "/sugerir",
+    refType: "suggestion",
+    refId: id,
+    idempotencyKey: `notif:suggestion:${id}`,
   });
   return { success: true };
 }

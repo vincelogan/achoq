@@ -15,6 +15,8 @@ import {
   Clock,
   ChevronRight,
   Zap,
+  Bell,
+  BellOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -113,6 +115,18 @@ export default function MarketDetail() {
   const handleVote = (choice: "A" | "B") => vote(choice);
   const votingFor = votingChoice;
   const justVotedChoice = justVoted;
+
+  const { data: watchStatus } = trpc.watchlist.status.useQuery(
+    { fingerprint, marketId: market?.id ?? 0 },
+    { enabled: !!market && !!fingerprint }
+  );
+  const watchMutation = trpc.watchlist.toggle.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.watching ? "Seguindo! Você será avisado se a maioria virar." : "Você deixou de seguir esta enquete.");
+      utils.watchlist.status.invalidate({ fingerprint, marketId: market?.id ?? 0 });
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   const boostMutation = trpc.shop.boost.useMutation({
     onSuccess: () => {
@@ -448,6 +462,15 @@ export default function MarketDetail() {
                   <h3 className="font-bold text-foreground mb-2">Compartilhe</h3>
                   <p className="text-sm text-muted-foreground mb-4">Convide amigos para participar desta enquete</p>
                   <Button onClick={() => setShareOpen(true)} variant="outline" className="w-full gap-2"><Share2 className="w-4 h-4" />Compartilhar enquete</Button>
+                  <Button
+                    onClick={() => watchMutation.mutate({ fingerprint, marketId: market.id })}
+                    disabled={!fingerprint || watchMutation.isPending}
+                    variant="outline"
+                    className="w-full gap-2 mt-2"
+                  >
+                    {watchStatus?.watching ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
+                    {watchStatus?.watching ? "Deixar de seguir" : "Seguir enquete"}
+                  </Button>
                 </div>
 
                 {market.isActive && (

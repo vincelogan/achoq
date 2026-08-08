@@ -60,6 +60,14 @@ import {
   SUGGESTION_COST,
 } from "./suggestions";
 import { createGroup, getGroupWithRanking, joinGroup, leaveGroup, listMyGroups } from "./groups";
+import {
+  detectAndNotifyMajorityFlip,
+  isWatching,
+  listNotifications,
+  markAllRead,
+  toggleWatch,
+  unreadCount,
+} from "./notifications";
 
 // Seed mercados na inicialização
 seedMarketsIfEmpty().catch(console.error);
@@ -163,10 +171,11 @@ export const appRouter = router({
         // Recompensas de Qs em best-effort: falha aqui nunca derruba o voto
         let qsEarned = 0;
         let dailyStreak = 0;
+        let votedMarket: any = null;
         try {
-          const market = await getMarketById(input.marketId);
-          if (market) {
-            const rewards = await processVoteRewards(input.fingerprint, market);
+          votedMarket = await getMarketById(input.marketId);
+          if (votedMarket) {
+            const rewards = await processVoteRewards(input.fingerprint, votedMarket);
             qsEarned = rewards.qsEarned;
             dailyStreak = rewards.dailyStreak;
           }
@@ -175,6 +184,19 @@ export const appRouter = router({
         }
 
         const stats = await getVoteStats(input.marketId);
+
+        // Virada de maioria (best-effort): compara o placar sem este voto
+        try {
+          if (votedMarket) {
+            const before = {
+              countA: stats.countA - (input.choice === "A" ? 1 : 0),
+              countB: stats.countB - (input.choice === "B" ? 1 : 0),
+            };
+            await detectAndNotifyMajorityFlip(votedMarket, before, stats, input.fingerprint);
+          }
+        } catch (e) {
+          console.error("[vote] Falha ao detectar virada de maioria:", e);
+        }
         const total = stats.total;
         const pctA = total > 0 ? Math.round((stats.countA / total) * 100) : 50;
         const pctB = total > 0 ? Math.round((stats.countB / total) * 100) : 50;
@@ -303,6 +325,46 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         checkRateLimit(`shop:${getClientIp(ctx.req)}`, RATE_LIMITS.shop.max, RATE_LIMITS.shop.windowMs);
         return boostMarket(input.fingerprint, input.marketId);
+      }),
+  }),
+
+  // ─── Notificações in-app ──────────────────────────────────────────────────────
+  notifications: router({
+    list: publicProcedure
+      .input(z.object({
+        fingerprint: z.string().min(8).max(128),
+        cursor: z.number().int().optional(),
+        limit: z.number().int().min(1).max(50).optional(),
+      }))
+      .query(async ({ input }) => {
+        return listNotifications(input.fingerprint, { cursor: input.cursor, limit: input.limit });
+      }),
+
+    unreadCount: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .query(async ({ input }) => {
+        return { count: await unreadCount(input.fingerprint) };
+      }),
+
+    markAllRead: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .mutation(async ({ input }) => {
+        return markAllRead(input.fingerprint);
+      }),
+  }),
+
+  // ─── Watchlist (seguir enquetes) ──────────────────────────────────────────────
+  watchlist: router({
+    toggle: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128), marketId: z.number().int() }))
+      .mutation(async ({ input }) => {
+        return toggleWatch(input.fingerprint, input.marketId);
+      }),
+
+    status: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128), marketId: z.number().int() }))
+      .query(async ({ input }) => {
+        return { watching: await isWatching(input.fingerprint, input.marketId) };
       }),
   }),
 
