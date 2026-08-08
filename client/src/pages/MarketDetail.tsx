@@ -287,7 +287,7 @@ export default function MarketDetail() {
         <div className="bg-card border-b border-border/50">
           <div className="container py-3">
             <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Link href="/" className="hover:text-brand transition-colors">Mercados</Link>
+              <Link href="/" className="hover:text-brand transition-colors">Enquetes</Link>
               <ChevronRight className="w-3.5 h-3.5" />
               <Link href={`/categoria/${market.category}`} className={`px-2 py-0.5 rounded-full text-xs font-medium hover:opacity-80 transition-opacity ${categoryChipClasses(market.category)}`}>
                 {categoryLabel(market.category)}

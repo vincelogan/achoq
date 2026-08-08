@@ -123,7 +123,7 @@ export default function Metodologia() {
           <strong> fontes públicas e verificáveis</strong> — como resultados eleitorais oficiais
           divulgados pelo TSE, resultados esportivos divulgados pelas entidades competentes
           (FIFA, CBF), ou outros registros públicos de referência. O AchoQ se reserva o direito
-          de encerrar ou arquivar mercados conforme os eventos se concretizem.
+          de encerrar ou arquivar enquetes conforme os eventos se concretizem.
         </p>
       </div>
     </InstitutionalLayout>

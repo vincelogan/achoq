@@ -25,7 +25,7 @@ const sections: PrivacySection[] = [
           {[
             { label: "Dados de navegação", desc: "Páginas visitadas, tempo de acesso, dispositivo e navegador utilizados." },
             { label: "Endereço IP", desc: "Utilizado para fins de segurança, prevenção de fraudes e análise geográfica agregada." },
-            { label: "Identificador anônimo", desc: "Gerado localmente no seu dispositivo para controle de participação única por mercado." },
+            { label: "Identificador anônimo", desc: "Gerado localmente no seu dispositivo para controle de participação única por enquete." },
             { label: "Dados voluntários", desc: "Informações fornecidas pelo usuário ao criar conta ou entrar em contato (ex: e-mail, nome)." },
           ].map(({ label, desc }) => (
             <div key={label} className="bg-muted rounded-lg p-4 border border-border/50">
