@@ -311,3 +311,33 @@ export const marketSuggestions = mysqlTable("market_suggestions", {
 ]);
 
 export type MarketSuggestion = typeof marketSuggestions.$inferSelect;
+
+/**
+ * Bolões: grupos privados de amigos (padrão Cartola/BolãoJá).
+ * Entrada por código de convite; ranking interno por Qs da semana e acurácia.
+ */
+export const groups = mysqlTable("groups", {
+  id: int("id").autoincrement().primaryKey(),
+  // Código de convite curto (compartilhado por link)
+  code: varchar("code", { length: 12 }).notNull().unique(),
+  name: varchar("name", { length: 64 }).notNull(),
+  ownerFingerprint: varchar("ownerFingerprint", { length: 128 }).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("idx_groups_owner").on(t.ownerFingerprint),
+]);
+
+export type Group = typeof groups.$inferSelect;
+
+export const groupMembers = mysqlTable("group_members", {
+  id: int("id").autoincrement().primaryKey(),
+  groupId: int("groupId").notNull(),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  joinedAt: timestamp("joinedAt").defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex("uniq_group_member").on(t.groupId, t.fingerprint),
+  index("idx_group_members_fp").on(t.fingerprint),
+]);
+
+export type GroupMember = typeof groupMembers.$inferSelect;

@@ -59,6 +59,7 @@ import {
   reviewSuggestion,
   SUGGESTION_COST,
 } from "./suggestions";
+import { createGroup, getGroupWithRanking, joinGroup, leaveGroup, listMyGroups } from "./groups";
 
 // Seed mercados na inicialização
 seedMarketsIfEmpty().catch(console.error);
@@ -302,6 +303,53 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         checkRateLimit(`shop:${getClientIp(ctx.req)}`, RATE_LIMITS.shop.max, RATE_LIMITS.shop.windowMs);
         return boostMarket(input.fingerprint, input.marketId);
+      }),
+  }),
+
+  // ─── Bolões (grupos privados com amigos) ──────────────────────────────────────
+  groups: router({
+    create: publicProcedure
+      .input(z.object({
+        fingerprint: z.string().min(8).max(128),
+        name: z.string().min(3).max(64),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`groups:${getClientIp(ctx.req)}`, RATE_LIMITS.groups.max, RATE_LIMITS.groups.windowMs);
+        return createGroup(input.fingerprint, input.name);
+      }),
+
+    join: publicProcedure
+      .input(z.object({
+        fingerprint: z.string().min(8).max(128),
+        code: z.string().min(4).max(12),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`groups:${getClientIp(ctx.req)}`, RATE_LIMITS.groups.max, RATE_LIMITS.groups.windowMs);
+        return joinGroup(input.fingerprint, input.code);
+      }),
+
+    leave: publicProcedure
+      .input(z.object({
+        fingerprint: z.string().min(8).max(128),
+        groupId: z.number().int(),
+      }))
+      .mutation(async ({ input }) => {
+        return leaveGroup(input.fingerprint, input.groupId);
+      }),
+
+    mine: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .query(async ({ input }) => {
+        return listMyGroups(input.fingerprint);
+      }),
+
+    get: publicProcedure
+      .input(z.object({
+        code: z.string().min(4).max(12),
+        fingerprint: z.string().min(8).max(128).optional(),
+      }))
+      .query(async ({ input }) => {
+        return getGroupWithRanking(input.code, input.fingerprint);
       }),
   }),
 

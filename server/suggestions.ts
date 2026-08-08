@@ -12,7 +12,7 @@ import { checkAndAwardBadges } from "./gamification";
  * - aprovação publica a enquete e concede a badge "Pauteiro".
  */
 
-export const SUGGESTION_COST = 100;
+export const SUGGESTION_COST = 50;
 const MAX_PENDING_PER_USER = 3;
 
 function slugify(text: string): string {
