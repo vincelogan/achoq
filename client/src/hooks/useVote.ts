@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useFingerprint } from "@/hooks/useFingerprint";
 import { useAuth } from "@/hooks/useAuth";
+import { REQUIRE_ACCOUNT_TO_VOTE } from "@/const";
 
 const PENDING_VOTE_KEY = "achoq_pending_vote";
 
@@ -65,7 +66,10 @@ export function useVote({
   const [myChoice, setMyChoice] = useState<Choice | null>(null);
   const [needsAuth, setNeedsAuth] = useState(false);
 
-  const canVote = !!marketId && !!fingerprint && isAuthenticated;
+  // Login não é obrigatório para votar (desativado por decisão do dono) —
+  // o fluxo de conta continua pronto em useAuth/needsAuth para quando for
+  // reativado (ver REQUIRE_ACCOUNT_TO_VOTE em server/routers.ts).
+  const canVote = !!marketId && !!fingerprint;
   // A query individual de checkVote só roda quando o chamador não informou
   // initialVoted (ex.: MarketDetail); na home o markets.list já respondeu.
   const checkEnabled = canVote && initialVoted === undefined;
@@ -118,7 +122,7 @@ export function useVote({
 
   const vote = (choice: Choice) => {
     if (!marketId || alreadyVoted || justVoted || voteMutation.isPending) return;
-    if (!isAuthenticated) {
+    if (REQUIRE_ACCOUNT_TO_VOTE && !isAuthenticated) {
       // Guarda a intenção e leva para o login; ao voltar autenticado, o
       // effect abaixo completa este mesmo voto automaticamente.
       writePendingVote({ marketId, choice });
@@ -127,19 +131,22 @@ export function useVote({
     }
     setVotingChoice(choice);
     setMyChoice(choice);
-    voteMutation.mutate({ marketId, choice });
+    voteMutation.mutate({ marketId, choice, fingerprint });
   };
 
   // Retoma um voto pendente (guardado antes de mandar para o login) assim
-  // que a sessão autenticada estiver confirmada.
+  // que a sessão autenticada estiver confirmada. Só entra em jogo quando
+  // REQUIRE_ACCOUNT_TO_VOTE estiver ligado — hoje o vote() acima nunca
+  // guarda pendência porque não exige login.
   useEffect(() => {
+    if (!REQUIRE_ACCOUNT_TO_VOTE) return;
     if (!isAuthenticated || !marketId || alreadyVoted || justVoted || voteMutation.isPending) return;
     const pending = readPendingVote();
     if (!pending || pending.marketId !== marketId) return;
     writePendingVote(null);
     setVotingChoice(pending.choice);
     setMyChoice(pending.choice);
-    voteMutation.mutate({ marketId, choice: pending.choice });
+    voteMutation.mutate({ marketId, choice: pending.choice, fingerprint });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, marketId, alreadyVoted, justVoted]);
 

@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS, REQUIRE_ACCOUNT_TO_VOTE } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router, adminProcedure, protectedProcedure } from "./_core/trpc";
+import { publicProcedure, router, adminProcedure } from "./_core/trpc";
 import { hashPassword, verifyPassword, validateEmail, validatePassword } from "./_core/passwordAuth";
 import { createUserSessionToken } from "./_core/userSession";
 import {
@@ -210,21 +210,30 @@ export const appRouter = router({
         return { voted };
       }),
 
-    // Registrar um voto real — exige conta (protectedProcedure). O fingerprint
-    // usado é SEMPRE o da conta autenticada (ctx.user.fingerprint), nunca o que
-    // o cliente eventualmente mande — fecha o buraco de spoofing de identidade
-    // que existia quando qualquer request podia carregar qualquer fingerprint.
-    vote: protectedProcedure
+    // Registrar um voto real. A conta (login) fica pronta desde a rodada
+    // anterior mas NÃO é obrigatória por decisão do dono — REQUIRE_ACCOUNT_TO_VOTE
+    // é o único interruptor: virar para `true` volta a exigir sessão e a usar
+    // sempre ctx.user.fingerprint (fecha spoofing), sem tocar em mais nada.
+    // Enquanto desligado, aceita o fingerprint anônimo do cliente como antes,
+    // mas prioriza o da conta quando o usuário estiver logado (sincroniza
+    // carteira/badges entre dispositivos de quem já entrou).
+    vote: publicProcedure
       .input(z.object({
         marketId: z.number(),
         choice: z.enum(["A", "B"]),
+        fingerprint: z.string().optional(),
         country: z.string().optional(),
         region: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         checkRateLimit(`vote:${getClientIp(ctx.req)}`, RATE_LIMITS.vote.max, RATE_LIMITS.vote.windowMs);
-        const fingerprint = ctx.user.fingerprint;
-        if (!fingerprint) throw new Error("Conta sem identidade associada. Tente entrar novamente.");
+
+        if (REQUIRE_ACCOUNT_TO_VOTE && !ctx.user) {
+          throw new Error("Entre na sua conta para opinar.");
+        }
+
+        const fingerprint = ctx.user?.fingerprint ?? input.fingerprint;
+        if (!fingerprint) throw new Error("Identidade do navegador indisponível. Recarregue a página e tente de novo.");
 
         const alreadyVoted = await hasVoted(input.marketId, fingerprint);
         if (alreadyVoted) throw new Error("Você já opinou nesta enquete.");
@@ -245,7 +254,7 @@ export const appRouter = router({
           marketId: input.marketId,
           choice: input.choice,
           fingerprint,
-          userId: ctx.user.id,
+          userId: ctx.user?.id ?? null,
           country: input.country ?? null,
           region: input.region ?? null,
         });

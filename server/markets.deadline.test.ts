@@ -19,7 +19,7 @@ function createPublicContext(): TrpcContext {
   };
 }
 
-/** `markets.vote` agora exige sessão (protectedProcedure) — simula uma conta autenticada. */
+/** Simula uma conta autenticada (login continua opcional — ver REQUIRE_ACCOUNT_TO_VOTE). */
 function createAuthedContext(fingerprint: string, userId = 1): TrpcContext {
   return {
     user: { id: userId, fingerprint, email: `${fingerprint}@example.com`, role: "user" } as any,
@@ -67,9 +67,15 @@ describe.skipIf(!hasDatabase)("markets.vote — bloqueio por prazo vencido e por
     await db.execute(sql`DELETE FROM markets WHERE slug LIKE ${SLUG_PREFIX + "%"}`);
   });
 
-  it("rejeita voto sem sessão autenticada", async () => {
+  it("rejeita voto sem sessão e sem fingerprint anônimo (sem identidade nenhuma)", async () => {
     const caller = appRouter.createCaller(createPublicContext());
     await expect(caller.markets.vote({ marketId: futureId, choice: "A" })).rejects.toThrow();
+  });
+
+  it("aceita voto sem login, usando o fingerprint anônimo do cliente (login não é obrigatório)", async () => {
+    const caller = appRouter.createCaller(createPublicContext());
+    const result = await caller.markets.vote({ marketId: futureId, choice: "A", fingerprint: `${FP}_anon` });
+    expect(result.success).toBe(true);
   });
 
   it("rejeita voto quando o prazo (endsAt) já passou", async () => {
@@ -94,9 +100,9 @@ describe.skipIf(!hasDatabase)("markets.vote — bloqueio por prazo vencido e por
     expect(result.success).toBe(true);
   });
 
-  it("usa sempre o fingerprint da sessão, ignorando qualquer valor que o cliente tente mandar junto", async () => {
+  it("quando logado, usa sempre o fingerprint da sessão, ignorando qualquer valor que o cliente tente mandar junto", async () => {
     const caller = appRouter.createCaller(createAuthedContext(`${FP}_e`));
-    // @ts-expect-error — fingerprint não faz mais parte do input; simula um cliente antigo/malicioso tentando mandar mesmo assim.
+    // Simula um cliente tentando forjar o fingerprint de outra conta — deve ser ignorado.
     await caller.markets.vote({ marketId: futureId, choice: "B", fingerprint: "fp_outra_conta_qualquer" });
     const db = await getDb();
     const rows = await db.execute(sql`SELECT fingerprint FROM votes WHERE marketId = ${futureId} AND fingerprint = ${`${FP}_e`}`);

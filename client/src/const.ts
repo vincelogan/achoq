@@ -1,4 +1,4 @@
-export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+export { COOKIE_NAME, ONE_YEAR_MS, REQUIRE_ACCOUNT_TO_VOTE } from "@shared/const";
 
 /**
  * URL do fluxo de login com Google (servidor troca o code e cria a sessão —
