@@ -32,7 +32,9 @@ import Footer from "@/components/Footer";
 import { categoryLabel, categoryChipClasses } from "@/lib/categories";
 
 function VoteChart({ history, optionA, optionB }: { history: { date: string; choice: string; count: number }[]; optionA?: string; optionB?: string }) {
-  const chartData = useMemo(() => {
+  // Série CUMULATIVA: % de quem acha a opção A ao longo do tempo
+  // (estilo Polymarket — a linha é a "probabilidade coletiva")
+  const points = useMemo(() => {
     const dateMap = new Map<string, { a: number; b: number }>();
     for (const row of history) {
       const existing = dateMap.get(row.date) || { a: 0, b: 0 };
@@ -41,13 +43,17 @@ function VoteChart({ history, optionA, optionB }: { history: { date: string; cho
       dateMap.set(row.date, existing);
     }
     const entries = Array.from(dateMap.entries()).sort(([a], [b]) => a.localeCompare(b));
+    let cumA = 0;
+    let cumB = 0;
     return entries.map(([date, { a, b }]) => {
-      const total = a + b;
-      return { date, pctA: total > 0 ? Math.round((a / total) * 100) : 50, pctB: total > 0 ? Math.round((b / total) * 100) : 50, total };
+      cumA += a;
+      cumB += b;
+      const total = cumA + cumB;
+      return { date, pctA: total > 0 ? Math.round((cumA / total) * 100) : 50, total };
     });
   }, [history]);
 
-  if (chartData.length === 0) {
+  if (points.length === 0) {
     return (
       <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
         <Clock className="w-4 h-4 mr-2" />
@@ -56,28 +62,47 @@ function VoteChart({ history, optionA, optionB }: { history: { date: string; cho
     );
   }
 
-  const maxBars = 14;
-  const displayData = chartData.slice(-maxBars);
+  const display = points.slice(-30);
+  const W = 600;
+  const H = 150;
+  const PAD = 8;
+  const x = (i: number) => (display.length === 1 ? W / 2 : PAD + (i * (W - PAD * 2)) / (display.length - 1));
+  const y = (pct: number) => PAD + ((100 - pct) * (H - PAD * 2)) / 100;
+  const path = display.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(p.pctA).toFixed(1)}`).join(" ");
+  const area = `${path} L${x(display.length - 1).toFixed(1)},${H - PAD} L${x(0).toFixed(1)},${H - PAD} Z`;
+  const last = display[display.length - 1];
+  const first = display[0];
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-vote-a" /><span>{optionA || "Opção A"}</span></div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-vote-b" /><span>{optionB || "Opção B"}</span></div>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <div className="w-3 h-3 rounded-sm bg-vote-a" />
+          <span>% que acham <strong className="text-foreground/80">{optionA || "Opção A"}</strong></span>
+        </div>
+        <span className="text-2xl font-black text-vote-a tabular-nums">{last.pctA}%</span>
       </div>
-      <div className="flex items-end gap-1 h-32">
-        {displayData.map((d, i) => (
-          <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
-            <div className="w-full flex flex-col gap-px" style={{ height: "100%" }}>
-              <div className="bg-vote-a rounded-t-sm transition-all duration-500" style={{ height: `${d.pctA}%`, minHeight: d.pctA > 0 ? "2px" : "0" }} title={`${d.pctA}%`} />
-              <div className="bg-vote-b rounded-b-sm transition-all duration-500" style={{ height: `${d.pctB}%`, minHeight: d.pctB > 0 ? "2px" : "0" }} title={`${d.pctB}%`} />
-            </div>
-            <span className="text-[9px] text-muted-foreground truncate w-full text-center">
-              {new Date(d.date + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
-            </span>
-          </div>
-        ))}
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="w-full h-36"
+        role="img"
+        aria-label={`Evolução: ${optionA || "Opção A"} foi de ${first.pctA}% para ${last.pctA}%`}
+        preserveAspectRatio="none"
+      >
+        {/* linha dos 50% (fronteira da maioria) */}
+        <line x1={PAD} y1={y(50)} x2={W - PAD} y2={y(50)} stroke="var(--border)" strokeWidth="1" strokeDasharray="4 4" />
+        <path d={area} fill="var(--vote-a)" opacity="0.08" />
+        <path d={path} fill="none" stroke="var(--vote-a)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx={x(display.length - 1)} cy={y(last.pctA)} r="4" fill="var(--vote-a)" />
+      </svg>
+      <div className="flex justify-between text-[10px] text-muted-foreground">
+        <span>{new Date(first.date + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
+        <span className="text-muted-foreground/70">50% = fronteira da maioria</span>
+        <span>{new Date(last.date + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
       </div>
+      <p className="text-xs text-muted-foreground">
+        {optionB || "Opção B"}: {100 - last.pctA}% · {last.total.toLocaleString("pt-BR")} opiniões acumuladas
+      </p>
     </div>
   );
 }

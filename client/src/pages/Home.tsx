@@ -12,6 +12,7 @@ import { useFingerprint } from "@/hooks/useFingerprint";
 import { categoryLabel } from "@/lib/categories";
 import { Loader2, BarChart3 } from "lucide-react";
 import UserScoreCard from "@/components/UserScoreCard";
+import OnboardingModal from "@/components/OnboardingModal";
 
 export default function Home() {
   useEffect(() => {
@@ -46,6 +47,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground font-sans selection:bg-brand selection:text-white">
+      <OnboardingModal />
       <Header />
       <main className="flex-1">
 

@@ -180,6 +180,13 @@ export async function getWallet(fingerprint: string) {
         idempotencyKey: `migration:${fingerprint}`,
       });
     }
+    // Bônus de boas-vindas (calibrado p/ 2-3 ações: nunca "compra tudo" no dia 1)
+    await grantQs({
+      fingerprint,
+      amount: 100,
+      type: "welcome",
+      idempotencyKey: `welcome:${fingerprint}`,
+    });
   }
 
   const rows = await db
