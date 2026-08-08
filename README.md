@@ -15,7 +15,8 @@ O engajamento é gamificado com a moeda fictícia **Q** (sem valor monetário, n
 - **Ganhar Qs**: opinar (+5, até 10/dia), opinar cedo (+5 nas primeiras 48h), check-in diário (+10 a +25 conforme a sequência), acertar previsões (+20, +10 de bônus em sequência) e desbloquear conquistas (+10 a +100).
 - **Gastar Qs**: impulsionar uma enquete para o destaque da home (24h), molduras e títulos de perfil no ranking, proteção de streak.
 - **Liga semanal**: divisões Bronze → Prata → Ouro → Diamante; a pontuação são os Qs ganhos na semana; os primeiros sobem e os últimos descem toda segunda-feira.
-- **Conquistas**: 12 badges por marcos de participação, acerto e assiduidade.
+- **Conquistas**: 13 badges por marcos de participação, acerto, assiduidade e sugestões aprovadas.
+- **Notificações in-app**: resolução com seu resultado, conquistas, liga e **virada de maioria** nas enquetes que você votou ou segue.
 
 O saldo vive em um ledger append-only (`q_transactions`) com concessões idempotentes — a estatística de acurácia (pontos/streak do ranking) continua recomputável e separada da moeda.
 
@@ -108,6 +109,9 @@ Resumo:
 | `/liga` | Liga semanal com divisões e promoção/rebaixamento |
 | `/loja` | Loja de Qs (molduras, títulos, proteção de streak) |
 | `/carteira` | Saldo de Qs, extrato, streak diário e conquistas |
+| `/sugerir` | Sugerir enquete (50 Qs, fila de aprovação, estorno se recusada) |
+| `/boloes` e `/bolao/:code` | Bolões privados com amigos (código de convite, ranking do grupo) |
+| `/embed/:slug` | Widget leve para portais/newsletters (`?tema=dark`) |
 | `/como-funciona` | Explicação da plataforma |
 | `/metodologia` | Como os dados são calculados |
 | `/legal` | Informações legais |

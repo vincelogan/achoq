@@ -204,6 +204,78 @@ async function startServer() {
     }
   });
 
+  // ── Embed: widget leve de enquete para portais/newsletters ──────────────────
+  // HTML mínimo renderizado no servidor (sem bundle React), pensado para
+  // <iframe>. Ex.: <iframe src="https://achoq.com.br/embed/dolar-2026?tema=dark">
+  app.get("/embed/:slug", async (req: Request, res: Response) => {
+    try {
+      const { getMarketBySlug, getVoteStats } = await import("../db");
+      const market = await getMarketBySlug(String(req.params.slug || ""));
+      if (!market || !market.isActive) {
+        res.status(404).send("<!doctype html><meta charset='utf-8'>Enquete não encontrada");
+        return;
+      }
+      const stats = await getVoteStats(market.id);
+      const total = stats.total;
+      const pctA = total > 0 ? Math.round((stats.countA / total) * 100) : 50;
+      const pctB = total > 0 ? 100 - pctA : 50;
+      const dark = req.query.tema === "dark";
+      const esc = (s: string) =>
+        String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+      const bg = dark ? "#111318" : "#ffffff";
+      const fg = dark ? "#e7e9ee" : "#111111";
+      const muted = dark ? "#9aa1ad" : "#666666";
+      const border = dark ? "#2a2e37" : "#e5e5e5";
+      const marketUrl = `https://achoq.com.br/mercado/${market.slug}?utm_source=embed&utm_medium=iframe`;
+
+      const html = `<!doctype html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://achoq.com.br/mercado/${esc(market.slug)}">
+<title>${esc(market.title)} | AchoQ</title>
+<style>
+  *{margin:0;box-sizing:border-box;font-family:Inter,system-ui,-apple-system,sans-serif}
+  body{background:${bg};color:${fg};padding:16px;display:flex;flex-direction:column;gap:12px;min-height:100vh}
+  a{text-decoration:none}
+  .title{font-size:15px;font-weight:700;line-height:1.35;color:${fg}}
+  .bar{display:flex;height:14px;border-radius:99px;overflow:hidden;background:${border}}
+  .bar .a{background:#b91c1c;height:100%}
+  .bar .b{background:#2d5c94;height:100%}
+  .legend{display:flex;justify-content:space-between;font-size:12px;font-weight:700}
+  .legend .a{color:#c93a3a}.legend .b{color:#5b8fc4}
+  .meta{font-size:11px;color:${muted}}
+  .cta{margin-top:auto;display:flex;justify-content:space-between;align-items:center;border-top:1px solid ${border};padding-top:10px}
+  .logo{font-size:13px;font-weight:900;color:${dark ? "#6b9fd0" : "#1a4971"}}
+  .go{font-size:12px;font-weight:700;color:${dark ? "#6b9fd0" : "#1a4971"}}
+</style>
+</head><body>
+  <a class="title" href="${marketUrl}" target="_blank" rel="noopener">${esc(market.title)}</a>
+  <div class="bar" role="img" aria-label="${pctA}% ${esc(market.optionA)}, ${pctB}% ${esc(market.optionB)}">
+    <div class="a" style="width:${pctA}%"></div><div class="b" style="width:${pctB}%"></div>
+  </div>
+  <div class="legend">
+    <span class="a">${pctA}% ${esc(market.optionA)}</span>
+    <span class="b">${pctB}% ${esc(market.optionB)}</span>
+  </div>
+  <div class="meta">${total.toLocaleString("pt-BR")} opiniões · atualizado agora</div>
+  <div class="cta">
+    <span class="logo">AchoQ</span>
+    <a class="go" href="${marketUrl}" target="_blank" rel="noopener">Opine no AchoQ →</a>
+  </div>
+  <script>setTimeout(function(){location.reload()},120000)</script>
+</body></html>`;
+
+      res.set("Content-Type", "text/html; charset=utf-8");
+      res.set("Cache-Control", "public, max-age=60");
+      res.send(html);
+    } catch (e: any) {
+      res.status(500).send("Erro ao carregar o widget");
+    }
+  });
+
   // ── Scheduled: Listar enquetes com endsAt vencido e ainda ativas ────────────
   app.get("/api/scheduled/pending-markets", async (_req: Request, res: Response) => {
     try {

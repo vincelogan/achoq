@@ -141,6 +141,20 @@ export default function Liga() {
             </div>
           )}
 
+          {/* CTA bolão */}
+          <div className="mt-6 bg-card border border-brand/30 rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap">
+            <p className="text-sm text-foreground/80">
+              <strong className="text-foreground">Quer disputar só com os amigos?</strong> Crie um bolão privado
+              e convide pelo código.
+            </p>
+            <Link
+              href="/boloes"
+              className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand text-brand-foreground text-sm font-semibold hover:bg-brand/90 transition-colors"
+            >
+              Meus bolões
+            </Link>
+          </div>
+
           {/* Legenda */}
           <div className="mt-6 bg-muted/50 border border-border rounded-xl p-4 flex gap-3">
             <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />

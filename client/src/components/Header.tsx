@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import SearchBar from "./SearchBar";
 import QsBalance from "./QsBalance";
+import NotificationBell from "./NotificationBell";
 
 const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/logowhite_07ee886e.png";
 
@@ -51,12 +52,14 @@ export default function Header() {
             </Link>
           ))}
           <QsBalance />
+          <NotificationBell />
           <ThemeToggle />
         </nav>
 
-        {/* Mobile: saldo + toggle de tema + menu */}
+        {/* Mobile: saldo + sino + toggle de tema + menu */}
         <div className="flex items-center gap-1 md:hidden">
           <QsBalance />
+          <NotificationBell />
           <ThemeToggle />
           <button
             className="p-2 rounded-lg hover:bg-muted transition-colors"

@@ -49,6 +49,16 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/boloes" className="text-muted-foreground hover:text-brand transition-colors">
+                  Bolões
+                </Link>
+              </li>
+              <li>
+                <Link href="/sugerir" className="text-muted-foreground hover:text-brand transition-colors">
+                  Sugerir enquete
+                </Link>
+              </li>
+              <li>
                 <Link href="/metodologia" className="text-muted-foreground hover:text-brand transition-colors">
                   Metodologia
                 </Link>

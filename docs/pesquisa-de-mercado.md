@@ -80,14 +80,24 @@ Streak diário com **proteção de streak** (aversão à perda), ligas semanais 
 **Produto/UX (endereçados nas fases seguintes):**
 - Sem busca e sem filtro por categoria; destaque da home era simplesmente a primeira enquete; dark mode existia no CSS mas estava inacessível; 3 azuis e 2 vermelhos concorrentes na identidade visual; ~13 componentes mortos de um design anterior; página 404 em inglês; zoom bloqueado no mobile (acessibilidade); gráfico sem alternativa textual; N requisições redundantes na home.
 
-## 6. Backlog futuro (não incluído nesta rodada)
+## 6. Rodada 2 (implementada)
 
-- Perguntas sugeridas por usuários com fila de moderação (custo em Qs).
-- Ligas/grupos privados com convite de amigos (padrão bolão brasileiro — forte viralização).
-- Embeds/widgets "o que o Brasil acha" para portais e redes sociais.
+Segunda rodada de pesquisa (detalhes de mecânica extraídos do código-fonte aberto do Manifold, do Bolão do Cartola/apps de bolão brasileiros e dos lançamentos 2025-26 de Kalshi/Polymarket) e implementação:
+
+- **Enquetes sugeridas pela comunidade** (`/sugerir`): custa 50 Qs (calibrado pela lição do Manifold — custo alto mata o UGC), exige apelido, fila de aprovação no admin, estorno automático na recusa, badge "Pauteiro" na aprovação.
+- **Bolões privados** (`/boloes`): grupos com código de convite de 6 caracteres (padrão Cartola: até 100 por grupo lá, 50 aqui; grátis para viralizar), ranking interno por Qs da semana + acurácia, compartilhamento via WhatsApp.
+- **Notificações in-app** (sininho): resolução com resultado individual, conquistas, revisão de sugestão, movimento na liga e a feature-assinatura **virada de maioria** — "as pessoas mudaram de ideia" é o drama social que só uma plataforma de opinião tem (análogo emocional dos alertas de preço do Polymarket/Kalshi). Debounce de 1 aviso por direção/dia, mínimo de 20 votos.
+- **Watchlist**: seguir enquete sem votar (recebe aviso de virada).
+- **Widget de embed** (`/embed/:slug`): HTML leve server-rendered com placar ao vivo, temas claro/escuro e link de volta com UTM (padrão Polymarket/Substack); modal "Incorporar" com código pronto.
+- **Gráfico de linha** da opinião acumulada no tempo (estilo Polymarket) no lugar das barras diárias.
+- **Onboarding** na primeira visita + **bônus de boas-vindas de 100 Qs** (escada do Manifold: saldo inicial permite 2-3 ações, nunca "comprar tudo").
+
+## 7. Backlog futuro (não incluído)
+
+- Widget "vitrine" multi-enquetes para sidebars de portais (o embed unitário já existe).
 - Painel B2B de sentimento agregado (relatórios vendáveis — modelo YouGov/Metaculus Pro).
 - Programa de recompensas via concurso promocional autorizado (modelo Palpita Aí), se um dia houver apetite para prêmio real — mantendo o palpite em si gratuito.
-- Push notifications de "virada da maioria" e resolução; watchlist.
+- Push notifications nativas (a versão in-app já existe); perfil público com "sintonia com o Brasil" e termômetro contrarian.
 
 ---
 

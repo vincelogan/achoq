@@ -2,6 +2,7 @@ import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { getDb } from "./db";
 import { badges, leagueMembers, leagueSeasons, qTransactions, userBadges, userScores, votes } from "../drizzle/schema";
 import { countTodayVoteGrants, ensureScoreRow, grantQs, isDuplicateEntry, spDate } from "./economy";
+import { notify } from "./notifications";
 
 /**
  * Recompensas de gamificação em Qs.
@@ -204,6 +205,17 @@ export async function checkAndAwardBadges(fingerprint: string): Promise<number> 
     // Tabela de comentários pode ainda não existir
   }
 
+  let approvedSuggestions = 0;
+  try {
+    const suggestionRows = await db.execute(
+      sql`SELECT COUNT(*) as count FROM market_suggestions WHERE fingerprint = ${fingerprint} AND status = 'approved'`
+    );
+    const rows: any[] = Array.isArray(suggestionRows[0]) ? suggestionRows[0] : (suggestionRows as any).rows ?? [];
+    approvedSuggestions = Number(rows[0]?.count ?? 0);
+  } catch {
+    // Tabela de sugestões pode ainda não existir
+  }
+
   const meets = (code: string): boolean => {
     switch (code) {
       case "primeira-opiniao": return voteCount >= 1;
@@ -218,6 +230,7 @@ export async function checkAndAwardBadges(fingerprint: string): Promise<number> 
       case "assiduo-30": return Number(score.dailyStreak) >= 30;
       case "madrugador": return earlyCount >= 10;
       case "comentarista": return commentCount >= 10;
+      case "ideia-aprovada": return approvedSuggestions >= 1;
       default: return false;
     }
   };
@@ -242,6 +255,16 @@ export async function checkAndAwardBadges(fingerprint: string): Promise<number> 
       });
       if (r.granted) totalQs += r.amount;
     }
+    await notify({
+      fingerprint,
+      type: "badge_earned",
+      title: `Conquista desbloqueada: ${badge.name} 🏅`,
+      body: badge.qReward > 0 ? `${badge.description ?? ""} +${badge.qReward} Qs`.trim() : badge.description ?? undefined,
+      linkUrl: "/carteira",
+      refType: "badge",
+      refId: badge.id,
+      idempotencyKey: `notif:badge:${badge.code}:${fingerprint}`,
+    });
   }
   return totalQs;
 }
@@ -436,6 +459,22 @@ export async function closeFinishedSeasons(): Promise<{ closed: number }> {
           } catch (e: any) {
             if (!isDuplicateEntry(e)) throw e;
           }
+        }
+
+        if (nextDivision !== division) {
+          const promoted = DIVISIONS.indexOf(nextDivision) > divIdx;
+          await notify({
+            fingerprint: entry.fingerprint,
+            type: "league_moved",
+            title: promoted ? `Você subiu para a divisão ${nextDivision}! 🏆` : `Você caiu para a divisão ${nextDivision}`,
+            body: promoted
+              ? `Terminou a semana em #${entry.rank} — continue assim!`
+              : `Terminou a semana em #${entry.rank}. Semana nova, chance nova.`,
+            linkUrl: "/liga",
+            refType: "season",
+            refId: season.id,
+            idempotencyKey: `notif:league:${season.id}:${entry.fingerprint}`,
+          });
         }
       }
     }

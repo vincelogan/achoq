@@ -13,6 +13,9 @@ const Categoria = lazy(() => import("./pages/Categoria"));
 const Loja = lazy(() => import("./pages/Loja"));
 const Carteira = lazy(() => import("./pages/Carteira"));
 const Liga = lazy(() => import("./pages/Liga"));
+const Sugerir = lazy(() => import("./pages/Sugerir"));
+const Boloes = lazy(() => import("./pages/Boloes"));
+const BolaoDetalhe = lazy(() => import("./pages/BolaoDetalhe"));
 const ComoFunciona = lazy(() => import("./pages/ComoFunciona"));
 const Ranking = lazy(() => import("./pages/Ranking"));
 const Metodologia = lazy(() => import("./pages/Metodologia"));
@@ -41,6 +44,9 @@ function Router() {
         <Route path="/loja" component={Loja} />
         <Route path="/carteira" component={Carteira} />
         <Route path="/liga" component={Liga} />
+        <Route path="/sugerir" component={Sugerir} />
+        <Route path="/boloes" component={Boloes} />
+        <Route path="/bolao/:code" component={BolaoDetalhe} />
         <Route path="/como-funciona" component={ComoFunciona} />
         <Route path="/ranking" component={Ranking} />
         <Route path="/metodologia" component={Metodologia} />

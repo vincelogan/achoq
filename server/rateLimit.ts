@@ -71,6 +71,8 @@ export const RATE_LIMITS = {
   nickname: { max: 5, windowMs: 60 * 60 * 1000 },
   comments: { max: 10, windowMs: 60 * 60 * 1000 },
   shop: { max: 30, windowMs: 60 * 60 * 1000 },
+  suggestions: { max: 5, windowMs: 60 * 60 * 1000 },
+  groups: { max: 10, windowMs: 60 * 60 * 1000 },
 } as const;
 
 /** Apenas para testes: limpa todos os contadores. */

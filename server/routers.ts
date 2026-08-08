@@ -52,6 +52,22 @@ import {
   getActiveBoostMarketIds,
 } from "./shop";
 import { addComment, listComments, listReportedComments, moderateComment, reportComment } from "./comments";
+import {
+  createSuggestion,
+  listMySuggestions,
+  listPendingSuggestions,
+  reviewSuggestion,
+  SUGGESTION_COST,
+} from "./suggestions";
+import { createGroup, getGroupWithRanking, joinGroup, leaveGroup, listMyGroups } from "./groups";
+import {
+  detectAndNotifyMajorityFlip,
+  isWatching,
+  listNotifications,
+  markAllRead,
+  toggleWatch,
+  unreadCount,
+} from "./notifications";
 
 // Seed mercados na inicialização
 seedMarketsIfEmpty().catch(console.error);
@@ -155,10 +171,11 @@ export const appRouter = router({
         // Recompensas de Qs em best-effort: falha aqui nunca derruba o voto
         let qsEarned = 0;
         let dailyStreak = 0;
+        let votedMarket: any = null;
         try {
-          const market = await getMarketById(input.marketId);
-          if (market) {
-            const rewards = await processVoteRewards(input.fingerprint, market);
+          votedMarket = await getMarketById(input.marketId);
+          if (votedMarket) {
+            const rewards = await processVoteRewards(input.fingerprint, votedMarket);
             qsEarned = rewards.qsEarned;
             dailyStreak = rewards.dailyStreak;
           }
@@ -167,6 +184,19 @@ export const appRouter = router({
         }
 
         const stats = await getVoteStats(input.marketId);
+
+        // Virada de maioria (best-effort): compara o placar sem este voto
+        try {
+          if (votedMarket) {
+            const before = {
+              countA: stats.countA - (input.choice === "A" ? 1 : 0),
+              countB: stats.countB - (input.choice === "B" ? 1 : 0),
+            };
+            await detectAndNotifyMajorityFlip(votedMarket, before, stats, input.fingerprint);
+          }
+        } catch (e) {
+          console.error("[vote] Falha ao detectar virada de maioria:", e);
+        }
         const total = stats.total;
         const pctA = total > 0 ? Math.round((stats.countA / total) * 100) : 50;
         const pctB = total > 0 ? Math.round((stats.countB / total) * 100) : 50;
@@ -295,6 +325,122 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         checkRateLimit(`shop:${getClientIp(ctx.req)}`, RATE_LIMITS.shop.max, RATE_LIMITS.shop.windowMs);
         return boostMarket(input.fingerprint, input.marketId);
+      }),
+  }),
+
+  // ─── Notificações in-app ──────────────────────────────────────────────────────
+  notifications: router({
+    list: publicProcedure
+      .input(z.object({
+        fingerprint: z.string().min(8).max(128),
+        cursor: z.number().int().optional(),
+        limit: z.number().int().min(1).max(50).optional(),
+      }))
+      .query(async ({ input }) => {
+        return listNotifications(input.fingerprint, { cursor: input.cursor, limit: input.limit });
+      }),
+
+    unreadCount: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .query(async ({ input }) => {
+        return { count: await unreadCount(input.fingerprint) };
+      }),
+
+    markAllRead: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .mutation(async ({ input }) => {
+        return markAllRead(input.fingerprint);
+      }),
+  }),
+
+  // ─── Watchlist (seguir enquetes) ──────────────────────────────────────────────
+  watchlist: router({
+    toggle: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128), marketId: z.number().int() }))
+      .mutation(async ({ input }) => {
+        return toggleWatch(input.fingerprint, input.marketId);
+      }),
+
+    status: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128), marketId: z.number().int() }))
+      .query(async ({ input }) => {
+        return { watching: await isWatching(input.fingerprint, input.marketId) };
+      }),
+  }),
+
+  // ─── Bolões (grupos privados com amigos) ──────────────────────────────────────
+  groups: router({
+    create: publicProcedure
+      .input(z.object({
+        fingerprint: z.string().min(8).max(128),
+        name: z.string().min(3).max(64),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`groups:${getClientIp(ctx.req)}`, RATE_LIMITS.groups.max, RATE_LIMITS.groups.windowMs);
+        return createGroup(input.fingerprint, input.name);
+      }),
+
+    join: publicProcedure
+      .input(z.object({
+        fingerprint: z.string().min(8).max(128),
+        code: z.string().min(4).max(12),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`groups:${getClientIp(ctx.req)}`, RATE_LIMITS.groups.max, RATE_LIMITS.groups.windowMs);
+        return joinGroup(input.fingerprint, input.code);
+      }),
+
+    leave: publicProcedure
+      .input(z.object({
+        fingerprint: z.string().min(8).max(128),
+        groupId: z.number().int(),
+      }))
+      .mutation(async ({ input }) => {
+        return leaveGroup(input.fingerprint, input.groupId);
+      }),
+
+    mine: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .query(async ({ input }) => {
+        return listMyGroups(input.fingerprint);
+      }),
+
+    get: publicProcedure
+      .input(z.object({
+        code: z.string().min(4).max(12),
+        fingerprint: z.string().min(8).max(128).optional(),
+      }))
+      .query(async ({ input }) => {
+        return getGroupWithRanking(input.code, input.fingerprint);
+      }),
+  }),
+
+  // ─── Sugestões de enquete (UGC com moderação) ─────────────────────────────────
+  suggestions: router({
+    // Custo em Qs para exibir no formulário
+    cost: publicProcedure.query(() => ({ cost: SUGGESTION_COST })),
+
+    create: publicProcedure
+      .input(z.object({
+        fingerprint: z.string().min(8).max(128),
+        title: z.string().min(10).max(200),
+        category: z.string().min(1).max(64),
+        optionA: z.string().min(1).max(128),
+        optionB: z.string().min(1).max(128),
+        labelA: z.string().min(1).max(64),
+        labelB: z.string().min(1).max(64),
+        description: z.string().max(1000).optional(),
+        endsAt: z.coerce.date().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        checkRateLimit(`suggest:${getClientIp(ctx.req)}`, RATE_LIMITS.suggestions.max, RATE_LIMITS.suggestions.windowMs);
+        return createSuggestion(input);
+      }),
+
+    mine: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(8).max(128) }))
+      .query(async ({ input }) => {
+        return listMySuggestions(input.fingerprint);
       }),
   }),
 
@@ -489,6 +635,22 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return updateMarket(input.id, { isActive: true });
+      }),
+
+    // Sugestões de enquete aguardando revisão
+    suggestionsPending: adminProcedure.query(async () => {
+      return listPendingSuggestions();
+    }),
+
+    // Aprovar (publica a enquete) ou rejeitar (estorna os Qs) uma sugestão
+    reviewSuggestion: adminProcedure
+      .input(z.object({
+        id: z.number().int(),
+        action: z.enum(["approve", "reject"]),
+        note: z.string().max(300).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return reviewSuggestion(input.id, input.action, input.note);
       }),
 
     // Comentários denunciados (fila de moderação)

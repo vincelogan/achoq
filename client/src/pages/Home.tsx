@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from "react";
+import { Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HowItWorks from "@/components/HowItWorks";
@@ -11,6 +12,7 @@ import { useFingerprint } from "@/hooks/useFingerprint";
 import { categoryLabel } from "@/lib/categories";
 import { Loader2, BarChart3 } from "lucide-react";
 import UserScoreCard from "@/components/UserScoreCard";
+import OnboardingModal from "@/components/OnboardingModal";
 
 export default function Home() {
   useEffect(() => {
@@ -45,6 +47,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground font-sans selection:bg-brand selection:text-white">
+      <OnboardingModal />
       <Header />
       <main className="flex-1">
 
@@ -52,8 +55,16 @@ export default function Home() {
         <section className="relative w-full py-8 md:py-16 bg-muted/50">
           <div className="container max-w-4xl mx-auto">
 
-            {/* Navegação por categoria */}
-            <CategoryNav className="mb-6" />
+            {/* Navegação por categoria + CTA de sugestão */}
+            <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
+              <CategoryNav className="flex-1 min-w-0" />
+              <Link
+                href="/sugerir"
+                className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-semibold border border-qs/40 bg-qs/10 text-qs hover:bg-qs/20 transition-colors"
+              >
+                💡 Sugerir enquete
+              </Link>
+            </div>
 
             {/* Título da seção */}
             <div className="mb-8">

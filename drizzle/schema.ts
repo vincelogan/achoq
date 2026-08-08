@@ -283,3 +283,98 @@ export const commentReports = mysqlTable("comment_reports", {
 ]);
 
 export type CommentReport = typeof commentReports.$inferSelect;
+
+/**
+ * Sugestões de enquete enviadas por usuários (custam Qs; estornados se
+ * rejeitada). Fila de aprovação no admin — controle editorial preservado.
+ */
+export const marketSuggestions = mysqlTable("market_suggestions", {
+  id: int("id").autoincrement().primaryKey(),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 64 }).notNull().default("geral"),
+  optionA: varchar("optionA", { length: 128 }).notNull(),
+  optionB: varchar("optionB", { length: 128 }).notNull(),
+  labelA: varchar("labelA", { length: 64 }).notNull(),
+  labelB: varchar("labelB", { length: 64 }).notNull(),
+  endsAt: timestamp("endsAt"),
+  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
+  // Nota do moderador (exibida ao autor quando rejeitada)
+  reviewNote: varchar("reviewNote", { length: 300 }),
+  // Enquete criada a partir desta sugestão (quando aprovada)
+  marketId: int("marketId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("idx_suggestions_status").on(t.status, t.createdAt),
+  index("idx_suggestions_fp").on(t.fingerprint),
+]);
+
+export type MarketSuggestion = typeof marketSuggestions.$inferSelect;
+
+/**
+ * Bolões: grupos privados de amigos (padrão Cartola/BolãoJá).
+ * Entrada por código de convite; ranking interno por Qs da semana e acurácia.
+ */
+export const groups = mysqlTable("groups", {
+  id: int("id").autoincrement().primaryKey(),
+  // Código de convite curto (compartilhado por link)
+  code: varchar("code", { length: 12 }).notNull().unique(),
+  name: varchar("name", { length: 64 }).notNull(),
+  ownerFingerprint: varchar("ownerFingerprint", { length: 128 }).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("idx_groups_owner").on(t.ownerFingerprint),
+]);
+
+export type Group = typeof groups.$inferSelect;
+
+export const groupMembers = mysqlTable("group_members", {
+  id: int("id").autoincrement().primaryKey(),
+  groupId: int("groupId").notNull(),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  joinedAt: timestamp("joinedAt").defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex("uniq_group_member").on(t.groupId, t.fingerprint),
+  index("idx_group_members_fp").on(t.fingerprint),
+]);
+
+export type GroupMember = typeof groupMembers.$inferSelect;
+
+/**
+ * Notificações in-app (sininho). Emissão idempotente por idempotencyKey —
+ * re-executar o evento (ex.: re-resolução) não duplica avisos.
+ */
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  // 'market_resolved' | 'majority_flip' | 'badge_earned'
+  // | 'suggestion_reviewed' | 'league_moved'
+  type: varchar("type", { length: 32 }).notNull(),
+  title: varchar("title", { length: 200 }).notNull(),
+  body: varchar("body", { length: 300 }),
+  linkUrl: varchar("linkUrl", { length: 200 }),
+  refType: varchar("refType", { length: 16 }),
+  refId: int("refId"),
+  idempotencyKey: varchar("idempotencyKey", { length: 160 }).notNull().unique(),
+  isRead: boolean("isRead").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  index("idx_notifications_fp").on(t.fingerprint, t.isRead, t.id),
+]);
+
+export type Notification = typeof notifications.$inferSelect;
+
+/** Enquetes seguidas (watchlist): recebem aviso de virada de maioria. */
+export const watchlist = mysqlTable("watchlist", {
+  id: int("id").autoincrement().primaryKey(),
+  fingerprint: varchar("fingerprint", { length: 128 }).notNull(),
+  marketId: int("marketId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex("uniq_watch").on(t.fingerprint, t.marketId),
+  index("idx_watchlist_market").on(t.marketId),
+]);
+
+export type WatchlistEntry = typeof watchlist.$inferSelect;
