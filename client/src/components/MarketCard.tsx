@@ -39,7 +39,7 @@ function ConfettiBurst() {
   const particles = Array.from({ length: 12 }, (_, i) => {
     const angle = (i / 12) * 360;
     const distance = 40 + Math.random() * 30;
-    const colors = ["#B91C1C", "#002B5C", "#16a34a", "#eab308", "#7c3aed", "#0ea5e9"];
+    const colors = ["#00D18F", "#FF5C72", "#F7A600", "#3D8BFF", "#7A5CFF", "#00C4D9"];
     const color = colors[i % colors.length];
     const size = 4 + Math.random() * 4;
     return { angle, distance, color, size, delay: Math.random() * 0.15 };
@@ -122,7 +122,7 @@ export default function MarketCard({
   const colorB = "var(--vote-b)";
 
   return (
-    <div className={`relative bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col ${hero ? "w-full" : ""}`}>
+    <div className={`relative bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col transition-[border-color,box-shadow] duration-200 hover:border-brand/35 hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--brand)_18%,transparent),0_8px_28px_-12px_color-mix(in_srgb,var(--brand)_25%,transparent)] ${hero ? "w-full" : ""}`}>
       {/* Confetti burst */}
       <AnimatePresence>
         {showConfetti && <ConfettiBurst />}
@@ -143,10 +143,10 @@ export default function MarketCard({
       )}
 
       {/* Header do card */}
-      <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between bg-muted/50">
+      <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between flex-wrap gap-x-3 gap-y-1 bg-muted/50">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{category}</span>
+          <div className="w-2 h-2 bg-brand rounded-full animate-pulse" />
+          <span className="font-mono text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.14em]">{category}</span>
           {boosted && (
             <span className="flex items-center gap-1 text-[10px] font-bold text-qs bg-qs/10 border border-qs/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
               ⚡ Impulsionada
@@ -162,16 +162,16 @@ export default function MarketCard({
             </span>
           ) : null}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {endsAt && !isClosed && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Calendar className="w-3 h-3" />
+            <div className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+              <Calendar className="w-3 h-3 shrink-0" />
               <span>Encerra {new Date(endsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}</span>
             </div>
           )}
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <TrendingUp className="w-3 h-3" />
-            <span>{localStats.total.toLocaleString("pt-BR")} opiniões</span>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+            <TrendingUp className="w-3 h-3 shrink-0" />
+            <span className="tabular-nums">{localStats.total.toLocaleString("pt-BR")} opiniões</span>
           </div>
         </div>
       </div>
@@ -188,7 +188,7 @@ export default function MarketCard({
         {tickerItems && tickerItems.length > 0 && (
           <div className="mb-4 overflow-hidden rounded-lg bg-muted border border-border/50 px-3 py-1.5">
             <div className="flex items-center gap-2">
-              <span className="shrink-0 text-[10px] font-bold text-white bg-vote-a px-1.5 py-0.5 rounded uppercase tracking-wider">News</span>
+              <span className="shrink-0 text-[10px] font-bold text-white bg-red-600 px-1.5 py-0.5 rounded uppercase tracking-wider">News</span>
               <div className="overflow-hidden flex-1">
                 <div className="animate-marquee whitespace-nowrap text-xs text-muted-foreground">
                   {tickerItems.map((item, idx) => (
@@ -334,11 +334,11 @@ export default function MarketCard({
               <div className="space-y-3">
                 <div className="flex justify-between items-end">
                   <div>
-                    <div className="text-2xl font-bold" style={{ color: colorA }}>{localStats.pctA}%</div>
+                    <div className="font-display text-2xl font-bold tabular-nums" style={{ color: colorA }}>{localStats.pctA}%</div>
                     <div className="text-xs font-medium text-muted-foreground uppercase">{optionA}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold" style={{ color: colorB }}>{localStats.pctB}%</div>
+                    <div className="font-display text-2xl font-bold tabular-nums" style={{ color: colorB }}>{localStats.pctB}%</div>
                     <div className="text-xs font-medium text-muted-foreground uppercase">{optionB}</div>
                   </div>
                 </div>

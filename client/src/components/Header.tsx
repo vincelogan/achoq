@@ -3,7 +3,7 @@ import { useState } from "react";
 import { LogOut, Menu, User, X } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import SearchBar from "./SearchBar";
-import QsBalance from "./QsBalance";
+import QsBalance, { QCoin } from "./QsBalance";
 import NotificationBell from "./NotificationBell";
 import { Button } from "./ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
@@ -11,7 +11,26 @@ import { useAuth } from "@/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { clearFingerprint } from "@/hooks/useFingerprint";
 
-const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/logowhite_07ee886e.png";
+/**
+ * Wordmark do rebrand "Pregão": tipográfico, com o Q renderizado como a
+ * própria moeda Q — a marca carrega a economia da casa (sem depender de
+ * asset externo no CDN antigo).
+ */
+export function Wordmark({ tagline = true }: { tagline?: boolean }) {
+  return (
+    <span className="flex flex-col leading-none">
+      <span className="flex items-center font-display text-[1.35rem] font-bold tracking-tight text-foreground">
+        Acho
+        <QCoin className="w-[1.15em] h-[1.15em] ml-0.5 shadow-[0_0_10px_color-mix(in_srgb,var(--qs)_45%,transparent)]" />
+      </span>
+      {tagline && (
+        <span className="font-mono text-[8.5px] uppercase tracking-[0.18em] text-muted-foreground mt-1">
+          Bolsa de opiniões
+        </span>
+      )}
+    </span>
+  );
+}
 
 const navLinks = [
   { href: "/como-funciona", label: "Como funciona" },
@@ -72,15 +91,11 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75">
       <div className="container flex h-16 items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5">
-          <img src={LOGO_URL} alt="AchoQ" className="h-11 w-11 object-contain" />
-          <div className="flex flex-col leading-none">
-            <span className="font-sans text-xl font-black tracking-tight text-brand">AchoQ</span>
-            <span className="font-sans text-[9px] text-muted-foreground tracking-wide">Expectativa Coletiva</span>
-          </div>
+        <Link href="/" aria-label="AchoQ — início">
+          <Wordmark />
         </Link>
 
         {/* Busca Desktop */}

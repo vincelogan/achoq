@@ -84,7 +84,7 @@ export default function Loja() {
           <button
             onClick={() => setTab("loja")}
             className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-              tab === "loja" ? "bg-card text-vote-b shadow-sm" : "text-muted-foreground hover:text-foreground/80"
+              tab === "loja" ? "bg-card text-brand shadow-sm" : "text-muted-foreground hover:text-foreground/80"
             }`}
           >
             Loja
@@ -92,7 +92,7 @@ export default function Loja() {
           <button
             onClick={() => setTab("meus")}
             className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-              tab === "meus" ? "bg-card text-vote-b shadow-sm" : "text-muted-foreground hover:text-foreground/80"
+              tab === "meus" ? "bg-card text-brand shadow-sm" : "text-muted-foreground hover:text-foreground/80"
             }`}
           >
             Meus Itens {ownedCodes.size > 0 ? `(${ownedCodes.size})` : ""}

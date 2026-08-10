@@ -40,7 +40,7 @@ export default function OnboardingModal() {
           aria-modal="true"
           aria-label="Bem-vindo ao AchoQ"
         >
-          <div className="bg-gradient-to-r from-vote-b to-brand p-6 text-white text-center">
+          <div className="panel-exchange p-6 text-white text-center">
             <p className="text-4xl mb-2" aria-hidden="true">🇧🇷</p>
             <h2 className="text-xl font-black">Bem-vindo ao AchoQ</h2>
             <p className="text-blue-200 text-sm mt-1 font-medium">

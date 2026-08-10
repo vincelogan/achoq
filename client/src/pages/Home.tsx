@@ -7,6 +7,7 @@ import Methodology from "@/components/Methodology";
 import Disclaimer from "@/components/Disclaimer";
 import MarketCard from "@/components/MarketCard";
 import CategoryNav from "@/components/CategoryNav";
+import TickerTape from "@/components/TickerTape";
 import { trpc } from "@/lib/trpc";
 import { useFingerprint } from "@/hooks/useFingerprint";
 import { categoryLabel } from "@/lib/categories";
@@ -51,9 +52,13 @@ export default function Home() {
       <Header />
       <main className="flex-1">
 
+        {/* Fita de cotações — placar ao vivo de todas as enquetes */}
+        {markets && markets.length > 1 && <TickerTape markets={markets as any} />}
+
         {/* Hero Section */}
-        <section className="relative w-full py-8 md:py-16 bg-muted/50">
-          <div className="container max-w-4xl mx-auto">
+        <section className="relative w-full py-8 md:py-16">
+          <div className="hero-glow" aria-hidden />
+          <div className="container max-w-4xl mx-auto relative">
 
             {/* Navegação por categoria + CTA de sugestão */}
             <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
@@ -69,8 +74,9 @@ export default function Home() {
             {/* Título da seção */}
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-muted px-3 py-1 rounded-full">
-                  Enquete em Destaque
+                <span className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold text-brand uppercase tracking-[0.14em] border border-brand/25 bg-brand/10 px-3 py-1 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" aria-hidden />
+                  Ao vivo — bolsa de opiniões
                 </span>
               </div>
               {isLoading ? (
@@ -118,9 +124,9 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Outros Mercados */}
+        {/* Outras enquetes */}
         {otherMarkets.length > 0 && (
-          <section className="w-full py-8 md:py-12 bg-card border-t border-border/50">
+          <section className="w-full py-8 md:py-12 border-t border-border/50">
             <div className="container max-w-4xl mx-auto">
               <div className="mb-6 flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-muted-foreground" />

@@ -16,6 +16,14 @@ interface ThemeProviderProps {
   switchable?: boolean;
 }
 
+/**
+ * Chave versionada de propósito: o provider antigo gravava "theme" em todo
+ * mount, então TODO visitante anterior tem "light" persistido — sem versionar,
+ * o rebrand escuro nunca chegaria a eles. "v2" ignora a preferência implícita
+ * antiga; quem alternar manualmente a partir de agora fica com a escolha.
+ */
+const THEME_STORAGE_KEY = "achoq_theme_v2";
+
 export function ThemeProvider({
   children,
   defaultTheme = "light",
@@ -23,8 +31,8 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (switchable) {
-      const stored = localStorage.getItem("theme");
-      return (stored as Theme) || defaultTheme;
+      const stored = localStorage.getItem(THEME_STORAGE_KEY);
+      if (stored === "light" || stored === "dark") return stored;
     }
     return defaultTheme;
   });
@@ -38,7 +46,7 @@ export function ThemeProvider({
     }
 
     if (switchable) {
-      localStorage.setItem("theme", theme);
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
     }
   }, [theme, switchable]);
 

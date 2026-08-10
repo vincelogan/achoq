@@ -68,7 +68,7 @@ export default function Liga() {
       ) : (
         <>
           {/* Cabeçalho da temporada */}
-          <div className="mb-6 bg-gradient-to-r from-vote-b to-brand rounded-2xl p-5 text-white flex items-center justify-between flex-wrap gap-4">
+          <div className="mb-6 panel-exchange rounded-2xl p-5 text-white flex items-center justify-between flex-wrap gap-4">
             <div>
               <p className="text-blue-200 text-sm font-medium mb-1">Sua divisão</p>
               <div className="flex items-center gap-2">

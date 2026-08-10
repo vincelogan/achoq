@@ -1,11 +1,11 @@
 {
-  "name": "AchoQ - Plataforma de Expectativa Coletiva",
+  "name": "AchoQ — A bolsa de opiniões do Brasil",
   "short_name": "AchoQ",
-  "description": "Veja o que o Brasil acha em tempo real. A primeira plataforma de expectativa coletiva do Brasil.",
+  "description": "A bolsa de opiniões do Brasil. Sem apostas, sem dinheiro — só opinião.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#1a4971",
+  "background_color": "#0a0f1c",
+  "theme_color": "#0a0f1c",
   "icons": [
     {
       "src": "/icon-192x192.png",

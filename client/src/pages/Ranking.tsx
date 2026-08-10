@@ -52,7 +52,7 @@ function RankingCard({
       frameClass
         ? `${frameClass} bg-card`
         : isMe
-        ? "border-vote-b bg-vote-b/10 shadow-sm"
+        ? "border-brand bg-brand/10 shadow-sm"
         : entry.rank <= 3
         ? "border-yellow-500/40 bg-yellow-500/5"
         : "border-border bg-card hover:border-muted-foreground/40"
@@ -69,7 +69,7 @@ function RankingCard({
             </span>
           )}
           {isMe && (
-            <span className="text-[10px] font-bold bg-vote-b text-white px-1.5 py-0.5 rounded-full shrink-0">
+            <span className="text-[10px] font-bold bg-brand text-brand-foreground px-1.5 py-0.5 rounded-full shrink-0">
               VOCÊ
             </span>
           )}
@@ -87,7 +87,7 @@ function RankingCard({
         <AccuracyBar accuracy={entry.accuracy} />
       </div>
       <div className="text-right shrink-0">
-        <div className="text-lg font-black text-vote-b">{entry.points}</div>
+        <div className="font-display text-lg font-bold text-brand tabular-nums">{entry.points}</div>
         <div className="text-[10px] text-muted-foreground uppercase tracking-wide">pts</div>
       </div>
     </div>
@@ -122,7 +122,7 @@ function MyPositionPanel({ fingerprint }: { fingerprint: string }) {
   if (!myPos) return null;
 
   return (
-    <div className="mb-8 bg-gradient-to-r from-vote-b to-brand rounded-2xl p-5 text-white">
+    <div className="mb-8 panel-exchange rounded-2xl p-5 text-white">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <p className="text-blue-200 text-sm font-medium mb-1">Sua posição</p>
@@ -214,7 +214,7 @@ export default function Ranking() {
           onClick={() => setTab("acertadores")}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
             tab === "acertadores"
-              ? "bg-card text-vote-b shadow-sm"
+              ? "bg-card text-brand shadow-sm"
               : "text-muted-foreground hover:text-foreground/80"
           }`}
         >
@@ -225,7 +225,7 @@ export default function Ranking() {
           onClick={() => setTab("enquetes")}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
             tab === "enquetes"
-              ? "bg-card text-vote-b shadow-sm"
+              ? "bg-card text-brand shadow-sm"
               : "text-muted-foreground hover:text-foreground/80"
           }`}
         >

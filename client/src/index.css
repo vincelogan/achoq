@@ -5,6 +5,7 @@
 
 @theme inline {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --animate-marquee: marquee 20s linear infinite;
   --keyframes-marquee: {
@@ -60,110 +61,115 @@
 
 :root {
   /*
-   * Identidade AchoQ (paleta de produção, unificada):
-   *  brand  — azul-marinho institucional (header, links, destaques)
-   *  vote-a — vermelho da opção A
-   *  vote-b — azul-marinho escuro da opção B
-   *  qs     — âmbar da moeda fictícia Q
+   * Identidade AchoQ "Pregão" (rebrand 2026 — meio-termo Kalshi × Polymarket):
+   *  brand  — verde-pregão (CTAs, links, sinais "ao vivo")
+   *  vote-a — verde da opção A (convenção de mercado: SIM/alta)
+   *  vote-b — coral da opção B (NÃO/baixa)
+   *  qs     — âmbar da moeda fictícia Q (o "ativo" da casa)
+   * Tema claro = metade Kalshi: branco, tinta escura, verde mais profundo
+   * para garantir contraste AA em texto.
    */
-  --brand: #1a4971;
+  --brand: #007a5c;
   --brand-foreground: #ffffff;
-  --vote-a: #b91c1c;
+  --vote-a: #00805f;
   --vote-a-foreground: #ffffff;
-  --vote-b: #002b5c;
+  --vote-b: #d32f49;
   --vote-b-foreground: #ffffff;
-  --qs: #d97706;
+  --qs: #b45309;
   --qs-foreground: #ffffff;
 
-  --color-achoq-black: #111111;
-  --color-achoq-white: #FFFFFF;
-  --color-achoq-gray: #F5F5F5;
+  --color-achoq-ink: #0b1220;
+  --color-achoq-white: #ffffff;
+  --color-achoq-gray: #f4f7fb;
 
   --primary: var(--brand);
   --primary-foreground: var(--brand-foreground);
 
-  --destructive: var(--vote-a);
-  --destructive-foreground: var(--vote-a-foreground);
+  --destructive: var(--vote-b);
+  --destructive-foreground: var(--vote-b-foreground);
 
   --chart-1: var(--vote-a);
   --chart-2: var(--vote-b);
   --chart-3: var(--brand);
 
-  --radius: 0.75rem; /* Kalshi-style radius */
+  --radius: 0.75rem;
 
   --background: var(--color-achoq-white);
-  --foreground: var(--color-achoq-black);
+  --foreground: var(--color-achoq-ink);
 
   --card: var(--color-achoq-white);
-  --card-foreground: var(--color-achoq-black);
+  --card-foreground: var(--color-achoq-ink);
 
   --popover: var(--color-achoq-white);
-  --popover-foreground: var(--color-achoq-black);
+  --popover-foreground: var(--color-achoq-ink);
 
   --secondary: var(--color-achoq-gray);
-  --secondary-foreground: var(--color-achoq-black);
+  --secondary-foreground: var(--color-achoq-ink);
 
   --muted: var(--color-achoq-gray);
-  --muted-foreground: #666666;
+  --muted-foreground: #5b6779;
 
   --accent: var(--color-achoq-gray);
-  --accent-foreground: var(--color-achoq-black);
+  --accent-foreground: var(--color-achoq-ink);
 
-  --border: #E5E5E5;
-  --input: #E5E5E5;
+  --border: #e3e8f0;
+  --input: #e3e8f0;
   --ring: var(--brand);
 
   --sidebar: var(--color-achoq-white);
-  --sidebar-foreground: var(--color-achoq-black);
+  --sidebar-foreground: var(--color-achoq-ink);
   --sidebar-accent: var(--color-achoq-gray);
-  --sidebar-accent-foreground: var(--color-achoq-black);
-  --sidebar-border: #E5E5E5;
+  --sidebar-accent-foreground: var(--color-achoq-ink);
+  --sidebar-border: #e3e8f0;
   --sidebar-ring: var(--brand);
 }
 
 .dark {
-  /* Variantes mais claras para contraste sobre fundo escuro */
-  --brand: #6b9fd0;
-  --brand-foreground: #0b1929;
-  --vote-a: #dc2626;
-  --vote-a-foreground: #ffffff;
-  --vote-b: #2d5c94;
-  --vote-b-foreground: #ffffff;
-  --qs: #f59e0b;
-  --qs-foreground: #1c1206;
+  /*
+   * Tema escuro (padrão) = metade Polymarket/terminal cripto: azul-negro
+   * profundo, superfícies azuladas, verde-pregão vivo, coral e âmbar-moeda.
+   */
+  --brand: #00d18f;
+  --brand-foreground: #04110c;
+  --vote-a: #00d18f;
+  --vote-a-foreground: #04110c;
+  --vote-b: #ff5c72;
+  --vote-b-foreground: #1a0509;
+  --qs: #f7a600;
+  --qs-foreground: #1a1002;
 
   --primary: var(--brand);
   --primary-foreground: var(--brand-foreground);
   --sidebar-primary: var(--brand);
   --sidebar-primary-foreground: var(--brand-foreground);
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.85 0.005 65);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.85 0.005 65);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.85 0.005 65);
-  --secondary: oklch(0.24 0.006 286.033);
-  --secondary-foreground: oklch(0.7 0.005 65);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground:  oklch(0.92 0.005 65);
-  --destructive: var(--vote-a);
-  --destructive-foreground: var(--vote-a-foreground);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+  --background: #0a0f1c;
+  --foreground: #e8eef9;
+  --card: #101828;
+  --card-foreground: #e8eef9;
+  --popover: #131c30;
+  --popover-foreground: #e8eef9;
+  --secondary: #162033;
+  --secondary-foreground: #c0cbdd;
+  --muted: #172136;
+  --muted-foreground: #8e9cb5;
+  --accent: #162033;
+  --accent-foreground: #e8eef9;
+  --destructive: var(--vote-b);
+  --destructive-foreground: #ffffff;
+  --border: rgba(142, 156, 197, 0.16);
+  --input: rgba(142, 156, 197, 0.22);
   --ring: var(--brand);
   --chart-1: var(--vote-a);
   --chart-2: var(--vote-b);
   --chart-3: var(--brand);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.85 0.005 65);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground:  oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.488 0.243 264.376);
+  --chart-4: #3d8bff;
+  --chart-5: #7a5cff;
+  --sidebar: #101828;
+  --sidebar-foreground: #e8eef9;
+  --sidebar-accent: #162033;
+  --sidebar-accent-foreground: #f2f6fd;
+  --sidebar-border: rgba(142, 156, 197, 0.16);
+  --sidebar-ring: var(--brand);
 }
 
 @layer base {
@@ -174,7 +180,11 @@
     @apply bg-background text-foreground font-sans;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-sans font-semibold tracking-tight text-foreground;
+    @apply font-display font-semibold tracking-tight text-foreground;
+  }
+  /* Números de pregão: percentuais e saldos sempre alinhados em coluna */
+  .tabular-nums, [data-slot="percent"] {
+    font-variant-numeric: tabular-nums;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -230,4 +240,51 @@
       max-width: 1280px; /* Standard content width */
     }
   }
+
+  /* ── Fita de cotações (assinatura do rebrand "Pregão") ────────────────────
+     Conteúdo duplicado 2× no markup; a animação desloca -50% para loop
+     perfeito. Pausa no hover (dá para clicar) e some para quem prefere
+     menos movimento. */
+  .tape-track {
+    display: flex;
+    width: max-content;
+    animation: tape 45s linear infinite;
+  }
+  .tape:hover .tape-track {
+    animation-play-state: paused;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tape-track {
+      animation: none;
+    }
+    .animate-marquee {
+      animation: none;
+    }
+  }
+
+  /* Painel "terminal": cartões-resumo (ranking, liga, carteira, bolões)
+     sempre escuros como um painel de bolsa, nos dois temas, com um facho
+     de verde-pregão no canto. Substitui o antigo gradiente marinho. */
+  .panel-exchange {
+    background:
+      radial-gradient(420px 220px at 88% -20%, color-mix(in srgb, #00d18f 24%, transparent), transparent 70%),
+      linear-gradient(135deg, #10203a, #0a1424);
+    color: #eef3fb;
+  }
+
+  /* Brilho radial do hero — um único ponto de luz verde-pregão atrás do
+     card em destaque; discreto no claro, atmosférico no escuro. */
+  .hero-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(560px 300px at 50% 12%, color-mix(in srgb, var(--brand) 7%, transparent), transparent 70%);
+  }
+  .dark .hero-glow {
+    background: radial-gradient(640px 340px at 50% 12%, color-mix(in srgb, var(--brand) 13%, transparent), transparent 70%);
+  }
+}
+@keyframes tape {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
