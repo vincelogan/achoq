@@ -223,10 +223,13 @@ async function startServer() {
       const esc = (s: string) =>
         String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-      const bg = dark ? "#111318" : "#ffffff";
-      const fg = dark ? "#e7e9ee" : "#111111";
-      const muted = dark ? "#9aa1ad" : "#666666";
-      const border = dark ? "#2a2e37" : "#e5e5e5";
+      // Paleta do rebrand "Pregão" (espelha client/src/index.css)
+      const bg = dark ? "#0a0f1c" : "#ffffff";
+      const fg = dark ? "#e8eef9" : "#0b1220";
+      const muted = dark ? "#8e9cb5" : "#5b6779";
+      const border = dark ? "#232d44" : "#e3e8f0";
+      const green = dark ? "#00d18f" : "#00805f";
+      const coral = dark ? "#ff5c72" : "#d32f49";
       const marketUrl = `https://achoq.com.br/mercado/${market.slug}?utm_source=embed&utm_medium=iframe`;
 
       const html = `<!doctype html>
@@ -242,14 +245,14 @@ async function startServer() {
   a{text-decoration:none}
   .title{font-size:15px;font-weight:700;line-height:1.35;color:${fg}}
   .bar{display:flex;height:14px;border-radius:99px;overflow:hidden;background:${border}}
-  .bar .a{background:#b91c1c;height:100%}
-  .bar .b{background:#2d5c94;height:100%}
+  .bar .a{background:${green};height:100%}
+  .bar .b{background:${coral};height:100%}
   .legend{display:flex;justify-content:space-between;font-size:12px;font-weight:700}
-  .legend .a{color:#c93a3a}.legend .b{color:#5b8fc4}
+  .legend .a{color:${green}}.legend .b{color:${coral}}
   .meta{font-size:11px;color:${muted}}
   .cta{margin-top:auto;display:flex;justify-content:space-between;align-items:center;border-top:1px solid ${border};padding-top:10px}
-  .logo{font-size:13px;font-weight:900;color:${dark ? "#6b9fd0" : "#1a4971"}}
-  .go{font-size:12px;font-weight:700;color:${dark ? "#6b9fd0" : "#1a4971"}}
+  .logo{font-size:13px;font-weight:900;color:${green}}
+  .go{font-size:12px;font-weight:700;color:${green}}
 </style>
 </head><body>
   <a class="title" href="${marketUrl}" target="_blank" rel="noopener">${esc(market.title)}</a>

@@ -1,7 +1,6 @@
 import { Link } from "wouter";
 import { Instagram, Linkedin } from "lucide-react";
-
-const LOGO_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/logowhite_07ee886e.png";
+import { Wordmark } from "./Header";
 
 function XIcon({ className }: { className?: string }) {
   return (
@@ -18,15 +17,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
-            <Link href="/" className="flex items-center gap-2.5 mb-4 w-fit">
-              <img src={LOGO_URL} alt="AchoQ" className="h-11 w-11 object-contain" />
-              <div className="flex flex-col leading-none">
-                <span className="font-sans text-xl font-black tracking-tight text-brand">AchoQ</span>
-                <span className="font-sans text-[9px] text-muted-foreground tracking-wide">Expectativa Coletiva</span>
-              </div>
+            <Link href="/" className="inline-block mb-4 w-fit" aria-label="AchoQ — início">
+              <Wordmark />
             </Link>
             <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-              A primeira plataforma de expectativa coletiva do Brasil. Veja o que o Brasil acha agora!
+              A bolsa de opiniões do Brasil. Sem apostas, sem dinheiro — só opinião.
             </p>
             <p className="text-xs text-muted-foreground mt-3 max-w-xs leading-relaxed">
               Não é pesquisa eleitoral. Não constitui plataforma de apostas.

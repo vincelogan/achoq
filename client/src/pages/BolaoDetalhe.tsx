@@ -87,7 +87,7 @@ export default function BolaoDetalhe() {
       breadcrumbs={[{ label: "Bolões", href: "/boloes" }, { label: group.name }]}
     >
       {/* Convite */}
-      <div className="mb-6 bg-gradient-to-r from-vote-b to-brand rounded-2xl p-5 text-white flex items-center justify-between gap-4 flex-wrap">
+      <div className="mb-6 panel-exchange rounded-2xl p-5 text-white flex items-center justify-between gap-4 flex-wrap">
         <div>
           <p className="text-blue-200 text-sm font-medium mb-1">Código de convite</p>
           <div className="flex items-center gap-2">
@@ -102,7 +102,7 @@ export default function BolaoDetalhe() {
             <Button
               onClick={() => joinMutation.mutate({ fingerprint, code })}
               disabled={!fingerprint || joinMutation.isPending}
-              className="bg-white text-vote-b hover:bg-white/90 font-bold"
+              className="bg-white text-[#0a1424] hover:bg-white/90 font-bold"
             >
               <Users className="w-4 h-4 mr-2" /> Entrar no bolão
             </Button>

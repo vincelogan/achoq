@@ -49,7 +49,7 @@ export default function Carteira() {
       ) : (
         <>
           {/* Painel de saldo */}
-          <div className="mb-8 bg-gradient-to-r from-vote-b to-brand rounded-2xl p-6 text-white">
+          <div className="mb-8 panel-exchange rounded-2xl p-6 text-white">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
                 <p className="text-blue-200 text-sm font-medium mb-1">Saldo disponível</p>

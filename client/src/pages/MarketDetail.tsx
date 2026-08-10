@@ -81,7 +81,7 @@ function VoteChart({ history, optionA, optionB }: { history: { date: string; cho
           <div className="w-3 h-3 rounded-sm bg-vote-a" />
           <span>% que acham <strong className="text-foreground/80">{optionA || "Opção A"}</strong></span>
         </div>
-        <span className="text-2xl font-black text-vote-a tabular-nums">{last.pctA}%</span>
+        <span className="font-display text-2xl font-bold text-vote-a tabular-nums">{last.pctA}%</span>
       </div>
       <svg
         viewBox={`0 0 ${W} ${H}`}
@@ -382,8 +382,8 @@ export default function MarketDetail() {
                 <div className="flex items-center gap-2 mb-5"><TrendingUp className="w-5 h-5 text-brand" /><h2 className="font-bold text-foreground">Resultados em tempo real</h2></div>
                 <div className="mb-6">
                   <div className="flex justify-between items-end mb-2">
-                    <div><span className="text-3xl font-black text-vote-a">{stats?.pctA ?? 50}%</span><p className="text-sm text-muted-foreground mt-0.5">{market.optionA}</p></div>
-                    <div className="text-right"><span className="text-3xl font-black text-vote-b">{stats?.pctB ?? 50}%</span><p className="text-sm text-muted-foreground mt-0.5">{market.optionB}</p></div>
+                    <div><span className="font-display text-3xl font-bold text-vote-a tabular-nums">{stats?.pctA ?? 50}%</span><p className="text-sm text-muted-foreground mt-0.5">{market.optionA}</p></div>
+                    <div className="text-right"><span className="font-display text-3xl font-bold text-vote-b tabular-nums">{stats?.pctB ?? 50}%</span><p className="text-sm text-muted-foreground mt-0.5">{market.optionB}</p></div>
                   </div>
                   <div className="h-4 rounded-full bg-muted overflow-hidden flex">
                     <motion.div className="bg-vote-a rounded-l-full" initial={{ width: "50%" }} animate={{ width: `${stats?.pctA ?? 50}%` }} transition={{ duration: 0.8, ease: "easeOut" }} />
@@ -410,7 +410,7 @@ export default function MarketDetail() {
                 return (
                   <div className="bg-card rounded-2xl border border-border p-6">
                     <div className="flex items-center gap-2 mb-4">
-                      <span className="text-[10px] font-bold text-white bg-vote-a px-2 py-0.5 rounded uppercase tracking-wider">News</span>
+                      <span className="text-[10px] font-bold text-white bg-red-600 px-2 py-0.5 rounded uppercase tracking-wider">News</span>
                       <h2 className="font-bold text-foreground">Notícia Recente</h2>
                     </div>
                     <div className="bg-muted rounded-xl p-4 border border-border/50">

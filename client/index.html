@@ -14,10 +14,25 @@
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0" />
-    <title>AchoQ - Expectativa Coletiva do Brasil</title>
+    <!-- Aplica o tema antes do primeiro paint (evita flash branco no dark padrão).
+         Mesma lógica/chave do ThemeContext (achoq_theme_v2, padrão: dark). -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("achoq_theme_v2");
+          if (t !== "light") document.documentElement.classList.add("dark");
+        } catch (e) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
+    <style>
+      html.dark { background-color: #0a0f1c; }
+    </style>
+    <title>AchoQ — A bolsa de opiniões do Brasil</title>
     <meta
       name="description"
-      content="Participe do AchoQ e registre sua opinião sobre política, esportes e entretenimento. Veja o que o Brasil acha agora!" />
+      content="A bolsa de opiniões do Brasil: registre o que você acha sobre política, economia, esportes e entretenimento e acompanhe o placar ao vivo. Sem apostas, sem dinheiro — só opinião." />
     <meta
       name="keywords"
       content="AchoQ, expectativa coletiva, enquetes Brasil, opinião coletiva, índice ACHOQ" />
@@ -27,8 +42,8 @@
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="AchoQ - Expectativa Coletiva do Brasil" />
-    <meta property="og:description" content="Registre sua opinião sobre política, esportes e entretenimento. Veja o que o Brasil acha agora!" />
+    <meta property="og:title" content="AchoQ — A bolsa de opiniões do Brasil" />
+    <meta property="og:description" content="Registre o que você acha e acompanhe o placar ao vivo. Sem apostas, sem dinheiro — só opinião." />
     <meta property="og:site_name" content="AchoQ" />
     <meta property="og:url" content="https://achoq.com.br/" />
     <meta property="og:locale" content="pt_BR" />
@@ -39,8 +54,8 @@
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="AchoQ - Expectativa Coletiva do Brasil" />
-    <meta name="twitter:description" content="Registre sua opinião sobre política, esportes e entretenimento. Veja o que o Brasil acha agora!" />
+    <meta name="twitter:title" content="AchoQ — A bolsa de opiniões do Brasil" />
+    <meta name="twitter:description" content="Registre o que você acha e acompanhe o placar ao vivo. Sem apostas, sem dinheiro — só opinião." />
     <meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310419663028794623/X5pkFNdVA2a4EtC5Ypx3aG/achoq-og-image-aawMaQuDuycX5rNEb2EqnQ.png" />
 
     <!-- Favicons - Google requires at least 48x48 PNG -->
@@ -50,11 +65,11 @@
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#1a4971" />
+    <meta name="theme-color" content="#0a0f1c" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json">
@@ -73,7 +88,7 @@
             "width": 512,
             "height": 512
           },
-          "description": "A primeira plataforma de expectativa coletiva do Brasil. Veja o que o Brasil acha em tempo real.",
+          "description": "A bolsa de opiniões do Brasil. Sem apostas, sem dinheiro — só opinião. Veja o que o Brasil acha em tempo real.",
           "sameAs": [
             "https://x.com/achoq"
           ]
@@ -83,7 +98,7 @@
           "@id": "https://achoq.com.br/#website",
           "url": "https://achoq.com.br",
           "name": "AchoQ",
-          "description": "Plataforma de Expectativa Coletiva - Veja o que o Brasil acha em tempo real",
+          "description": "A bolsa de opiniões do Brasil — veja o que o Brasil acha em tempo real",
           "publisher": {
             "@id": "https://achoq.com.br/#organization"
           },
@@ -101,14 +116,14 @@
           "@type": "WebPage",
           "@id": "https://achoq.com.br/#webpage",
           "url": "https://achoq.com.br",
-          "name": "AchoQ - Expectativa Coletiva do Brasil",
+          "name": "AchoQ — A bolsa de opiniões do Brasil",
           "isPartOf": {
             "@id": "https://achoq.com.br/#website"
           },
           "about": {
             "@id": "https://achoq.com.br/#organization"
           },
-          "description": "Participe do AchoQ e registre sua opinião sobre política, esportes e entretenimento. Veja o que o Brasil acha agora!",
+          "description": "A bolsa de opiniões do Brasil: registre o que você acha e acompanhe o placar ao vivo. Sem apostas, sem dinheiro — só opinião.",
           "inLanguage": "pt-BR",
           "breadcrumb": {
             "@type": "BreadcrumbList",
